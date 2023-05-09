@@ -1,0 +1,16 @@
+sample_id	readout_id	treatment_id
+SRR22909639	DMSO_1	DMSO
+SRR22909638	DMSO_2	DMSO
+SRR22909637	DMSO_3	DMSO
+SRR22909636	DMSO_4	DMSO
+SRR22909635	DMSO_5	DMSO
+SRR22909634	risdiplam_1	Risdiplam
+SRR22909633	risdiplam_2	Risdiplam
+SRR22909632	risdiplam_3	Risdiplam
+SRR22909631	risdiplam_4	Risdiplam
+SRR22909630	risdiplam_5	Risdiplam
+SRR22909629	branaplam_1	Branaplam
+SRR22909628	branaplam_2	Branaplam
+SRR22909627	branaplam_3	Branaplam
+SRR22909626	branaplam_4	Branaplam
+SRR22909625	branaplam_5	Branaplam
