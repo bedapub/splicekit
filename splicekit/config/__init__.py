@@ -17,3 +17,6 @@ for line in temp:
         fasta_path = line
     if line.endswith(".gtf.gz"):
         gtf_path = line
+    if line.endswith(".gff3.gz"):
+        gff3_path = line
+
