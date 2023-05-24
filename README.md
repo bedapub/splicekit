@@ -126,8 +126,6 @@ Visualization, labelling and other parameters:
 
 </details>
 
-Setting the minimal set of the above parameters already allows you to run splicekit on the provided bksnake output.
-
 After setting the basic parameters in your `splicekit.config` file, simply run `splicekit process` inside the folder with your config file. This will run all available analysis on your dataset (see details of inidividual commands in **Running Splicekit**)
 
 ## Running Splicekit <a name="running_splicekit"></a>
@@ -294,7 +292,7 @@ All genomic coordinates we operate with inside splicekit are **0-based left+righ
 
 **Important**
 
-Refseq and Ensembl GTF files are 1-indexed. bksnake results are also 1-indexed. When we read files from refseq/ensembl/bksnake, we perform -1 on all coordinates to keep this in line with other coordinate structures inside splicekit (which are all 0-indexed).
+Refseq and Ensembl GTF files are 1-indexed. When we read files from refseq/ensembl, we perform -1 on all coordinates to keep this in line with other coordinate structures inside splicekit (which are all 0-indexed).
 
 </details>
 
