@@ -20,15 +20,16 @@ annotation.first_exons((chr, strand, pos)) = (transcript_id, gene_id)
 """
 
 def short_names(text):
+    result = text
     if getattr(config, "short_names", None) == None:
-        return text
+        return result
     for from_text, to_text, replace_type in config.short_names:
         if replace_type=="complete":
             if text==from_text:
-                text = to_text
+                result = to_text
         else:
-            text = text.replace(from_text, to_text)
-    return text
+            result = text.replace(from_text, to_text)
+    return result
 
 # alpha numeric sort
 def break_readout_id(item):
