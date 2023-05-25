@@ -68,7 +68,7 @@ If you would like to install splicekit directly from this repository, clone the 
 
 ### Dependencies
 
-splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity](singularity) definition file, where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
+splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity definition file](singularity), where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
 
 
 ### Example runs and datasets
