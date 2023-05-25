@@ -33,6 +33,8 @@ print("[splicekit] loading splicekit.core.anchors ")
 import splicekit.core.anchors 
 print("[splicekit] loading splicekit.core.junctions")
 import splicekit.core.junctions
+print("[splicekit] loading splicekit.core.jbrowse2_create")
+import splicekit.core.jbrowse_create
 print("[splicekit] loading splicekit.core.jbrowse2")
 import splicekit.core.jbrowse2
 print("[splicekit] loading splicekit.core.juan")
@@ -224,6 +226,9 @@ def judge_process():
 
 def clusterlogfc_process():
     splicekit.clusterlogfc.process()
+
+def jbrowse2_create(force_samples=False, force_annotation=False):
+    splicekit.core.jbrowse2_create.process(force_samples,force_annotation)
 
 def process():
     setup()

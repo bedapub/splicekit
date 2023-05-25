@@ -9,21 +9,26 @@ Usage: splicekit <command> [options]
 
 Commands:
   -- Processing
-     process        run all available analyses
+     process           run all available analyses
 
   -- Initialization
-     setup          initialize folder structure
-     annotation     download sample annotation from Moose
-     features       create junction/exon/anchor count tables from .bam files
+     setup             initialize folder structure
+     annotation        download sample annotation from Moose
+     features          create junction/exon/anchor count tables from .bam files
   
   -- Splicing analyses
-     edgeR          run edgeR analyses on junctions, exons and anchors
-     judge          run juDGE plot analysis
-     promisc        promiscuity analysis: genes and their junctions changes across conditions
-     clusterlogfc   log fold-change clusters of significant changes (FDR<0.05) on junction, exon, gene level
+     edgeR             run edgeR analyses on junctions, exons and anchors
+     judge             run juDGE plot analysis
+     promisc           promiscuity analysis: genes and their junctions changes across conditions
+     clusterlogfc      log fold-change clusters of significant changes (FDR<0.05) on junction, exon, gene level
 
   -- scanRBP, motif and sequence analyses
-     motifs         run motif and scanRBP analysis
+     motifs            run motif and scanRBP analysis
+
+  -- JBrowse2 genomic browser
+     jbrowse2_create   creates all required JBrowse2 files
+     jbrowse2          starts JBrowse2 web server
+     
 """
 
 help_edgeR = """
@@ -107,8 +112,6 @@ elif args.command[0]=="motifs":
     splicekit.motifs()
 elif args.command[0]=="promisc":
     splicekit.promisc()
-elif args.command[0]=="jbrowse":
-    splicekit.jbrowse()
 elif args.command[0]=="cassettes":
     splicekit.cassettes()
 elif args.command[0]=="patterns":
@@ -121,6 +124,15 @@ elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
     splicekit.juan()
+elif args.command [0] == "jbrowse2_create":
+    force_samples=False; force_annotation = False
+    if len(args.command)>1 and args.command[1] == 'samples':
+        force_samples=args.force
+    if len(args.command)>1 and args.command[1] == 'annotation':
+        force_annotation=args.force
+    if len(args.command)==1:
+        force_annotation = args.force; force_samples = args.force
+    splicekit.jbrowse2_create(force_samples=force_samples,force_annotation=force_annotation)
 elif args.command[0]=="jbrowse2":
     splicekit.core.jbrowse2.process()
 else:

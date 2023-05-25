@@ -5,18 +5,19 @@ import socket
 import socketserver
 import RangeHTTPServer
 
+port = 8007
+
 def process():
     setup()
     server()
 
 def server():
-    port = 8005
     hostname=socket.gethostname()
     ip_addr=socket.gethostbyname(hostname)
     Handler = RangeHTTPServer.RangeRequestHandler
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", port), Handler) as httpd:
-        print(f"[splicekit] http://{ip_addr}:{port}")
+        print(f"[splicekit] http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json")
         httpd.serve_forever()
 
 def setup():
