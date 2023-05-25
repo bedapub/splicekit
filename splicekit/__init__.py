@@ -34,7 +34,7 @@ import splicekit.core.anchors
 print("[splicekit] loading splicekit.core.junctions")
 import splicekit.core.junctions
 print("[splicekit] loading splicekit.core.jbrowse2_create")
-import splicekit.core.jbrowse_create
+import splicekit.core.jbrowse2_create
 print("[splicekit] loading splicekit.core.jbrowse2")
 import splicekit.core.jbrowse2
 print("[splicekit] loading splicekit.core.juan")
