@@ -4,16 +4,16 @@ A comprehensive platform for splicing analysis of RNA-seq short-read sequencing 
 
 [What does splicekit do?](#what_do)<br>
 [Changelog](#changelog)<br>
-[Quick Start](#initial_setup)<br>
+[Quick start and installation](#initial_setup)<br>
 [Running Splicekit](#running_splicekit)<br>
 &nbsp;&nbsp;[Annotation and comparisons](#annot_comp)<br>
 &nbsp;&nbsp;[Preparing feature (genes, exon, junction, anchor) data tables](#make_tables)<br>
 &nbsp;&nbsp;[Running edgeR gene context analysis on junction features](#run_edgeR)<br>
-[Motif Analysis](#motif)<br>
+[Motif analysis](#motif)<br>
 [Scanning for RNA-protein binding with scanRBP](#scanRBP)<br>
-[juDGE Plots](#judgeplot)<br>
+[juDGE plots](#judgeplot)<br>
 [Jbrowse2 visualizations](#jbrowse)<br>
-[Documentation and Specifications](#filedescriptors)<br>
+[Documentation and specifications](#filedescriptors)<br>
 
 <b>splicekit</b> is a modular platform for splicing analysis of RNA-seq datasets. The platform also integrates an JBrowse2 instance together with [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained (one single folder) and the platform is written in Python, in a modular way.
 
@@ -60,13 +60,22 @@ From an initial setup (`splicekit.config`) and sample annotation (`samples.tab`)
 * basic motif analysis
 </details>
 
-## Quick Start and Installation<a name="initial_setup"></a>
+## Quick start and installation<a name="initial_setup"></a>
 
-The easiest way to install splicekit is to simply run `pip install splicekit`. This will also install pybio and scanRBP.
+The easiest way to install splicekit is to simply run `pip install splicekit`.
 
 If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
 
+### Dependencies
+
+splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity](singularity) definition file, where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
+
+
+### Example runs and datasets
+
 Example runs can be found in the [datasets](datasets) folder.
+
+### Configuration file documentation
 
 <details>
 <summary>Description of splicekit.config file parameters (click to show)</summary>
@@ -128,7 +137,7 @@ Visualization, labelling and other parameters:
 
 After setting the basic parameters in your `splicekit.config` file, simply run `splicekit process` inside the folder with your config file. This will run all available analysis on your dataset (see details of inidividual commands in **Running Splicekit**)
 
-## Running Splicekit <a name="running_splicekit"></a>
+## Running splicekit <a name="running_splicekit"></a>
 
 For example files (`splicekit.config` and `samples.tab`) please look in the [datasets](datasets) folder.
 
@@ -242,7 +251,7 @@ Running edgeR analysis on features (either genes, exons, junctions or anchors) c
 
 Results are stored in the files `results/results_edgeR_{feature_type}` where feature_type is one of ["genes", "exons", "junctions", "donor_anochors", "acceptor_anchors"]. Results with FDR < `splicekit.config.edgeR_FDR_thr` are reported (sorted by FDR), linked to JBrowse with URL links.
 
-## Motif Analysis <a name="motif"></a>
+## Motif analysis <a name="motif"></a>
 
 Motif analysis on donor site patterns (9nt sequences) is performed on the top 100 hits for each comparison. The analysis is run by `splicekit motifs`. Html reports are generated at `results/motifs`. In addition to computing motif logos, we run DREME on regulated sequences vs. controls.
 
@@ -270,7 +279,7 @@ In contrast, the comparison on the right panel shows more activity on changing g
 
 To graphically explore results, we use JBrowse. We incorporate a lightweight pybio web server to explore JBrowse2 results locally, by running `splicekit jbrowse2`.
 
-## Documentation and Specifications<a name="filedescriptors"></a>
+## Documentation and specifications<a name="filedescriptors"></a>
 Global specifications and documentation on file formats, analysis results and other objects produced by splicekit.
 
 <details>
