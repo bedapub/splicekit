@@ -47,6 +47,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, 
 parser.add_argument('command', help="command(s) to run", nargs='*')
 parser.add_argument("-help", "-h", "--help", action="store_true")
 parser.add_argument("-version", "--version", help="Print version", action="store_true")
+parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true")
 args = parser.parse_args()
 
 # lookup version without loading splicekit
