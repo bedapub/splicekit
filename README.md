@@ -62,7 +62,9 @@ From an initial setup (`splicekit.config`) and sample annotation (`samples.tab`)
 
 ## Quick start and installation<a name="initial_setup"></a>
 
-The easiest way to install splicekit is to simply run `pip install splicekit`.
+The easiest way to install splicekit is to simply run:
+
+`$ pip install splicekit`
 
 If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
 
