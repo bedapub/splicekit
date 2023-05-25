@@ -81,7 +81,7 @@ def write_sample_jobs(force_samples):
                                             bam_fname=bam_fname,cram_fname=cram_fname, bigwig_fname=bigwig_fname, genome_fa=genome_fa)
             fsh.write(job_sh_bw_out)
         else:
-            print('[jbrowse] sample {sample} already processed (.bw and .cram in results/results_jbrowse) --> use splicekit "jbrowse_create samples -force" to overwrite')
+            print('[jbrowse] sample {sample} already processed (.bw and .cram in results/results_jbrowse) --> use "splicekit jbrowse2_create samples -force" to overwrite')
     fsh.close()
 
 def create_jbrowse_config(force_annotation):
@@ -133,7 +133,7 @@ def create_jbrowse_config(force_annotation):
             os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{bigwig_fname} --name {sample_id}.bw --trackId {sample_id}.bw  --category "Coverage" --load symlink')
             os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{cram_fname} --name {sample_id}.cram --trackId {sample_id}.cram --category "Reads" --load symlink')
     else:
-        print('[jbrowse] config.json already existing in jbrowse2/splicekit_data --> use splicekit "jbrowse_create annotation -force" to overwrite')
+        print('[jbrowse] config.json already existing in jbrowse2/splicekit_data --> use "splicekit jbrowse2_create annotation -force" to overwrite')
 
 def process(force_samples=False, force_annotation=False):
     #os.system(f'rm -r jbrowse2/splicekit_data/*') # clean up before starting
