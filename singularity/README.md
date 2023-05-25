@@ -1,8 +1,8 @@
-# splicekit and the singularity container
+## Splicekit and the singularity container
 
-There are several software dependencies for splicekit, and we packed them into a single singularity container.
+There are several software dependencies for splicekit, and we packaged them into a single singularity container.
 
-If you would like to build the container frim the provided [splicekit.def](splicekit.def) file you need to have `singularity` installed. Please follow the operating system specific [official singularity documentation](https://docs.sylabs.io/guides/3.0/user-guide/installation.html).
+If you would like to build the container from the provided [splicekit.def](splicekit.def) file you need to have `singularity` installed. Please follow the operating system specific [official singularity documentation](https://docs.sylabs.io/guides/3.0/user-guide/installation.html).
 
 ## Building the splicekit singularity image
 
@@ -12,6 +12,6 @@ To build the splicekit singularity image run:
 
 `$ singularity build splicekit.sif splicekit.def`
 
-When you obtain the `splicekit.sif` file, you can relocate it to whichever folder you like.
+This will create the `splicekit.sif` container file. When you obtain the `splicekit.sif` file, you can relocate it to whichever folder you like.
 
-Then, in the `splicekit.config` file, you would modify the `container` variable: `singularity run path_to/splicekit.sif`.
+Finally, in the `splicekit.config` file, you should modify the `container` variable to `singularity run path_to/splicekit.sif`.
