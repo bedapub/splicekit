@@ -26,8 +26,7 @@ Commands:
      motifs            run motif and scanRBP analysis
 
   -- JBrowse2 genomic browser
-     jbrowse2_create   creates all required JBrowse2 files
-     jbrowse2          starts JBrowse2 web server
+     jbrowse2          creates all required JBrowse2 files and starts JBrowse2 web server
      
 """
 
@@ -125,7 +124,7 @@ elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
     splicekit.juan()
-elif args.command [0] == "jbrowse2_create":
+elif args.command [0] == "jbrowse2":
     force_samples=False; force_annotation = False
     if len(args.command)>1 and args.command[1] == 'samples':
         force_samples=args.force
@@ -134,7 +133,6 @@ elif args.command [0] == "jbrowse2_create":
     if len(args.command)==1:
         force_annotation = args.force; force_samples = args.force
     splicekit.jbrowse2_create(force_samples=force_samples,force_annotation=force_annotation)
-elif args.command[0]=="jbrowse2":
     splicekit.core.jbrowse2.process()
 else:
     print(help_0)

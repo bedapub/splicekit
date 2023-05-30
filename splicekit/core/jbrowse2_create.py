@@ -81,7 +81,7 @@ def write_sample_jobs(force_samples):
                                             bam_fname=bam_fname,cram_fname=cram_fname, bigwig_fname=bigwig_fname, genome_fa=genome_fa)
             fsh.write(job_sh_bw_out)
         else:
-            print('[jbrowse] sample {sample} already processed (.bw and .cram in results/results_jbrowse) --> use "splicekit jbrowse2_create samples -force" to overwrite')
+            print(f'[jbrowse] sample {sample} already processed (.bw and .cram in results/results_jbrowse) --> use "splicekit jbrowse2_create samples -force" to overwrite')
     fsh.close()
 
 def create_jbrowse_config(force_annotation):
