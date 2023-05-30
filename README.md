@@ -8,7 +8,7 @@ A comprehensive platform for splicing analysis of RNA-seq short-read sequencing 
 [Running Splicekit](#running_splicekit)<br>
 &nbsp;&nbsp;[Annotation and comparisons](#annot_comp)<br>
 &nbsp;&nbsp;[Preparing feature (genes, exon, junction, anchor) data tables](#make_tables)<br>
-&nbsp;&nbsp;[Running edgeR gene context analysis on junction features](#run_edgeR)<br>
+&nbsp;&nbsp;[Running edgeR gene context analysis on junction features](#id_features)<br>
 [Motif analysis](#motif)<br>
 [Scanning for RNA-protein binding with scanRBP](#scanRBP)<br>
 [juDGE plots](#judgeplot)<br>
@@ -247,7 +247,7 @@ The second type of count tables are then the individual comparison tables. Each 
 | 1 | 58347640 | 58350370 | 2731 | A1BG | 0 | 0 | 3 | 1 | 0 | 0 | 0 |
 | 1 | 58350651 | 58351391 | 741 | A1BG | 0 | 0 | 10 | 1 | 0 | 0	| 3 |
 
-## Running edgeR gene context analysis on junction features <a name="run_edgeR"></a>
+## Running edgeR gene context analysis on junction features <a name="id_features"></a>
 
 Running edgeR analysis on features (either genes, exons, junctions or anchors) consist of simply running the process script or submitting all matching job files to the cluster. This is done by the `splicekit edgeR` command.
 
