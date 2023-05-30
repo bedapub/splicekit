@@ -1,6 +1,6 @@
 # splicekit
 
-A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in .bam format (look at [datasets](datasets) for details on how to run examples).
+A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in BAM format (look at [datasets](datasets) for details on how to run examples).
 
 [What does splicekit do?](#what_do)<br>
 [Changelog](#changelog)<br>
