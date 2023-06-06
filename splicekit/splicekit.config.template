@@ -6,8 +6,8 @@ library_strand = "NONE" # ["SECOND_READ_TRANSCRIPTION_STRAND", "FIRST_READ_TRANS
 edgeR_FDR_thr = 0.05
 
 # sample annotation (read from samples.tab)
-sample_column = "readout_id" # where are sample ids stored; we expect bam names: sample_id1.bam, sample_id2.bam, ...
-treatment_column = "compound_name"
+sample_column = "sample_id" # where are sample ids stored; we expect bam names: sample_id1.bam, sample_id2.bam, ...
+treatment_column = "treatment_id"
 control_name = "DMSO" # name of controls in the treatment_column, other samples are compared to these marked controls
 separate_column = "" # separate comparisons by grouping samples on separate_column? if "", do not separate
 group_column = "" # only include DMSOs in the same range as compounds (compound replicates on plate1,plate2,plate3? only include DMSO from plate1,plate2,plate3)
