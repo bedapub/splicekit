@@ -125,12 +125,6 @@ Processing parameters:
 | platform | "desktop" or "cluster" (HPC with SLURM) | "desktop"
 | container | leave empty or for singularity use: "singularity"; this will download and run "singularity/splicekit_version.sif" | "desktop"
 
-JBrowse2 parameters:
-
-| Parameter | Description | Default / Example |
-|-|-|-|
-| jbrowse2_url | URL of the local JBrowse2 instance | "localhost/jbrowse2"
-
 Visualization, labelling and other parameters:
 
 | Parameter | Description | Default / Example |
