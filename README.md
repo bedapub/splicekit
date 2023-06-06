@@ -17,7 +17,7 @@ A comprehensive platform for splicing analysis of RNA-seq short-read sequencing 
 
 <b>splicekit</b> is a modular platform for splicing analysis of RNA-seq datasets. The platform also integrates an JBrowse2 instance together with [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained (one single folder) and the platform is written in Python, in a modular way.
 
-## What does splicekit do?<a name="what_do"></a>
+## What is splicekit?<a name="what_do"></a>
 From an initial setup (`splicekit.config`) and sample annotation (`samples.tab`), splicekit generates comparisons (which samples to compare to which controls). Next, feature count tables are generated (exons, anchors, junctions, genes) based on defined comparisons. Analyses incude edgeR altsplice (differentially used features), motif analysis with DonJuan (junction-anchor) and DREME, RNA-protein binding enrichment analysis with scanRBP and clustering analysis on expression of features. To facilitate result and data interpretation, splicekit also provides an instance of JBrowse2.
 
 ## Installation and quick start<a name="initial_setup"></a>
