@@ -30,6 +30,3 @@ protein_label = "tdp43" # used in file names and titles
 # platform and container
 platform = "desktop" # "desktop" or "cluster" (HPC with SLURM)
 container = "" # leave empty or for singularity use: "singularity run /my_path/splicekit.sif"
-
-# JBrowse2
-jbrowse2_url = ""

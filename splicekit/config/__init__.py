@@ -10,14 +10,10 @@ if os.path.exists("splicekit.config"):
         exec(cline.replace("\r", "").replace("\n", ""))
 
 # JBrowse2 URL
-
-if jbrowse2_url == "":
-    port = jbrowse2.port
-    hostname=socket.gethostname()
-    ip_addr=socket.gethostbyname(hostname)
-    jbrowse2_url = f"http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json"
-
-cwd = os.getcwd()
+port = jbrowse2.port
+hostname=socket.gethostname()
+ip_addr=socket.gethostbyname(hostname)
+jbrowse2_url = f"http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json"
 
 # read in location of gtf and fasta files
 temp = os.popen(f"pybio path {species}").read()
