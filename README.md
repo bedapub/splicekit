@@ -2,65 +2,25 @@
 
 A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in BAM format (look at [datasets](datasets) for details on how to run examples).
 
-[What does splicekit do?](#what_do)<br>
-[Changelog](#changelog)<br>
-[Quick start and installation](#initial_setup)<br>
-[Running Splicekit](#running_splicekit)<br>
+[What is splicekit?](#what_do)<br>
+[Installation and quick start](#initial_setup)<br>
+[Running splicekit](#running_splicekit)<br>
 &nbsp;&nbsp;[Annotation and comparisons](#annot_comp)<br>
 &nbsp;&nbsp;[Preparing feature (genes, exon, junction, anchor) data tables](#make_tables)<br>
 &nbsp;&nbsp;[Running edgeR gene context analysis on junction features](#id_features)<br>
 [Motif analysis](#motif)<br>
 [Scanning for RNA-protein binding with scanRBP](#scanRBP)<br>
 [juDGE plots](#judgeplot)<br>
-[Jbrowse2 visualizations](#jbrowse)<br>
+[JBrowse2 visualizations](#jbrowse)<br>
 [Documentation and specifications](#filedescriptors)<br>
+[Changelog](#changelog)<br>
 
 <b>splicekit</b> is a modular platform for splicing analysis of RNA-seq datasets. The platform also integrates an JBrowse2 instance together with [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained (one single folder) and the platform is written in Python, in a modular way.
 
 ## What does splicekit do?<a name="what_do"></a>
 From an initial setup (`splicekit.config`) and sample annotation (`samples.tab`), splicekit generates comparisons (which samples to compare to which controls). Next, feature count tables are generated (exons, anchors, junctions, genes) based on defined comparisons. Analyses incude edgeR altsplice (differentially used features), motif analysis with DonJuan (junction-anchor) and DREME, RNA-protein binding enrichment analysis with scanRBP and clustering analysis on expression of features. To facilitate result and data interpretation, splicekit also provides an instance of JBrowse2.
 
-## Changelog<a name="changelog"></a>
-
-**v0.4**: released in May 2023
-* added singularity container with all dependencies
-* added local integrated JBrowse2
-* cluster or desktop runs
-* scanRBP and bootstrap analysis of RNA-protein binding
-* further development and integration with pybio
-* extended documentation of concepts, analysis and results
-
-<details>
-<summary><b>v0.3</b>: released in January 2023 (click to show details)</summary>
-
-* re-coded junction analysis
-  * independent junctions parsing from provided bam files
-  * master table of all junctions in the samples of the analyzed project, including novel junctions (refseq/ensembl non-annotated)
-* clustering by logFC of pairwise-comparisons with dendrogram: junction, exon and gene levels (clusterlogfc module)
-* added *first_exon* annotation for junctions touching annotated first exons of transcripts
-* extended documentation of concepts, analysis and results
-</details>
-
-<details>
-<summary><b>v0.2</b>: released in October 2022 (click to show details)</summary>
-
-* software architecture restructure with python modules
-* filtering of lowly expressed features by edgeR
-* DonJuan analysis (junction-anchor analysis)
-* more advanced motif analysis with DREME
-* filtering regulated junctions with regulated donors
-</details>
-
-<details>
-<summary><b>v0.1</b>: released in July 2022 (click to show details)</summary>
-
-* initial version of splicekit
-* parsing of junction and exon counts
-* computing edgeR analysis from count tables and producing a results file with direct links to JBrowse2
-* basic motif analysis
-</details>
-
-## Quick start and installation<a name="initial_setup"></a>
+## Installation and quick start<a name="initial_setup"></a>
 
 The easiest way to install splicekit is to simply run:
 
@@ -73,7 +33,6 @@ If you would like to install splicekit directly from this repository, clone the 
 ### Software dependencies
 
 splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity definition file](singularity), where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
-
 
 ### Example runs and datasets
 
@@ -377,4 +336,44 @@ Adding to the above column table, there are additional columns present, dependin
 |-|-|
 | delta_PSI | test_PSI-control_PSI, percentage spliced-in |
 
+</details>
+
+## Changelog<a name="changelog"></a>
+
+**v0.4**: released in May 2023
+* added singularity container with all dependencies
+* added local integrated JBrowse2
+* cluster or desktop runs
+* scanRBP and bootstrap analysis of RNA-protein binding
+* further development and integration with pybio
+* extended documentation of concepts, analysis and results
+
+<details>
+<summary><b>v0.3</b>: released in January 2023 (click to show details)</summary>
+
+* re-coded junction analysis
+  * independent junctions parsing from provided bam files
+  * master table of all junctions in the samples of the analyzed project, including novel junctions (refseq/ensembl non-annotated)
+* clustering by logFC of pairwise-comparisons with dendrogram: junction, exon and gene levels (clusterlogfc module)
+* added *first_exon* annotation for junctions touching annotated first exons of transcripts
+* extended documentation of concepts, analysis and results
+</details>
+
+<details>
+<summary><b>v0.2</b>: released in October 2022 (click to show details)</summary>
+
+* software architecture restructure with python modules
+* filtering of lowly expressed features by edgeR
+* DonJuan analysis (junction-anchor analysis)
+* more advanced motif analysis with DREME
+* filtering regulated junctions with regulated donors
+</details>
+
+<details>
+<summary><b>v0.1</b>: released in July 2022 (click to show details)</summary>
+
+* initial version of splicekit
+* parsing of junction and exon counts
+* computing edgeR analysis from count tables and producing a results file with direct links to JBrowse2
+* basic motif analysis
 </details>
