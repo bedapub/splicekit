@@ -26,7 +26,7 @@ Commands:
      motifs            run motif and scanRBP analysis
 
   -- JBrowse2 genomic browser
-     jbrowse2          creates all required JBrowse2 files and starts JBrowse2 web server
+     jbrowse2 [process | start] processes (creates) all required JBrowse2 files and/or starts JBrowse2 web server
 
 Options
 
@@ -51,7 +51,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, 
 parser.add_argument('command', help="command(s) to run", nargs='*')
 parser.add_argument("-help", "-h", "--help", action="store_true")
 parser.add_argument("-version", "--version", help="Print version", action="store_true")
-parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true")
+parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true", default=False)
 parser.add_argument("-hostname", "--hostname", help="If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.", default=None)
 args = parser.parse_args()
 
@@ -132,15 +132,14 @@ elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
     splicekit.juan()
-elif args.command [0] == "jbrowse2":
-    force_samples=False; force_annotation = False
-    if len(args.command)>1 and args.command[1] == 'samples':
-        force_samples=args.force
-    if len(args.command)>1 and args.command[1] == 'annotation':
-        force_annotation=args.force
-    if len(args.command)==1:
-        force_annotation = args.force; force_samples = args.force
-    splicekit.jbrowse2_create(force_samples=force_samples,force_annotation=force_annotation)
-    splicekit.core.jbrowse2.process()
+elif args.command[0] == "jbrowse2":
+    if len(args.command)>1:
+        if args.command[1]=="process":
+            splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
+        if args.command[1]=="start":
+            splicekit.core.jbrowse2.start()
+    else:
+        splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
+        splicekit.core.jbrowse2.start()
 else:
     print(help_0)

@@ -227,7 +227,7 @@ def judge_process():
 def clusterlogfc_process():
     splicekit.clusterlogfc.process()
 
-def jbrowse2_create(force_samples=False, force_annotation=False):
+def jbrowse2_process(force_samples=False, force_annotation=False):
     splicekit.core.jbrowse2_create.process(force_samples,force_annotation)
 
 def process():

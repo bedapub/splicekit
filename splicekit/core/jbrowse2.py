@@ -7,7 +7,7 @@ import RangeHTTPServer
 
 port = 8007
 
-def process():
+def start():
     setup()
     server()
 
