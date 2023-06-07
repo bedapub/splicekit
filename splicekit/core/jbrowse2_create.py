@@ -90,42 +90,44 @@ def create_jbrowse_config(force_annotation):
         os.system('mkdir jbrowse2/splicekit_data') # first create folder to put everything inside
 
     # initialize config.json with adding fasta file --------------------------------------------------------------------------------------------------------------------------------------
-    if (not os.path.exists('jbrowse2/splicekit_data/config.json')) or (force_annotation==True):       
+    if (not os.path.exists('jbrowse2/splicekit_data/config.json')) or (force_annotation==True):
+        
         # clean up previous jobs
         os.system(f'rm -r jbrowse2/splicekit_data/*')
         for sample in bam_files:
             os.system(f'rm logs/logs_jbrowse/{sample}.out')
             os.system(f'rm logs/logs_jbrowse/{sample}.err')
 
-            print('[jbrowse] creating config.json in jbrowse2/splicekit_data')
+        print('[jbrowse] creating config.json in jbrowse2/splicekit_data')
 
-            if os.path.isabs(genome_fa): # check if genome_fa path is absolute or relative
-                os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-assembly {genome_fa} --name GenomeSequence --load symlink') # initialize config.json with genome sequence
-            else:
-                os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-assembly ../../{genome_fa} --name GenomeSequence --load symlink') # initialize config.json with genome sequence
+        if os.path.isabs(genome_fa): # check if genome_fa path is absolute or relative
+            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-assembly {genome_fa} --name GenomeSequence --load symlink') # initialize config.json with genome sequence
+        else:
+            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-assembly ../../{genome_fa} --name GenomeSequence --load symlink') # initialize config.json with genome sequence
 
-            # add the annotation ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            if gff_fname.endswith('.gz'):
-                new_gff_fname = gff_fname.replace(".gz","")
-                os.system(f'{container} gunzip -c {gff_fname} >| {new_gff_fname}')
-            else:
-                new_gff_fname = gff_fname
+        # add the annotation ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if gff_fname.endswith('.gz'):
+            new_gff_fname = gff_fname.replace(".gz","")
+            os.system(f'{container} gunzip -c {gff_fname} >| {new_gff_fname}')
+        else:
+            new_gff_fname = gff_fname
 
-            if os.path.isabs(gff_fname):
-                new_gff_fname=new_gff_fname
-            else:
-                new_gff_fname='../../'+new_gff_fname
+        if os.path.isabs(gff_fname):
+            new_gff_fname=new_gff_fname
+        else:
+            new_gff_fname='../../'+new_gff_fname
 
-            print('[jbrowse2] start annotation parsing')
-            os.system(f'cd jbrowse2/splicekit_data; grep -v "^#" {new_gff_fname} | sed "s/gene/AAA/; s/mRNA/BBB/" | sort -k1,1 -k4,4n | sed "s/AAA/gene/; s/BBB/mRNA/" >| {new_gff_fname}.sorted.gff'); print('[jbrowse2] annotation sorted') 
-            os.system(f'cd jbrowse2/splicekit_data; {container} bgzip {new_gff_fname}.sorted.gff -f' ); print('[jbrowse2] annotation compressed')  
-            os.system(f'cd jbrowse2/splicekit_data; {container} tabix {new_gff_fname}.sorted.gff.gz'); print('[jbrowse2] annotation indexed')  
-            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track {new_gff_fname}.sorted.gff.gz --trackId annotation_track --name "Gene Annotations" --category "Annotations" --load symlink' ) 
-            # indexes all assemblies that it can find in the current directory's config.json
-            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse text-index --out .'); print('adding indices for text searching')
-            print('[jbrowse2] annotation fully parsed')
+        print('[jbrowse2] start annotation parsing')
+        os.system(f'cd jbrowse2/splicekit_data; grep -v "^#" {new_gff_fname} | sed "s/gene/AAA/; s/mRNA/BBB/" | sort -k1,1 -k4,4n | sed "s/AAA/gene/; s/BBB/mRNA/" >| {new_gff_fname}.sorted.gff'); print('[jbrowse2] annotation sorted') 
+        os.system(f'cd jbrowse2/splicekit_data; {container} bgzip {new_gff_fname}.sorted.gff -f' ); print('[jbrowse2] annotation compressed')  
+        os.system(f'cd jbrowse2/splicekit_data; {container} tabix {new_gff_fname}.sorted.gff.gz'); print('[jbrowse2] annotation indexed')  
+        os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track {new_gff_fname}.sorted.gff.gz --trackId annotation_track --name "Gene Annotations" --category "Annotations" --load symlink' ) 
+        # indexes all assemblies that it can find in the current directory's config.json
+        os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse text-index --out .'); print('adding indices for text searching')
+        print('[jbrowse2] annotation fully parsed')
 
-            # now we add each sample's files in different track categories  --------------------------------------------------------------------------------------------------------------------------
+        # now we add each sample's files in different track categories  --------------------------------------------------------------------------------------------------------------------------
+        for sample in bam_files:
             sample_id = sample.replace('.bam', '')
             cram_fname = dirs_to_check[2] + sample.replace('.bam', '.cram')
             bigwig_fname = dirs_to_check[2] + sample.replace('.bam', '.bw')
