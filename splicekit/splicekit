@@ -127,7 +127,7 @@ elif args.command[0]=="patterns":
 elif args.command[0]=="clusterlogfc":
     splicekit.clusterlogfc_process()
 elif args.command[0]=="process":
-    splicekit.process()
+    splicekit.process(force=args.force)
 elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
