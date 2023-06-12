@@ -25,7 +25,7 @@ setup(
     keywords=['splicekit', 'splicing', 'transcriptomics', 'bioinformatics'],
     include_package_data=True,
     package_data={
-        'splicekit': ['splicekit.config.template', 'version'],
+        'splicekit': ['folders.setup', 'splicekit.config.template', 'version'],
     },
     install_requires=["pybio", "scanRBP", "pysam", "numpy", "psutil", "bs4", "requests", "rangehttpserver"],
 )
