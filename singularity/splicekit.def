@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: docker://ubuntu:20.04
+From: ubuntu:20.04
 
 %post
     apt-get update
