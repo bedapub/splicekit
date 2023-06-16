@@ -82,7 +82,7 @@ Processing parameters:
 | Parameter | Description | Default / Example |
 |-|-|-|
 | platform | "desktop" or "cluster" (HPC with SLURM) | "desktop"
-| container | leave empty or for singularity use: "singularity"; this will download and run "singularity/splicekit_version.sif" | "desktop"
+| container | leave empty or "singularity run path_to/splicekit.sif"
 
 Visualization, labelling and other parameters:
 
