@@ -3,7 +3,10 @@
 A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in BAM format (look at [datasets](datasets) for details on how to run examples).
 
 [What is splicekit?](#what_do)<br>
-[Installation and quick start](#initial_setup)<br>
+[Installation](#initial_setup)<br>
+[Quick start](#quick_start)<br>
+[Software dependencies](#software_dep)<br>
+[Example runs and datasets](#examples)<br>
 [Running splicekit](#running_splicekit)<br>
 &nbsp;&nbsp;[Annotation and comparisons](#annot_comp)<br>
 &nbsp;&nbsp;[Preparing feature (genes, exon, junction, anchor) data tables](#make_tables)<br>
@@ -20,7 +23,7 @@ A comprehensive platform for splicing analysis of RNA-seq short-read sequencing 
 ## What is splicekit?<a name="what_do"></a>
 From an initial config file (`splicekit.config`), sample annotation (`samples.tab`) and aligned reads in BAM format, splicekit first defines comparisons (which test samples to compare to which controls). Next, feature count tables are generated (exons, anchors, junctions, genes) based on defined comparisons. Analysis incude edgeR alt-splice (differentially used features), motif analysis with DonJuAn (junction-anchor) and DREME, RNA-protein binding enrichment analysis with scanRBP and clustering analysis on expression of features. To facilitate result and data interpretation, splicekit also provides an instance of JBrowse2.
 
-## Installation and quick start<a name="initial_setup"></a>
+## Installation<a name="initial_setup"></a>
 
 The easiest way to install splicekit is to simply run:
 
@@ -30,15 +33,19 @@ Note that on some systems, pip is installing the executable scripts under `~/.lo
 
 If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
 
-### Software dependencies
+## Quick start<a name="quick_start"></a>
+
+If you already have aligned reads in BAM files, all you need is `samples.tab` and `splicekit.config` in one folder and the reference genome annotation downloaded and parsed (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`. Check [datasets](datasets) examples to see how these files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+
+## Software dependencies<a name="software_dep"></a>
 
 splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity definition file](singularity), where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
 
-### Example runs and datasets
+## Example runs and datasets<a name="examples"></a>
 
 Example runs can be found in the [datasets](datasets) folder.
 
-### Configuration file documentation
+## Configuration file documentation
 
 <details>
 <summary>Description of splicekit.config file parameters (click to show)</summary>
