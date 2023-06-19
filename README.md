@@ -154,8 +154,8 @@ Once we have loaded and process the sample annotation, splicekit creates **compa
 
 | comparison | compound_samples | DMSO_samples |
 |-|-|-|
-| test1_control | 4_test1,5_test1,6_test1 | 1_control,2_control,3_control |
-| test2_control | 7_test2,8_test2,9_test2 | 1_control,2_control,3_control |
+| test1_control | sample4_test1,sample5_test1,sample6_test1 | sample1_control,sample2_control,sample3_control |
+| test2_control | sample7_test2,sample8_test2,sample9_test2 | sample1_control,sample2_control,sample3_control |
 
 In addition, this step will also create <b>processing shell scripts</b> and <b>cluster job files</b> (`jobs/*`). An example cluster job file:
 
