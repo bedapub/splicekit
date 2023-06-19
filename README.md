@@ -132,9 +132,7 @@ Let's shortly describe and comment individual steps with the required inputs and
 This first step of the analysis (`splicekit annotation`) loads samples from the file `samples.tab`. It also uses the `treatment_column` (where is the treatment stored), `control_name` (name of the controls in the treatment column), `group_column` (group experiments by this property, e.g. plate) and `separate_column` (generate comparisons inside groups, e.g. cell_type) to create comparisons. Each treatment (can have several replicates / samples / readouts) is compared to the controls.
 
 <details>
-<summary>An example `sample.tab` would look like this (click to show)</summary>
-
-An example `sample.tab` would look like this:
+<summary>An example **sample.tab** would look like this (click to show)</summary>
 
 | sample_id | treatment_id |
 |-|-|
@@ -147,6 +145,9 @@ An example `sample.tab` would look like this:
 | 7 | test2 |
 | 8 | test2 |
 | 9 | test2 |
+
+splicekit would then expect BAM files with names `sample_id`.bam to be present (1.bam, 2.bam, etc.) in the folder `bam_path` parameter specified in the `splicekit.config` file.
+
 </details>
 
 Once we have loaded and process the sample annotation, splicekit creates "comparisons", by default this will compare treated samples to control samples. The comparisons are also stored in a simple tab delimited file, `annotation/comparisons.tab`:
