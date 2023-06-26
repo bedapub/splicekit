@@ -69,13 +69,13 @@ def load_genes():
     # save "promoters" (last nucleotide of first exon of each transcript)
     print("[features] saving first_exons (last nucleotide of first exon of each transcript)")
     annotation.first_exons = {}
+    annotation.second_exons = {}
+    annotation.last_exons = {}
     for (transcript_id, chr, strand, gene_id), transcript_list in transcript_exons.items():
         # sort exons by start position
         transcript_list = sorted(transcript_list, key = lambda x: (x[0])) if strand=="+" else sorted(transcript_list, key = lambda x: (-x[0]))
         # keep only first exons, even if there are >1 (same start position, but diff stop position)
         transcript_list = [(x[0], x[1]) for x in transcript_list if x[0]==transcript_list[0][0]]
-        #if transcript_id=="NM_001330143.2":
-        #    print(transcript_list)
         for (exon_start, exon_stop) in transcript_list:
             store_data = True
             # store exon last pos, since we find this exon by first nucleotide of junction (last nucleotide of first exon)
