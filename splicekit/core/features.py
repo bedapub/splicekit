@@ -89,8 +89,8 @@ def load_genes():
     print("splicekit.features: saving last nucleotide of first/second exon of each transcript")
     annotation.first_exons = {}
     identify_exons(transcript_exons, annotation.first_exons, 0)
-    annotation.second_exons = {}
-    identify_exons(transcript_exons, annotation.second_exons, 1)
+    #annotation.second_exons = {}
+    #identify_exons(transcript_exons, annotation.second_exons, 1)
     
     print("splicekit.features: reading junctions and anchors annotation from: reference/junctions.tab")
     f = open("reference/junctions.tab", "rt")
