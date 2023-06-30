@@ -1,4 +1,4 @@
-#!/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys
