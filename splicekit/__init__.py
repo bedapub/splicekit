@@ -134,6 +134,7 @@ def genes():
 def features():
     junctions_master()
     anchors()
+    splicekit.core.delta_dar.compute()
     junctions()
     exons()
     genes()
@@ -236,8 +237,8 @@ def process(force=False):
     features()
     edgeR()
     juan()
+    judge_process()
     motifs()
     promisc()
-    judge_process()
     clusterlogfc_process()
     jbrowse2_process(force_samples=force, force_annotation=force)
