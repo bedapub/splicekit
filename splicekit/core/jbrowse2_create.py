@@ -25,7 +25,7 @@ def check_genome():
     if not os.path.exists(genome_fa + '.fai'):
         print('[jbrowse] No fasta index file found. Creating it...')
         print(f'[jbrowse/samtools] Indexing genome {genome_fa}')
-        os.sys(f'{container} samtools faidx {genome_fa}')
+        os.system(f'{container} samtools faidx {genome_fa}')
         print(f'[jbrowse/samtools] Indexing genome done')
 
 
