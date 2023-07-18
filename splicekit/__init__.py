@@ -62,7 +62,7 @@ def setup():
         if folder_name=="":
             continue
         os.system("mkdir -p {folder_name}".format(folder_name=folder_name))
-    print("[setup] Successfully setup splicekit v{version} analysis in {folder}\n".format(folder=os.getcwd(), version=core.current_version))
+    print("[setup] Successfully setup splicekit v{version} analysis in {folder}\n".format(folder=os.getcwd(), version=version))
 
 def clean():
     os.system("rm -f results/results_edgeR_junctions/*.tab > /dev/null 2>&1")

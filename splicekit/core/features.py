@@ -66,30 +66,33 @@ def load_genes():
         r = f.readline()
     f.close()
 
-    # save "promoters" (last nucleotide of first exon of each transcript)
-    print("[features] saving first_exons (last nucleotide of first exon of each transcript)")
+    def identify_exons(transcript_exons, annotation_data, exon_index):
+        for (transcript_id, chr, strand, gene_id), transcript_list in transcript_exons.items():
+            # sort exons by start position
+            transcript_list = sorted(transcript_list, key = lambda x: (x[0])) if strand=="+" else sorted(transcript_list, key = lambda x: (-x[0]))
+            # keep only first exons, even if there are >1 (same start position, but diff stop position)
+            transcript_list = [(x[0], x[1]) for x in transcript_list if x[0]==transcript_list[exon_index][0]]
+            for (exon_start, exon_stop) in transcript_list:
+                store_data = True
+                # store exon last pos, since we find this exon by first nucleotide of junction (last nucleotide of first exon)
+                current_data = annotation_data.get((chr, strand, exon_stop), None)
+                if current_data!=None: # already an exon stored at this "last" position
+                    current_transcript_id, current_gene_id, current_exon_start, current_exon_stop = current_data
+                    current_len = abs(current_exon_start - current_exon_stop + 1)
+                    new_len = abs(exon_start - exon_stop + 1)
+                    if new_len>current_len:
+                        store_data = False
+                if store_data:
+                    annotation_data[chr, strand, exon_stop] = (transcript_id, gene_id, exon_start, exon_stop)
+
+    # save last nucleotide of first/second exon of each transcript)
+    print("splicekit.features: saving last nucleotide of first/second exon of each transcript")
     annotation.first_exons = {}
-    for (transcript_id, chr, strand, gene_id), transcript_list in transcript_exons.items():
-        # sort exons by start position
-        transcript_list = sorted(transcript_list, key = lambda x: (x[0])) if strand=="+" else sorted(transcript_list, key = lambda x: (-x[0]))
-        # keep only first exons, even if there are >1 (same start position, but diff stop position)
-        transcript_list = [(x[0], x[1]) for x in transcript_list if x[0]==transcript_list[0][0]]
-        #if transcript_id=="NM_001330143.2":
-        #    print(transcript_list)
-        for (exon_start, exon_stop) in transcript_list:
-            store_data = True
-            # store exon last pos, since we find this exon by first nucleotide of junction (last nucleotide of first exon)
-            current_data = annotation.first_exons.get((chr, strand, exon_stop), None)
-            if current_data!=None: # already an exon stored at this "last" position
-                current_transcript_id, current_gene_id, current_exon_start, current_exon_stop = current_data
-                current_len = abs(current_exon_start - current_exon_stop + 1)
-                new_len = abs(exon_start - exon_stop + 1)
-                if new_len>current_len:
-                    store_data = False
-            if store_data:
-                annotation.first_exons[chr, strand, exon_stop] = (transcript_id, gene_id, exon_start, exon_stop)
+    identify_exons(transcript_exons, annotation.first_exons, 0)
+    #annotation.second_exons = {}
+    #identify_exons(transcript_exons, annotation.second_exons, 1)
     
-    print("[features] Reading junctions and anchors annotation: reference/junctions.tab")
+    print("splicekit.features: reading junctions and anchors annotation from: reference/junctions.tab")
     f = open("reference/junctions.tab", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()

@@ -3,7 +3,10 @@
 A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in BAM format (look at [datasets](datasets) for details on how to run examples).
 
 [What is splicekit?](#what_do)<br>
-[Installation and quick start](#initial_setup)<br>
+[Installation](#initial_setup)<br>
+[Quick start](#quick_start)<br>
+[Software dependencies](#software_dep)<br>
+[Example runs and datasets](#examples)<br>
 [Running splicekit](#running_splicekit)<br>
 &nbsp;&nbsp;[Annotation and comparisons](#annot_comp)<br>
 &nbsp;&nbsp;[Preparing feature (genes, exon, junction, anchor) data tables](#make_tables)<br>
@@ -20,7 +23,7 @@ A comprehensive platform for splicing analysis of RNA-seq short-read sequencing 
 ## What is splicekit?<a name="what_do"></a>
 From an initial config file (`splicekit.config`), sample annotation (`samples.tab`) and aligned reads in BAM format, splicekit first defines comparisons (which test samples to compare to which controls). Next, feature count tables are generated (exons, anchors, junctions, genes) based on defined comparisons. Analysis incude edgeR alt-splice (differentially used features), motif analysis with DonJuAn (junction-anchor) and DREME, RNA-protein binding enrichment analysis with scanRBP and clustering analysis on expression of features. To facilitate result and data interpretation, splicekit also provides an instance of JBrowse2.
 
-## Installation and quick start<a name="initial_setup"></a>
+## Installation<a name="initial_setup"></a>
 
 The easiest way to install splicekit is to simply run:
 
@@ -30,15 +33,19 @@ Note that on some systems, pip is installing the executable scripts under `~/.lo
 
 If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
 
-### Software dependencies
+## Quick start<a name="quick_start"></a>
+
+If you already have aligned reads in BAM files, all you need is `samples.tab` and `splicekit.config` in one folder and the reference genome annotation downloaded and parsed (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`. Check [datasets](datasets) examples to see how these files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+
+## Software dependencies<a name="software_dep"></a>
 
 splicekit uses several third-party open-source software. If you don't have the software installed on your system, we prepared a [singularity definition file](singularity), where you can also directly see all dependencies. Using the singularity image, you don't need to install the dependencies yourself, you just need to install singularity.
 
-### Example runs and datasets
+## Example runs and datasets<a name="examples"></a>
 
 Example runs can be found in the [datasets](datasets) folder.
 
-### Configuration file documentation
+## Configuration file documentation
 
 <details>
 <summary>Description of splicekit.config file parameters (click to show)</summary>
@@ -82,7 +89,7 @@ Processing parameters:
 | Parameter | Description | Default / Example |
 |-|-|-|
 | platform | "desktop" or "cluster" (HPC with SLURM) | "desktop"
-| container | leave empty or for singularity use: "singularity"; this will download and run "singularity/splicekit_version.sif" | "desktop"
+| container | leave empty or "singularity run path_to/splicekit.sif"
 
 Visualization, labelling and other parameters:
 
@@ -125,29 +132,30 @@ Let's shortly describe and comment individual steps with the required inputs and
 This first step of the analysis (`splicekit annotation`) loads samples from the file `samples.tab`. It also uses the `treatment_column` (where is the treatment stored), `control_name` (name of the controls in the treatment column), `group_column` (group experiments by this property, e.g. plate) and `separate_column` (generate comparisons inside groups, e.g. cell_type) to create comparisons. Each treatment (can have several replicates / samples / readouts) is compared to the controls.
 
 <details>
-<summary>An example `sample.tab` would look like this (click to show)</summary>
-
-An example `sample.tab` would look like this:
+<summary>An example sample.tab would look like this (click to show)</summary>
 
 | sample_id | treatment_id |
 |-|-|
-| 1 | control |
-| 2 | control |
-| 3 | control |
-| 4 | test1 |
-| 5 | test1 |
-| 6 | test1 |
-| 7 | test2 |
-| 8 | test2 |
-| 9 | test2 |
+| sample1 | control |
+| sample2 | control |
+| sample3 | control |
+| sample4 | test1 |
+| sample5 | test1 |
+| sample6 | test1 |
+| sample7 | test2 |
+| sample8 | test2 |
+| sample9 | test2 |
+
+splicekit would then expect BAM files with names `sample_id`.bam to be present (`sample1.bam`, `sample2.bam`, etc.) in the folder `bam_path` parameter specified in the `splicekit.config` file.
+
 </details>
 
-Once we have loaded and process the sample annotation, splicekit creates "comparisons", by default this will compare treated samples to control samples. The comparisons are also stored in a simple tab delimited file, `annotation/comparisons.tab`:
+Once we have loaded and process the sample annotation, splicekit creates **comparisons**, by default this will compare treated samples to control samples. The comparisons are also stored in a simple tab delimited file, `annotation/comparisons.tab`:
 
 | comparison | compound_samples | DMSO_samples |
 |-|-|-|
-| test1_control | 4_test1,5_test1,6_test1 | 1_control,2_control,3_control |
-| test2_control | 7_test2,8_test2,9_test2 | 1_control,2_control,3_control |
+| test1_control | sample4_test1,sample5_test1,sample6_test1 | sample1_control,sample2_control,sample3_control |
+| test2_control | sample7_test2,sample8_test2,sample9_test2 | sample1_control,sample2_control,sample3_control |
 
 In addition, this step will also create <b>processing shell scripts</b> and <b>cluster job files</b> (`jobs/*`). An example cluster job file:
 

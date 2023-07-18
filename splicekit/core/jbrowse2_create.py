@@ -69,8 +69,8 @@ def write_sample_jobs(force_samples):
         cram_fname = dirs_to_check[2] + '/'+sample.replace('.bam', '.cram')
         bigwig_fname = dirs_to_check[2] +'/'+ sample.replace('.bam', '.bw')
         if (not (os.path.exists(cram_fname) and os.path.exists(bigwig_fname))) or (force_samples == True):
-            os.system(f'rm -r {bigwig_fname}')
-            os.system(f'rm -r {cram_fname}')
+            os.system(f'rm {bigwig_fname} >/dev/null 2>&1')
+            os.system(f'rm {cram_fname} >/dev/null 2>&1')
             print(f'[jbrowse] create sample processing job for {sample}')
             fout = open("jobs/jobs_jbrowse/{sample}.job".format(sample=sample), "wt")
             job_bw_out = job_bw.format(container=container, bamCoverage_binSize=bamCoverage_binSize, sample=sample,
@@ -95,8 +95,8 @@ def create_jbrowse_config(force_annotation):
         # clean up previous jobs
         os.system(f'rm -r jbrowse2/splicekit_data/*')
         for sample in bam_files:
-            os.system(f'rm logs/logs_jbrowse/{sample}.out')
-            os.system(f'rm logs/logs_jbrowse/{sample}.err')
+            os.system(f'rm logs/logs_jbrowse/{sample}.out >/dev/null 2>&1')
+            os.system(f'rm logs/logs_jbrowse/{sample}.err >/dev/null 2>&1')
 
         print('[jbrowse] creating config.json in jbrowse2/splicekit_data')
 
@@ -149,6 +149,3 @@ def process(force_samples=False, force_annotation=False):
         if splicekit.config.platform=="desktop":
             os.system("source jobs/jobs_jbrowse/process.sh")
     create_jbrowse_config(force_annotation)
-
-
-
