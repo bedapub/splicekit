@@ -39,6 +39,19 @@ def edgeR_feature(feature_name):
             r = f.readline()
         f.close()        
 
+    # since we construct {sample_id}_{treatment_id} and {treatment_id} can still contain _,
+    # we go back to the original samples table to extract {sample_id}
+    samples = []
+    f = open("samples.tab", "rt")
+    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r:
+        r = r.replace("\r", "").replace("\n", "").split("\t")
+        data = dict(zip(header, r))
+        samples.append(data["sample_id"])
+        r = f.readline()
+    f.close()
+
     # read comparisons, to determine which tracks (samples) to show in JBrowse
     f = open("annotation/comparisons.tab", "rt")
     r = f.readline()
@@ -50,14 +63,20 @@ def edgeR_feature(feature_name):
         comparison = r[0]
         temp = r[1].split(",")
         for el in temp:
-            temp2 = toint("_".join(el.split("_")[:-1]))
-            if temp2 not in compound_samples:
-                compound_samples.append(temp2)
+            my_sample = None
+            for sample_id in samples:
+                if el.startswith(sample_id+"_"):
+                    my_sample = sample_id
+            if my_sample not in compound_samples and my_sample!=None:
+                compound_samples.append(my_sample)
         temp = r[2].split(",")
         for el in temp:
-            temp2 = toint("_".join(el.split("_")[:-1]))
-            if temp2 not in dmso_samples:
-                dmso_samples.append(temp2)
+            my_sample = None
+            for sample_id in samples:
+                if el.startswith(sample_id+"_"):
+                    my_sample = sample_id
+            if my_sample not in dmso_samples and my_sample!=None:
+                dmso_samples.append(my_sample)
         comparisons[comparison] = (compound_samples, dmso_samples)
         r = f.readline()
     f.close()
@@ -82,10 +101,10 @@ def edgeR_feature(feature_name):
         while r:
             r = r.replace("\n", "").replace("\r", "").split("\t")
             data = dict(zip(header, r))
-            tracks_fixed = ["gene-refseq", "transcript-refseq", "transcript-ensembl"] # New JBrowse2
+            tracks_fixed = ["annotation_track"] # New JBrowse2
             tracks_samples, tracks_dmso = comparisons[comparison] 
-            tracks_samples = [track+'_bw' for track in tracks_samples] # New JBrowse2 --> bigwig files are called by id_bw 
-            tracks_dmso = [track+'_bw' for track in tracks_dmso] # New JBrowse2 --> bigwig files are called by id_bw 
+            tracks_samples = [track+'_bw' for track in tracks_samples] # New JBrowse2 --> bigwig files are called by id_bw
+            tracks_dmso = [track+'_bw' for track in tracks_dmso] # New JBrowse2 --> bigwig files are called by id_bw
             tracks = ",".join(tracks_samples[:3]+tracks_dmso[:3]+tracks_fixed)
             f_from=int(data["feature_start"])
             f_to=int(data["feature_stop"])
@@ -105,7 +124,7 @@ def edgeR_feature(feature_name):
             if feature_name=="junctions":
                 row.append(junction_first_exon)
             row += [data["gene_id"], data["gene_name"], "{chr}:{f_from}..{f_to}".format(chr=data["chr"], f_from=data["feature_start"], f_to=data["feature_stop"])]
-            row.append("{jbrowse_url}&assembly=hg38&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(jbrowse_url=config.jbrowse2_url.format(compound=compound), compound=compound, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
+            row.append("{jbrowse_url}&assembly=GenomeSequence&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(jbrowse_url=config.jbrowse2_url.format(compound=compound), compound=compound, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
             row += [data["sum_feature_test"], data["sum_feature_control"]]
             row += [data["test_pfi"], data["control_pfi"], data["delta_pfi"]]
             if feature_name=="junctions":
