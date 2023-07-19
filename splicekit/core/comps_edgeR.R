@@ -46,10 +46,13 @@ fit <- glmQLFit(y, robust=TRUE)
 
 qlf <- glmQLFTest(fit)
 d = topTags(qlf, n=Inf)
+d = d$table
+d["pi_value"] = -log10(d["PValue"]) * d["logFC"] # add pi value
 output_fname = paste(input_folder, "/results/results_edgeR_", atype, "/", comp_name, "_difffeature.tab", sep="")
 write.table(d, file=output_fname, sep="\t", row.names=FALSE, quote=FALSE)
 
 sp <- diffSpliceDGE(fit, geneid="gene_id", exonid="feature_id")
 d = topSpliceDGE(sp, test="exon", n=Inf)
+d["pi_value"] = -log10(d["P.Value"]) * d["logFC"] # add pi value
 output_fname = paste(input_folder, "/results/results_edgeR_", atype, "/", comp_name, "_altsplice.tab", sep="")
 write.table(d, file=output_fname, sep="\t", row.names=FALSE, quote=FALSE)
