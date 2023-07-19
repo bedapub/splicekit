@@ -63,19 +63,19 @@ def edgeR_feature(feature_name):
         comparison = r[0]
         temp = r[1].split(",")
         for el in temp:
-            my_sample = None
+            my_sample = ""
             for sample_id in samples:
-                if el.startswith(sample_id+"_"):
+                if el.startswith(sample_id+"_") and len(my_sample)<len(sample_id):
                     my_sample = sample_id
-            if my_sample not in compound_samples and my_sample!=None:
+            if my_sample not in compound_samples and my_sample!="":
                 compound_samples.append(my_sample)
         temp = r[2].split(",")
         for el in temp:
-            my_sample = None
+            my_sample = ""
             for sample_id in samples:
-                if el.startswith(sample_id+"_"):
+                if el.startswith(sample_id+"_") and len(my_sample)<len(sample_id):
                     my_sample = sample_id
-            if my_sample not in dmso_samples and my_sample!=None:
+            if my_sample not in dmso_samples and my_sample!="":
                 dmso_samples.append(my_sample)
         comparisons[comparison] = (compound_samples, dmso_samples)
         r = f.readline()
