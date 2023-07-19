@@ -131,8 +131,8 @@ def create_jbrowse_config(force_annotation):
             sample_id = sample.replace('.bam', '')
             cram_fname = dirs_to_check[2] + sample.replace('.bam', '.cram')
             bigwig_fname = dirs_to_check[2] + sample.replace('.bam', '.bw')
-            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{bigwig_fname} --name {sample_id}.bw --trackId {sample_id}.bw  --category "Coverage" --load symlink')
-            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{cram_fname} --name {sample_id}.cram --trackId {sample_id}.cram --category "Reads" --load symlink')
+            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{bigwig_fname} --name {sample_id}_bw --trackId {sample_id}_bw  --category "Coverage" --load symlink')
+            os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{cram_fname} --name {sample_id}_cram --trackId {sample_id}_cram --category "Reads" --load symlink')
     else:
         print('[jbrowse] config.json already existing in jbrowse2/splicekit_data --> use "splicekit jbrowse2_create annotation -force" to overwrite')
 
