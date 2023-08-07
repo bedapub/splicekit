@@ -59,7 +59,7 @@ From: ubuntu:20.04
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
     export LANGUAGE=en_US.UTF-8
-    export PATH=$PATH:/usr/local/bin
+    export PATH=$PATH:/rmats-turbo:/usr/local/bin
     export PYTHONPATH=$PYTHONPATH:/meme-5.1.1/scripts
 
 %runscript
