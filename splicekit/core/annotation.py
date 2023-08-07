@@ -193,6 +193,19 @@ ml R
         control_ids = sort_readout_id(control_ids)
         test_ids = sort_readout_id(test_ids)
 
+        # write rMATS {comp_name}_control.tab, {comp_name}_test.tab and {comp_name}_run.sh
+        for rtype, rfile in [("control", control_ids_plain), ("test", test_ids_plain)]:
+            bams = []
+            for sample_id in rfile:
+                bam_fname = os.path.abspath(os.path.join(f"{splicekit.config.bam_path}", f"{sample_id}.bam"))
+                bams.append(bam_fname)
+            f_rmats = open(f"results/rmats/{comp_name}_{rtype}.tab", "wt")
+            f_rmats.write(",".join(bams))
+            f_rmats.close()
+        f_rmats = open(f"results/rmats/{comp_name}_run.sh", "wt")
+        f_rmats.write(f"python /home/rotg/software/rmats-turbo/rmats.py --b1 {comp_name}_test.tab --b2 {comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od {comp_name}_results --tmp {comp_name}_temp")
+        f_rmats.close()
+
         # edgeR exons
         job_exons = job_edgeR.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_exons_data", atype="exons", job_name="edgeR_exons_"+comp2_compound, control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
         fout_exons.write(job_exons)
