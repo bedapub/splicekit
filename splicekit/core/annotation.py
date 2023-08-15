@@ -69,18 +69,6 @@ class Cmd():
         self.returncode = self.process.returncode
         return output.decode("utf-8"), error.decode("utf-8")
 
-# Function available in LIB repo here: https://code.roche.com/PMDA/FAIR/moose/moose-lib/-/blob/master/moose_lib/api_utils.py#L9
-def login_and_get_header(login_url, email, password):
-    print(login_url, email, password)
-    login_data = {"email": email, "password": password}
-    login_res = requests.post(url=login_url, json=login_data)
-
-    if login_res.status_code != 200:
-        raise Exception(f"Login to API failed. {login_res.json()}")
-
-    header = login_res.json()
-    return header
-
 def read_comparisons():
     if not os.path.exists("samples.tab"):
         return
@@ -203,7 +191,7 @@ ml R
             f_rmats.write(",".join(bams))
             f_rmats.close()
         f_rmats = open(f"results/rmats/{comp_name}_run.sh", "wt")
-        f_rmats.write(f"python /home/rotg/software/rmats-turbo/rmats.py --b1 {comp_name}_test.tab --b2 {comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od {comp_name}_results --tmp {comp_name}_temp")
+        f_rmats.write(f"{config.container} run_rmats --b1 {comp_name}_test.tab --b2 {comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od {comp_name}_results --tmp {comp_name}_temp")
         f_rmats.close()
 
         # edgeR exons
