@@ -1,4 +1,5 @@
-# splicekit
+<picture><img src="media/splicekit_logo.png" height="30"/></picture>
+## splicekit: a toolkit for splicing analysis from short-read RNA-seq
 
 A comprehensive platform for splicing analysis of RNA-seq short-read sequencing data. <b>splicekit</b> input are read alignments in BAM format (look at [datasets](datasets) for details on how to run examples).
 

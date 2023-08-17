@@ -27,5 +27,5 @@ setup(
     package_data={
         'splicekit': ['folders.setup', 'splicekit.config.template', 'version'],
     },
-    install_requires=["pybio", "scanRBP", "pysam", "numpy", "psutil", "bs4", "requests", "rangehttpserver"],
+    install_requires=["python-dateutil>=2.8.2", "pybio", "scanRBP", "pysam", "numpy>=1.20", "psutil", "bs4", "requests", "rangehttpserver"],
 )

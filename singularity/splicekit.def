@@ -3,15 +3,15 @@ From: ubuntu:20.04
 
 %post
     apt-get update
-    apt-get install -y wget gcc python3.8 curl
+    echo '8'| apt-get install -y tzdata
+    apt-get install -y wget gcc python3.8 curl git libgsl-dev cmake gfortran fort77 libblas-dev liblapack-dev python-is-python3
     # Preconfigure time zone
     apt-get update
-    echo '8'| apt-get install -y tzdata
     # Install GnuPG2, gzip, deeptools and jbrowse
     apt-get install -y gnupg2 build-essential gzip python3-pip
     # Install required packages for pysam (deeptools dependency)
     apt-get install -y python3-dev zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libcurl4-openssl-dev libssl-dev
-    pip3 install deeptools
+    pip3 install deeptools cython==0.29.36
     # Install the latest LTS version of Node.js
     curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
     apt-get install -y nodejs
@@ -48,12 +48,18 @@ From: ubuntu:20.04
     apt-get install -y samtools
     # Install tabix
     apt-get install -y tabix
+    # pybio3
+    pip3 install pybio
+    # rMATS
+    git clone https://github.com/Xinglab/rmats-turbo.git
+    cd rmats-turbo
+    ./build_rmats
 
 %environment
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
     export LANGUAGE=en_US.UTF-8
-    export PATH=$PATH:/usr/local/bin
+    export PATH=$PATH:/rmats-turbo:/usr/local/bin
     export PYTHONPATH=$PYTHONPATH:/meme-5.1.1/scripts
 
 %runscript

@@ -13,6 +13,7 @@ jobs/jobs_dge
 jobs/jobs_exons
 jobs/jobs_genes
 results
+results/rmats
 results/promoters
 results/results_edgeR_junctions
 results/results_edgeR_exons
