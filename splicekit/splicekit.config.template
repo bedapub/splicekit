@@ -29,4 +29,9 @@ protein_label = "tdp43" # used in file names and titles
 
 # platform and container
 platform = "desktop" # "desktop" or "cluster" (HPC with SLURM)
-container = "" # leave empty or for singularity use: "singularity run /my_path/splicekit.sif"
+
+# leaving the container empty will use software dependencies installed on your system
+container = ""
+
+# using this container definition will import a Docker image to your singularity and use dependencies
+#container = "singularity run docker://ghcr.io/bedapub/splicekit:main"
