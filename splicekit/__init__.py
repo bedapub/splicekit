@@ -230,6 +230,14 @@ def clusterlogfc_process():
 def jbrowse2_process(force_samples=False, force_annotation=False):
     splicekit.core.jbrowse2_create.process(force_samples, force_annotation)
 
+def rmats():
+    if splicekit.config.platform=="cluster":
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.junctions] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[edgeR.junctions] processing next 10"; done; echo "[edgeR.junctions] processing complete"')
+    if splicekit.config.platform=="desktop":
+        os.system("source jobs/jobs_edgeR_junctions/process.sh")
+    splicekit.core.report.edgeR_feature('junctions')
+    splicekit.core.patterns.process() # adds donor patterns
+
 def process(force=False):
     setup()
     annotation()

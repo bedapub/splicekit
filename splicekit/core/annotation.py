@@ -152,6 +152,18 @@ ml R
 {container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comp_name} {control_list} {test_list} < {core_path}/comps_edgeR.R
 """
 
+    job_rmats="""
+#!/bin/bash
+#BSUB -J {job_name}                              # Job name
+#BSUB -n 4                                       # number of tasks
+#BSUB -R "span[hosts=1]"                         # Allocate all tasks in 1 host
+#BSUB -q short                                   # Select queue
+#BSUB -o logs/logs_rmats/{comp_name}.out         # Output file
+#BSUB -e logs/logs_rmats/{comp_name}.err         # Error file
+
+{container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp
+    """
+
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "compound_samples", "DMSO_samples", "compound_group_id", "dmso_group_id"]
     comps_table.write("\t".join(header) + "\n")
@@ -190,8 +202,12 @@ ml R
             f_rmats = open(f"results/rmats/{comp_name}_{rtype}.tab", "wt")
             f_rmats.write(",".join(bams))
             f_rmats.close()
-        f_rmats = open(f"results/rmats/{comp_name}_run.sh", "wt")
-        f_rmats.write(f"{config.container} run_rmats --b1 {comp_name}_test.tab --b2 {comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od {comp_name}_results --tmp {comp_name}_temp")
+        f_rmats = open(f"jobs/rmats/{comp_name}.sh", "wt")
+        f_rmats.write(f"{config.container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp")
+        f_rmats.close()
+        f_rmats = open(f"jobs/rmats/{comp_name}.job", "wt")
+        job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, job_name="rmats_"+comp2_compound, gtf_path=splicekit.config.gtf_path[:-3])
+        f_rmats.write(job_rmats_instance)
         f_rmats.close()
 
         # edgeR exons
