@@ -314,3 +314,21 @@ def make_design_contrast():
         f.write("\t".join([str(el) for el in row])+"\n")
     f.close()
 
+def bam_count():
+    fout = open("annotation/bam_counts.tab", "wt")
+    fout.write("\t".join([config.sample_column, "bam_count"]) + "\n")
+    f = open("samples.tab")
+    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r:
+        r = r.replace("\r", "").replace("\n", "").split("\t")
+        data = dict(zip(header, r))
+        bam_fname = os.path.join(config.bam_path, data[config.sample_column]+".bam")
+        output = subprocess.check_output(f"samtools view -@ 4 -c {bam_fname}", shell=True)
+        count = int(output.decode().split("\n")[0])
+        print(f"[splicekit] counted reads for sample {data['readout_id']}, bam file {bam_fname}, counts = {count}")
+        row = [data[config.sample_column], count]
+        fout.write("\t".join([str(x) for x in row]) + "\n")
+        r = f.readline()
+    f.close()
+    fout.close()
