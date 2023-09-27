@@ -73,12 +73,24 @@ def find_genes(chr, strand, start, stop):
     genes = genes_gtf.get(f"{chr}{strand}", {})
     for gene_id, (gene_start, gene_stop, gene_id, gene_name) in genes.items():
         if gene_start<=start<=stop<=gene_stop:
-            if exons_gtf.get(f"{chr}_{strand}_{start}", None) != None and exons_gtf.get(f"{chr}_{strand}_{stop}", None) != None:
-                # genes for junctions touching annotated exons at the top, in case of several genes (impossible?), shorter genes priority (-1.0/length)
-                detected_genes.append((-1.0/(gene_stop-gene_start+1), gene_id, gene_name))
-            else:
-                detected_genes.append((+1*(gene_stop-gene_start+1), gene_id, gene_name))
-    detected_genes.sort()
+            annotation = ["N", "N"]
+            if exons_gtf.get(f"{chr}_{strand}_{start}", None)!=None:
+                if strand=="+":
+                    annotation[0] = "A"
+                else:
+                    annotation[1] = "A"
+            if exons_gtf.get(f"{chr}_{strand}_{stop}", None)!=None:
+                if strand=="+":
+                    annotation[1] = "A"
+                else:
+                    annotation[0] = "A"
+            # this sorting classifies genes based on annotation (NN = 0..1, AN and NA = 1..2, AA = 2..3
+            # shorter genes get higher values and are at the top of the list
+            annotation = "".join(annotation)
+            factor = {"NN":0, "NA":1, "AN":1, "AA":2}[annotation]
+            gene_len = gene_stop-gene_start+1
+            detected_genes.append((factor + 1.0/gene_len, gene_id, gene_name, strand, annotation))
+    detected_genes.sort(reverse=True)
     return detected_genes
 
 def make_jobs():
@@ -258,75 +270,46 @@ def make_master():
 
     # stranded data protocol
     if splicekit.config.library_strand!="NONE": # stranded
-        stats = {"unresolved":0, "resolved":0, "annotated":0}
+        stats = {"unresolved":0, "resolved":0, "annotated_NN":0, "annotated_AN":0, "annotated_NA":0, "annotated_AA":0}
         for (chr, strand, start, stop), count in junctions.items():
-            annotated = 0
             found_gene_id = ""
             found_gene_name = ""
-            detected = 0
+            found_annotation = ""
             # find gene(s) for this junction
             detected_genes = find_genes(chr, strand, start, stop)
             if len(detected_genes)>0:
-                detected = 1
                 found_gene_id = detected_genes[0][1]
                 found_gene_name = detected_genes[0][2]
-                if exons_gtf.get(f"{chr}_{strand}_{start}", None) != None and exons_gtf.get(f"{chr}_{strand}_{stop}", None) != None:
-                    annotated = 1
-            if detected==1:
-                junctions_annotated.append((chr, start, stop, strand, found_gene_id, found_gene_name, annotated, count))
+                found_strand = detected_genes[0][3]
+                assert(found_strand==strand)
+                found_annotation = detected_genes[0][4]
+                junctions_annotated.append((chr, start, stop, strand, found_gene_id, found_gene_name, found_annotation, count))
                 stats["resolved"] = stats["resolved"] + 1
-            if annotated==1:
-                stats["annotated"] = stats["annotated"] + 1
-            if detected==0:
+                stats[f"annotated_{found_annotation}"] = stats[f"annotated_{found_annotation}"] + 1
+            else:
                 stats["unresolved"] = stats["unresolved"] + 1
 
     # unstranded data protocol
     if splicekit.config.library_strand=="NONE":
-        stats = {"unresolved":0, "resolved":0, "annotated":0, "resolved_both_strands":0}
+        stats = {"unresolved":0, "resolved":0, "annotated_NN":0, "annotated_AN":0, "annotated_NA":0, "annotated_AA":0}
         junctions_unstranded = {}
         # make a list of junctions without strand
         for (chr, strand, start, stop), count in junctions.items():
             jkey = (chr, start, stop)
             junctions_unstranded[jkey] = junctions_unstranded.get(jkey, 0) + count
         for (chr, start, stop), count in junctions_unstranded.items():
-            annotated = {"+":float("inf"), "-":float("inf")} # annnotated to refseq / ensembl?
-            found_gene_id = {"+":"", "-":""}
-            found_gene_name = {"+":"", "-":""}
-            detected = {"+":0, "-":0}
-            # lets find gene(s) for this junction
-            for search_strand in ["+", "-"]:
-                detected_genes = find_genes(chr, search_strand, start, stop)
-                if len(detected_genes)>0:
-                    detected[search_strand] = 1
-                    detected_gene_id = detected_genes[0][1]
-                    detected_gene_name = detected_genes[0][2]
-                    found_gene_id[search_strand] = detected_gene_id
-                    found_gene_name[search_strand] = detected_gene_name
-                    if detected_genes[0][0]<0:
-                        annotated[search_strand] = detected_genes[0][0]
-            if annotated["+"]!=float("inf") and annotated["-"]!=float("inf"):
-                print("annotated junction to both strands")
-                print((chr, start, stop), count)
-            # if junction touches annotated exons on either strand, do not assign the junction to the other strand, even if there is a gene there
-            if annotated["+"]<annotated["-"]:
-                detected["-"] = 0
-            if annotated["-"]<annotated["+"]:
-                detected["+"] = 0
-            if detected["+"]==1:
-                if annotated["+"]!=float("inf"):
-                    annotated["+"] = 1
-                junctions_annotated.append((chr, start, stop, "+", found_gene_id["+"], found_gene_name["+"], annotated["+"], count))
-            if detected["-"]==1:
-                if annotated["-"]!=float("inf"):
-                    annotated["-"] = 1
-                junctions_annotated.append((chr, start, stop, "-", found_gene_id["-"], found_gene_name["-"], annotated["-"], count))
-            if detected["+"]==1 or detected["-"]==1:
+            # search for genes for this junction on both strands
+            detected_genes = find_genes(chr, "+", start, stop) + find_genes(chr, "-", start, stop)
+            detected_genes.sort(reverse=True) # resort, since we searched on both strands
+            if len(detected_genes)>0:
+                found_gene_id = detected_genes[0][1]
+                found_gene_name = detected_genes[0][2]
+                found_strand = detected_genes[0][3]
+                found_annotation = detected_genes[0][4]
+                junctions_annotated.append((chr, start, stop, found_strand, found_gene_id, found_gene_name, found_annotation, count))
                 stats["resolved"] = stats["resolved"] + 1
-            if detected["+"]==1 and detected["-"]==1:
-                stats["resolved_both_strands"] = stats["resolved_both_strands"] + 1
-            if annotated["+"]==1 or annotated["-"]==1:
-                stats["annotated"] = stats["annotated"] + 1
-            if detected["+"]==0 and detected["-"]==0:
+                stats[f"annotated_{found_annotation}"] = stats[f"annotated_{found_annotation}"] + 1
+            else:
                 stats["unresolved"] = stats["unresolved"] + 1
 
     junctions_annotated.sort(key=jsort)
@@ -341,7 +324,6 @@ def make_master():
             row = [junction_id, donor_anchor_id, acceptor_anchor_id, gene_id, gene_name, chr, strand, annotated, count]
             f.write("\t".join([str(el) for el in row]) + "\n")
     f.close()
-    print(stats)
 
 # read in and return reference/junctions.tab (junctions master table)
 def read_junctions():
