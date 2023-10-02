@@ -243,7 +243,6 @@ def process(force=False):
     annotation()
     features()
     edgeR()
-    #splicekit.core.delta_dar.compute()
     juan()
     judge_process()
     motifs()
