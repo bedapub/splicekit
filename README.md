@@ -285,7 +285,7 @@ This file contains all the junctions detected from all the samples in the projec
 | gene_name | corresponding to gene_id |
 | chr | chromosome of the junction and anchor, also stored in junction_id and anchor_id |
 | strand | strand of the junction and anchor, also stored in junction_id and anchor_id |
-| annotated | 1 if junction touches annotated exons, 0 otherwise |
+| annotated | two letter code: AA / AN / NA/ NN, first letter related to donor site (5') of junction, second letter related to acceptor site (3' of junction), A = annotated (touches annotated exon), N = not annotated |
 | count | integer raw count of all reads across all samples in the project that support the junction |
 
 </details>
