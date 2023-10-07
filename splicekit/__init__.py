@@ -211,6 +211,10 @@ def juan():
 def promisc():
     splicekit.core.promisc.process()
 
+def dreme():
+    import splicekit.core.motifs
+    splicekit.core.motifs.dreme()
+
 def motifs():
     import splicekit.core.motifs
     os.system("rm -f results/motifs/* > /dev/null 2>&1")

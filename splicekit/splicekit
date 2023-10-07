@@ -48,6 +48,15 @@ Sub-commands:
 If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
 """
 
+help_motifs = """
+Usage: splicekit motifs [sub-command]
+
+Sub-commands:
+     dreme          run DREME on produced FASTA files
+
+If no sub-command is given, all analyses will be run (DREME, scanRBP).
+"""
+
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
 parser.add_argument('command', help="command(s) to run", nargs='*')
 parser.add_argument("-help", "-h", "--help", action="store_true")
@@ -118,7 +127,13 @@ elif args.command[0]=="edgeR":
         print(help_edgeR)
         sys.exit(0)
 elif args.command[0]=="motifs":
-    splicekit.motifs()
+    if args.help:
+        print(help_motifs)
+        sys.exit(0)
+    if len(args.command)>1 and args.command[1]=="dreme":
+        splicekit.dreme()
+    else:
+        splicekit.motifs()
 elif args.command[0]=="promisc":
     splicekit.promisc()
 elif args.command[0]=="cassettes":

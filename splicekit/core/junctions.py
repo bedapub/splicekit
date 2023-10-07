@@ -50,6 +50,8 @@ def read_exons():
         temp_atts = temp_atts.split("; ")
         for el in temp_atts:
             el = el.split(" ")
+            if len(el)!=2:
+                continue            
             atts[el[0]] = el[1].replace("\"", "")
         gene_id = atts["gene_id"]
         gene_name = atts.get("gene_name", "")
