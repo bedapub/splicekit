@@ -211,6 +211,10 @@ def juan():
 def promisc():
     splicekit.core.promisc.process()
 
+def dreme():
+    import splicekit.core.motifs
+    splicekit.core.motifs.dreme()
+
 def motifs():
     import splicekit.core.motifs
     os.system("rm -f results/motifs/* > /dev/null 2>&1")
@@ -232,18 +236,15 @@ def jbrowse2_process(force_samples=False, force_annotation=False):
 
 def rmats():
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.junctions] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[edgeR.junctions] processing next 10"; done; echo "[edgeR.junctions] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/rmats/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[splicekit.rmats] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[splicekit.rmats] processing next 10"; done; echo "[splicekit.rmats] processing complete"')
     if splicekit.config.platform=="desktop":
-        os.system("source jobs/jobs_edgeR_junctions/process.sh")
-    splicekit.core.report.edgeR_feature('junctions')
-    splicekit.core.patterns.process() # adds donor patterns
+        os.system("source jobs/rmats/*.sh")
 
 def process(force=False):
     setup()
     annotation()
     features()
     edgeR()
-    #splicekit.core.delta_dar.compute()
     juan()
     judge_process()
     motifs()

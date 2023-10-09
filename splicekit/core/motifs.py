@@ -583,6 +583,7 @@ def dreme():
                 if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
                     if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
                         command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
+                        print(command)
                         os.system(command)
 
 def make_distance():

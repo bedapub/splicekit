@@ -285,7 +285,7 @@ This file contains all the junctions detected from all the samples in the projec
 | gene_name | corresponding to gene_id |
 | chr | chromosome of the junction and anchor, also stored in junction_id and anchor_id |
 | strand | strand of the junction and anchor, also stored in junction_id and anchor_id |
-| annotated | 1 if junction touches annotated exons, 0 otherwise |
+| annotated | two letter code: AA / AN / NA / NN; first letter related to donor site (5' of junction), second letter related to acceptor site (3' of junction); A = annotated (touches annotated exon), N = not annotated |
 | count | integer raw count of all reads across all samples in the project that support the junction |
 
 </details>
@@ -349,13 +349,20 @@ Adding to the above column table, there are additional columns present, dependin
 
 ## Changelog<a name="changelog"></a>
 
-**v0.4**: released in May 2023
+**v0.5**: released in September 2023
+* added rMATS analysis for splicing events
+* added Docker container that can be directly imported to singularity via ghcr.io
+
+<details>
+<summary><b>v0.4</b>: released in May 2023 (click to show details)</summary>
+
 * added singularity container with all dependencies
 * added local integrated JBrowse2
 * cluster or desktop runs
 * scanRBP and bootstrap analysis of RNA-protein binding
 * further development and integration with pybio
 * extended documentation of concepts, analysis and results
+</details>
 
 <details>
 <summary><b>v0.3</b>: released in January 2023 (click to show details)</summary>

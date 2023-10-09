@@ -23,7 +23,10 @@ def jbrowse2_config(hostname):
 jbrowse2_config(None)
 
 # read in location of gtf and fasta files
-temp = os.popen(f"pybio path {species}").read()
+if genome_version!=None:
+    temp = os.popen(f"pybio path {species} -genome_version {genome_version}").read()
+else:
+    temp = os.popen(f"pybio path {species}").read()
 temp = temp.split("\n")
 for line in temp:
     if line.endswith(".fasta"):
