@@ -21,6 +21,7 @@ Commands:
      judge             run juDGE plot analysis
      promisc           promiscuity analysis: genes and their junctions changes across conditions
      clusterlogfc      log fold-change clusters of significant changes (FDR<0.05) on junction, exon, gene level
+     rmats             process data with rMATS
 
   -- scanRBP, motif and sequence analyses
      motifs            run motif and scanRBP analysis
@@ -45,6 +46,15 @@ Sub-commands:
      genes          run edgeR on genes table data
 
 If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
+"""
+
+help_motifs = """
+Usage: splicekit motifs [sub-command]
+
+Sub-commands:
+     dreme          run DREME on produced FASTA files
+
+If no sub-command is given, all analyses will be run (DREME, scanRBP).
 """
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
@@ -117,7 +127,13 @@ elif args.command[0]=="edgeR":
         print(help_edgeR)
         sys.exit(0)
 elif args.command[0]=="motifs":
-    splicekit.motifs()
+    if args.help:
+        print(help_motifs)
+        sys.exit(0)
+    if len(args.command)>1 and args.command[1]=="dreme":
+        splicekit.dreme()
+    else:
+        splicekit.motifs()
 elif args.command[0]=="promisc":
     splicekit.promisc()
 elif args.command[0]=="cassettes":
@@ -132,6 +148,8 @@ elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
     splicekit.juan()
+elif args.command[0]=="rmats":
+    splicekit.rmats()
 elif args.command[0] == "jbrowse2":
     if len(args.command)>1:
         if args.command[1]=="process":

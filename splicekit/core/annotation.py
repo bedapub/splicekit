@@ -152,6 +152,18 @@ ml R
 {container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comp_name} {control_list} {test_list} < {core_path}/comps_edgeR.R
 """
 
+    job_rmats="""
+#!/bin/bash
+#BSUB -J {job_name}                              # Job name
+#BSUB -n 4                                       # number of tasks
+#BSUB -R "span[hosts=1]"                         # Allocate all tasks in 1 host
+#BSUB -q short                                   # Select queue
+#BSUB -o logs/logs_rmats/{comp_name}.out         # Output file
+#BSUB -e logs/logs_rmats/{comp_name}.err         # Error file
+
+{container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp
+    """
+
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "compound_samples", "DMSO_samples", "compound_group_id", "dmso_group_id"]
     comps_table.write("\t".join(header) + "\n")
@@ -190,8 +202,12 @@ ml R
             f_rmats = open(f"results/rmats/{comp_name}_{rtype}.tab", "wt")
             f_rmats.write(",".join(bams))
             f_rmats.close()
-        f_rmats = open(f"results/rmats/{comp_name}_run.sh", "wt")
-        f_rmats.write(f"{config.container} run_rmats --b1 {comp_name}_test.tab --b2 {comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od {comp_name}_results --tmp {comp_name}_temp")
+        f_rmats = open(f"jobs/rmats/{comp_name}.sh", "wt")
+        f_rmats.write(f"{config.container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp")
+        f_rmats.close()
+        f_rmats = open(f"jobs/rmats/{comp_name}.job", "wt")
+        job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, job_name="rmats_"+comp2_compound, gtf_path=splicekit.config.gtf_path[:-3])
+        f_rmats.write(job_rmats_instance)
         f_rmats.close()
 
         # edgeR exons
@@ -298,3 +314,21 @@ def make_design_contrast():
         f.write("\t".join([str(el) for el in row])+"\n")
     f.close()
 
+def bam_count():
+    fout = open("annotation/bam_counts.tab", "wt")
+    fout.write("\t".join([config.sample_column, "bam_count"]) + "\n")
+    f = open("samples.tab")
+    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r:
+        r = r.replace("\r", "").replace("\n", "").split("\t")
+        data = dict(zip(header, r))
+        bam_fname = os.path.join(config.bam_path, data[config.sample_column]+".bam")
+        output = subprocess.check_output(f"samtools view -@ 4 -c {bam_fname}", shell=True)
+        count = int(output.decode().split("\n")[0])
+        print(f"[splicekit] counted reads for sample {data['readout_id']}, bam file {bam_fname}, counts = {count}")
+        row = [data[config.sample_column], count]
+        fout.write("\t".join([str(x) for x in row]) + "\n")
+        r = f.readline()
+    f.close()
+    fout.close()

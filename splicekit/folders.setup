@@ -12,6 +12,7 @@ jobs/protein_info
 jobs/jobs_dge
 jobs/jobs_exons
 jobs/jobs_genes
+jobs/rmats
 results
 results/rmats
 results/promoters
