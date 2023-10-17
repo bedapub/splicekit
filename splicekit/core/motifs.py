@@ -743,50 +743,9 @@ def cluster(cutoff=9):
 
 def process():
     if config.scanRBP:
-        #make_scanRBP()
+        make_scanRBP()
         plot_scanRBP()
-    #make_logos()
-    #dreme()
-    #make_distance()
-    #cluster()
-
-"""
-
-[splicekit.core.motifs.make_scanRBP] control_kd_C_skndz: junctions_down_acceptor_controls junctions
-[splicekit.core.motifs.make_scanRBP] control_kd_B_shsy5y: junctions_down_donor_controls junctions
-[splicekit.core.motifs.make_scanRBP] control_kd_B_shsy5y: junctions_down_acceptor_controls junctions
-[splicekit.core.motifs.make_scanRBP] control_kd_B_shsy5y: junctions_up_donor_controls junctions
-[splicekit.core.motifs.make_scanRBP] control_kd_B_shsy5y: junctions_up_acceptor_controls junctions
-[splicekit.core.motifs.make_scanRBP] processing exons criteria
-[splicekit.core.motifs.plot_scanRBP] start
-[splicekit.core.motifs.plot_scanRBP] processing junctions_donor control_kd_A_ipsc PWM
-Traceback (most recent call last):
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/splicekit", line 146, in <module>
-    splicekit.process(force=args.force)
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/__init__.py", line 250, in process
-    motifs()
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/__init__.py", line 226, in motifs
-    splicekit.core.motifs.process()
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/core/motifs.py", line 741, in process
-    plot_scanRBP()
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/core/motifs.py", line 312, in plot_scanRBP
-    matrix_up, vector_up, rows_up = read_matrix_vector(up_fasta, dtype=dtype)
-  File "/home/rotg/scratch/splicekit_test/splicekit/splicekit/core/motifs.py", line 288, in read_matrix_vector
-    df = pd.read_csv(scanRBP_fname, sep='\t', header=0, index_col=0)
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 610, in read_csv
-    return _read(filepath_or_buffer, kwds)
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 462, in _read
-    parser = TextFileReader(filepath_or_buffer, **kwds)
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 819, in __init__
-    self._engine = self._make_engine(self.engine)
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 1050, in _make_engine
-    return mapping[engine](self.f, **self.options)  # type: ignore[call-arg]
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 1867, in __init__
-    self._open_handles(src, kwds)
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/parsers.py", line 1362, in _open_handles
-    self.handles = get_handle(
-  File "/apps/rocs/2020.08/cascadelake/software/Anaconda3/2021.05/lib/python3.8/site-packages/pandas/io/common.py", line 642, in get_handle
-    handle = open(
-FileNotFoundError: [Errno 2] No such file or directory: 'results/motifs/scanRBP/data/22plus_26666836_26667036_PWM.tab'
-
-"""
+    make_logos()
+    dreme()
+    make_distance()
+    cluster()
