@@ -155,15 +155,18 @@ def edgeR_feature(feature_name):
         count += 1
         print("Processed", fname, "{a}/{b} ({pdone}% done)".format(a=count, b=len(rfiles), pdone="%.2f" % (count/len(rfiles)*100)))
 
-    # sort by FDR
-    results_all.sort(key = lambda el: el[-1])
-    results.sort(key = lambda el: el[-1])
     headers = {}
     headers["genes"] = ["result_id", "comparison", "compound", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
     headers["junctions"] = ["result_id", "comparison", "compound", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "UTR", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "annotated", "donor_anchor_id", "acceptor_anchor_id", "donor_DAI", "acceptor_DAI", "delta_DAI", "delta_DAI_pvalue", "logFC", "exon.F", "p_value", "fdr","pi_value"]
     headers["exons"] = ["result_id", "comparison", "compound", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "test_PSI", "control_PSI", "delta_PSI", "logFC", "exon.F", "p_value", "fdr","pi_value"]
     headers["donor_anchors"] = ["result_id", "comparison", "compound", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
     headers["acceptor_anchors"] = ["result_id", "comparison", "compound", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
+
+    # sort by FDR
+    FDR_index = headers[feature_name].index("fdr")-1 # -1 because of result_id
+    results_all.sort(key = lambda el: float(el[FDR_index]))
+    results.sort(key = lambda el: float(el[FDR_index]))
+
     f = open(f"results/results_edgeR_{feature_name}.tab", "wt")
     f.write("\t".join(headers[feature_name]) + "\n")
     f_all = open(f"results/results_edgeR_{feature_name}_all.tab", "wt")
