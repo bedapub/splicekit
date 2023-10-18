@@ -206,7 +206,7 @@ ml R
         f_rmats.write(f"{config.container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp")
         f_rmats.close()
         f_rmats = open(f"jobs/rmats/{comp_name}.job", "wt")
-        job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, job_name="rmats_"+comp2_compound, gtf_path=splicekit.config.gtf_path[:-3])
+        job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, job_name="rmats_"+comp_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
 
