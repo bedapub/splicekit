@@ -16,7 +16,7 @@ import matplotlib as mpl
 import logomaker as lm
 from scipy.spatial import distance_matrix
 from numpy import linalg as LA
-import os 
+import os
 import Levenshtein as lev
 import itertools
 import splicekit
