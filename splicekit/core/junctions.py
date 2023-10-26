@@ -18,8 +18,14 @@ import argparse
 import splicekit
 import gzip
 
-min_count = 0 # per sample per raw junction count
-min_master_junction = 30 # across ALL samples in the project, criteria if to include junction in master table
+# per sample per raw junction count
+min_count = 0
+
+# across ALL samples in the project, include junction in master table?
+try:
+    min_master_junction = splicekit.config.min_master_junction 
+except:
+    min_master_junction = 30
 
 cigar_dist = {}
 junctions = {}
