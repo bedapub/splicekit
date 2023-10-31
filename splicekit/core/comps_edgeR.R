@@ -16,6 +16,11 @@ samples_test = unlist(strsplit(samples_test, ","))
 num_control = as.numeric(length(samples_control))
 num_test = as.numeric(length(samples_test))
 offset = 8
+if (length(args) >= 9) {
+    filter_low = args[9]
+} else {
+    filter_low = "filter_low" # filter our lowly expressed features by default
+}
 
 right_offset = 7
 if (atype=="exons") { right_offset = 10 }
@@ -35,9 +40,11 @@ y.all <- DGEList(counts=gxcounts, group=group, genes=genes)
 y <- y.all
 
 # filter out junctions with low read counts
-keep <- filterByExpr(y, group=group, min.count = 5, min.total.count = 10, large.n = 3)
-table(keep)
-y <- y[keep,]
+if (filter_low=="filter_low") { 
+    keep <- filterByExpr(y, group=group, min.count = 5, min.total.count = 10, large.n = 3) 
+    table(keep)
+    y <- y[keep,]
+}
 
 y <- estimateDisp(y, robust=TRUE)
 y$common.dispersion

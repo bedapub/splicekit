@@ -529,7 +529,7 @@ def make_logos():
         for f_name, f_handle in h_donors.items():
             f_handle.close()
 
-        print("[splicekit.core.motifs.make_logos] fasta files saved")
+        print(f"[splicekit.core.motifs.make_logos] fasta files saved: {mcriteria}")
         to_remove = []
         for feature_type, compound_data in compound_seq_bytype.items():
             for ck, seqs in compound_data.items():
