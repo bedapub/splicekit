@@ -38,5 +38,5 @@ WORKDIR /
 RUN git clone https://github.com/Xinglab/rmats-turbo.git
 WORKDIR rmats-turbo
 RUN ./build_rmats
-ENV PATH=$PATH:/rmats-turbo:/meme-5.5.3/src:/usr/local/bin
+ENV PATH=$PATH:/rmats-turbo:/meme-5.5.3/src:/meme-5.5.3/scripts:/usr/local/bin
 ENV PYTHONPATH=$PYTHONPATH:/meme-5.5.3/scripts
