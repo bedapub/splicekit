@@ -140,6 +140,7 @@ def write_comparisons():
 #BSUB -J {job_name}                              # Job name
 #BSUB -n 4                                       # number of tasks
 #BSUB -R "span[hosts=1]"                         # Allocate all tasks in 1 host
+#BSUB -M 8GB                                     # Allocate 8GB of memory
 #BSUB -q short                                   # Select queue
 #BSUB -o logs/logs_edgeR_{atype}/{comp_name}.out # Output file
 #BSUB -e logs/logs_edgeR_{atype}/{comp_name}.err # Error file
