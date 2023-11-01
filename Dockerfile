@@ -13,8 +13,8 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
 RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_21.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
 # R packages
-#RUN echo 'deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/' | tee -a /etc/apt/sources.list
-#RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+RUN echo 'deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/' | tee -a /etc/apt/sources.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 
 # update and install
 RUN apt-get update
