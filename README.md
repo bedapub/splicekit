@@ -17,7 +17,7 @@ If you already have aligned reads in BAM files, all you need is `samples.tab` an
 
 ## Documentation
 
-* [PDF reference manual](https://github.com/bedapub/splicekit/blob/main/docs/splicekit_docs.pdf)
+* [PDF reference manual](https://github.com/bedapub/splicekit/raw/main/docs/splicekit_docs.pdf)
 * [Google docs](https://docs.google.com/document/d/15ZRCeK8xyg3klLktZSHZ9k__Xw_BZRn_Q-J4W35JNnQ/edit?usp=sharing) of the above PDF (comment if you like)
 
 ## Changelog<a name="changelog"></a>
