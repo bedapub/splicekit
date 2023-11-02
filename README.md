@@ -32,7 +32,7 @@ export PATH=$PATH:~/splicekit/splicekit
 <details>
 <summary>If you already have aligned reads in BAM files</summary>
 
-All you need is `samples.tab` (TAB delimited file) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
+All you need is `samples.tab` (note that this is a <b>TAB delimited file</b>) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
 
 You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
 

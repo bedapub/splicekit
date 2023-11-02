@@ -82,6 +82,9 @@ def read_comparisons():
     separates = set()
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
+        if r.startswith("#"):
+            r = f.readline()
+            continue
         data = dict(zip(header, r))
         sample_id = data[config.sample_column] # well samples, but we actually work with readout_ids, since these are used in bam file names
         samples.add(sample_id)
