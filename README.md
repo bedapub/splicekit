@@ -32,10 +32,13 @@ export PATH=$PATH:~/splicekit/splicekit
 <details>
 <summary>If you already have aligned reads in BAM files</summary>
 
-All you need is `samples.tab` (TAB delimited file) and `splicekit.config` in one folder. Check datasets for examples.
-Then download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`.
+All you need is `samples.tab` (TAB delimited file) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
 
-Check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
+
+Finally run `$ splicekit process` (inside the folder with `samples.tab` and `splicekit.config`).
+
+Easiest is to check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
 </details>
 
 ## Documentation
