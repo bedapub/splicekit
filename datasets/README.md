@@ -2,9 +2,9 @@
 
 This folder contains complete splicekit dataset/run examples. In each of the dataset subfolders, you can find simple scripts for:
 
-* downloading FASTQ files of public datasets (1_download.sh)
-* mapping reads to the reference genome (2_map.sh)
-* running splicekit analysis (3_splicekit.sh)
+* downloading FASTQ files of public datasets: `1_download.sh`
+* mapping reads to the reference genome: `2_map.sh`
+* running splicekit analysis: `3_splicekit.sh`
 
 The datasets are:
 
