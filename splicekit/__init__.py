@@ -83,7 +83,7 @@ def junctions_master():
     splicekit.core.annotation.read_comparisons()
     splicekit.core.junctions.make_jobs()
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[junctions] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[junctions] processing next 10"; done; echo "[junctions] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[junctions] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[junctions] processing next 10"; done; echo "[junctions] processing complete"')
         os.system("export BSUB_QUIET=Y; bsub -q short -M 16GB -o /dev/null -e /dev/null -K python -c 'import splicekit; splicekit.core.junctions.make_master()'; wait;") # run make master as cluster job
     if splicekit.config.platform=="desktop":
         os.system("source jobs/jobs_junctions/process.sh")
