@@ -107,7 +107,7 @@ def make_jobs():
 #BSUB -J {job_name}                               # Job name
 #BSUB -n 4                                        # number of tasks
 #BSUB -R "span[hosts=1]"                          # Allocate all tasks in 1 host
-#BSUB -M 8GB                                      # Allocate 8GB of memory
+#BSUB -M 16GB                                     # Memory
 #BSUB -q short                                    # Select queue
 #BSUB -o logs/logs_junctions/{sample_id}.out # Output file
 #BSUB -e logs/logs_junctions/{sample_id}.err # Error file

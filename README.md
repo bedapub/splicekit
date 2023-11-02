@@ -15,9 +15,28 @@ Note that on some systems, pip is installing the executable scripts under `~/.lo
 
 Another suggestion is to install inside a virtual environment (using `virtualenv`).
 
-If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
+<details>
+<summary>Installing splicekit directly from the GitHub repository</summary>
 
-If you already have aligned reads in BAM files, all you need is `samples.tab` and `splicekit.config` in one folder and the reference genome annotation downloaded and parsed (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`. Check [datasets](datasets) examples to see how these files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+```
+# move to HOME folder (for example)
+cd ~
+# clone the repository
+git clone git@github.com:bedapub/splicekit.git
+# adjust PYTHONPATH and PATH
+export PYTHONPATH=$PYTHONPATH:~/splicekit
+export PATH=$PATH:~/splicekit/splicekit
+```
+</details>
+
+<details>
+<summary>If you already have aligned reads in BAM files</summary>
+
+All you need is `samples.tab` (TAB delimited file) and `splicekit.config` in one folder. Check datasets for examples.
+Then download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`.
+
+Check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+</details>
 
 ## Documentation
 
