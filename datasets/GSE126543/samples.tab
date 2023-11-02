@@ -1,3 +1,4 @@
+# note that this is a TAB delimited file (use TAB characters to separate values)
 sample_id	treatment_id
 SRR8571937	positive
 SRR8571938	DMSO

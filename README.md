@@ -9,15 +9,41 @@ The easiest way to install splicekit is to simply run:
 
 `$ pip install splicekit`
 
-Note that on some systems, pip is installing the executable scripts under `~/.local/bin`. However this folder is not in the PATH which will result in `command not found` if you try to run `$ splicekit` on the command line. To fix this, please execute `export PATH="$PATH:~/.local/bin"` (and add this to your `.profile`). Another suggestion is to install inside a virtual environment (using `virtualenv`).
+Note that on some systems, pip is installing the executable scripts under `~/.local/bin`. However this folder is not in the PATH which will result in `command not found` if you try to run `$ splicekit` on the command line. To fix this, please execute:
 
-If you would like to install splicekit directly from this repository, clone the repository into a folder, for example `~/software/splicekit`. Add the `~/software/splicekit` folder to $PYTHONPATH (`export PYTHONPATH=$PYTHONPATH:~/software/splicekit`).
+`export PATH="$PATH:~/.local/bin"`
 
-If you already have aligned reads in BAM files, all you need is `samples.tab` and `splicekit.config` in one folder and the reference genome annotation downloaded and parsed (e.g. `$ pybio genome homo_sapiens`). Then run `$ splicekit process`. Check [datasets](datasets) examples to see how these files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+Another suggestion is to install inside a virtual environment (using `virtualenv`).
+
+<details>
+<summary>Installing splicekit directly from the GitHub repository</summary>
+
+```
+# move to HOME folder (for example)
+cd ~
+# clone the repository
+git clone git@github.com:bedapub/splicekit.git
+# adjust PYTHONPATH and PATH
+export PYTHONPATH=$PYTHONPATH:~/splicekit
+export PATH=$PATH:~/splicekit/splicekit
+```
+</details>
+
+<details>
+<summary>If you already have aligned reads in BAM files</summary>
+
+All you need is `samples.tab` (note that this is a <b>TAB delimited file</b>) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
+
+You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
+
+Finally run `$ splicekit process` (inside the folder with `samples.tab` and `splicekit.config`).
+
+Easiest is to check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+</details>
 
 ## Documentation
 
-* [PDF reference manual](https://github.com/bedapub/splicekit/blob/main/docs/splicekit_docs.pdf)
+* [PDF reference manual](https://github.com/bedapub/splicekit/raw/main/docs/splicekit_docs.pdf)
 * [Google docs](https://docs.google.com/document/d/15ZRCeK8xyg3klLktZSHZ9k__Xw_BZRn_Q-J4W35JNnQ/edit?usp=sharing) of the above PDF (comment if you like)
 
 ## Changelog<a name="changelog"></a>
