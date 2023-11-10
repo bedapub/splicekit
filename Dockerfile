@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Zurich
@@ -13,7 +13,8 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
 RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_21.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
 # R packages
-RUN echo 'deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/' | tee -a /etc/apt/sources.list
+#RUN echo 'deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/' | tee -a /etc/apt/sources.list
+RUN echo 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/' | tee -a /etc/apt/sources.list
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 
 # update and install
@@ -32,7 +33,7 @@ RUN R -e "install.packages('statmod')"
 RUN cpanm XML::Compile::Transport::SOAPHTTP XML::Compile::WSDL11 XML::Compile::SOAP11 XML::Compile XML::LibXML::Simple XML::LibXML Log::Log4perl Math::CDF CGI File::Which Data::Dumper File::Copy File::Spec::Functions HTML::PullParser HTML::Template HTML::TreeBuilder JSON Pod::Usage XML::Simple XML::Parser::Expat
 
 # MEME suite
-RUN wget http://meme-suite.org/meme-software/5.5.4/meme-5.5.4.tar.gz
+RUN wget http://meme-suite.org/meme-software/5.5.4/meme-5.5.4.tar.gz --no-check-certificate
 RUN tar zxf meme-5.5.4.tar.gz
 WORKDIR /meme-5.5.4
 RUN ./configure --prefix=/meme --with-url=http://meme-suite.org --enable-build-libxml2 --enable-build-libxslt --disable-dependency-tracking
@@ -40,6 +41,7 @@ RUN make
 RUN make install
 
 # rmats-turbo
+RUN apt-get update
 RUN apt-get install -y subread bedtools samtools tabix
 WORKDIR /
 RUN git clone https://github.com/Xinglab/rmats-turbo.git
