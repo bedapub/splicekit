@@ -42,6 +42,7 @@ def edgeR_feature(feature_name):
 
     # since we construct {sample_id}_{treatment_id} and {treatment_id} can still contain _,
     # we go back to the original samples table to extract {sample_id}
+    # since the column can also be named otherwise (not only sample_id), we use the correct name from config.sample_column
     samples = []
     f = open("samples.tab", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
@@ -49,7 +50,7 @@ def edgeR_feature(feature_name):
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
         data = dict(zip(header, r))
-        samples.append(data["sample_id"])
+        samples.append(data[config.sample_column])
         r = f.readline()
     f.close()
 
