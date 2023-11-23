@@ -100,7 +100,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     """
 
     job_sh_exons="""
-    featureCounts {library_type_insert}-s {library_strand_insert} -M -p -O -T 12 -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+    featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
     cp {out_fname} {out_fname}_temp
     echo "{header_line}" >| {out_fname}
     tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 

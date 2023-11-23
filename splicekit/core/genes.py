@@ -72,9 +72,9 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     
     gtf_fname = f"reference/genes.gtf"
     bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
-    out_dir = f'data/sample_genes_data'
-    jobs_dir = f'jobs/jobs_genes'
-    logs_dir = f'logs/logs_genes'
+    out_dir = f"data/sample_genes_data"
+    jobs_dir = f"jobs/jobs_genes"
+    logs_dir = f"logs/logs_genes"
 
     job_genes="""
     #!/bin/bash

@@ -66,7 +66,7 @@ parser.add_argument("-hostname", "--hostname", help="If you are submitting 'spli
 args = parser.parse_args()
 
 # lookup version without loading splicekit
-import importlib
+import importlib.util
 splicekit_init = importlib.util.find_spec("splicekit")
 splicekit_path = splicekit_init.origin
 splicekit_folder = os.path.dirname(splicekit_path)
