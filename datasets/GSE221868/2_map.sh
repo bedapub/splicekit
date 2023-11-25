@@ -25,5 +25,5 @@ SRR22909625"
 for rid in $runs
 do
     echo "mapping $rid"
-    pybio star homo_sapiens fastq/${rid}_1.fastq.gz fastq/${rid}_2.fastq.gz bam/${rid}
+    pybio star homo_sapiens fastq/${rid}_1.fastq.gz fastq/${rid}_2.fastq.gz bam/${rid} -threads 8
 done

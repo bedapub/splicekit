@@ -147,5 +147,5 @@ def process(force_samples=False, force_annotation=False):
         if splicekit.config.platform=="cluster":
             os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_jbrowse/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[jbrowse] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[jbrowse] processing next 10"; done; echo "[jbrowse] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system("source jobs/jobs_jbrowse/process.sh")
+            os.system(". jobs/jobs_jbrowse/process.sh")
     create_jbrowse_config(force_annotation)
