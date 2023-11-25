@@ -87,7 +87,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         
     ml .testing
     ml Subread/2.0.3-GCC-9.3.0
-    featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+    {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
     # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
     # next, we are only interested in the 1st and 7th column (gene_id and count)
     cp {out_fname} {out_fname}_temp
@@ -101,7 +101,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     """
 
     job_sh_genes="""
-    featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+    {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
     cp {out_fname} {out_fname}_temp
     echo "{header_line}" >| {out_fname}
     # sum exon counts to gene counts with awk
@@ -119,11 +119,11 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         job_fname = f'{jobs_dir}/genes_{sample}.job'
         sam_fname = f"{bam_dir}/{sample}.bam"
         # cluster job
-        job_out = job_genes.format(library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
+        job_out = job_genes.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
         job_file = open(job_fname, "w")
         job_file.write(job_out)
         job_file.close()
         # shell job
-        job_out = job_sh_genes.format(library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
+        job_out = job_sh_genes.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
         fsh.write(job_out)
     fsh.close()

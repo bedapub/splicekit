@@ -1,4 +1,3 @@
-# note that this is a TAB delimited file (use TAB characters to separate values)
 sample_id	readout_id	treatment_id
 SRR22909639	DMSO_1	DMSO
 SRR22909638	DMSO_2	DMSO
