@@ -1,7 +1,6 @@
 jobs
 jobs/jobs_edgeR_junctions
 jobs/jobs_edgeR_exons
-jobs/jobs_edgeR_anchors
 jobs/jobs_edgeR_donor_anchors
 jobs/jobs_edgeR_acceptor_anchors
 jobs/jobs_edgeR_genes
