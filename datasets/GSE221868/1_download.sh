@@ -28,6 +28,6 @@ for rid in $runs
 do
     echo "downloading $rid"
     fastq-dump --split-3 -A $rid
-    gzip ${rid}_1.fastq
-    gzip ${rid}_2.fastq
+    gzip -f ${rid}_1.fastq
+    gzip -f ${rid}_2.fastq
 done
