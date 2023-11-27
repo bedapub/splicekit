@@ -48,9 +48,11 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Changelog<a name="changelog"></a>
 
-**v0.5**: released in September 2023
+**v0.4.9**: released in November 2023
 * added rMATS analysis for splicing events
 * added Docker container that can be directly imported to singularity via ghcr.io
+* fixed dependencies
+* other small fixes
 
 <details>
 <summary><b>v0.4</b>: released in May 2023 (click to show details)</summary>
