@@ -1,26 +1,12 @@
+# splicekit anchors module
+# reference/junction.tab = all detected junctions and their corresponding anchors in the columns
+# junction_id = <chr><strand>_<start>_<stop>
+# annotated = AA/AN/NA/NN
+# create GTF file from ancher coordinates for featureCount
+
 import os
 import sys
 import splicekit.config as config
-
-"""
-    for all samples, one master junction.tab under reference/ lists all the junctions and their corresponding anchors in the columns
-    junction_id(<chr><strand>_<start>_<stop>, str),
-    gene_id (empty or filled, int),
-    gene_name  (empty or filled, str),
-    annotated (1/0),
-    recount3_log10dist_1k (empty or filled, int),
-    count (int)
-
-    iterate junctions (rows) and retrieve anchor region and its count coverage to ouput tab file with columns
-    anchor_id (<chr><strand>_<start>_<stop>, str), 
-    count (int)
-
-    To that end, we use the subread/featureCount software (which is ultra-fast and can be multihreaded)
-    featureCount expects a gtf to know about the feautres and regions it should quantify. 
-    1.) we need to create a gtf that list the anchor regions. 
-    2.) we need to parse one job per sample that calls featureCount
-    --> Important, Bam files must be sorted, which they currently are when outputted from bksnake    
-"""
 
 def write_anchor_gtf():
 
