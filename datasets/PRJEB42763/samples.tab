@@ -1,4 +1,3 @@
-# note that this is a TAB delimited file (use TAB characters to separate values)
 sample_id	treatment_id	group
 ERR5296631	control	IPSC
 ERR5296641	control	IPSC
