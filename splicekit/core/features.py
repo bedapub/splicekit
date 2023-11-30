@@ -330,12 +330,17 @@ def save_comps_feature_data(feature_type):
     return True
 
 def add_psi_cluster():
-    commands = []
-    commands.append("export BSUB_QUIET=Y")
-    for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
-        commands.append("bsub -q short -o /dev/null -e /dev/null -K python -c 'import splicekit; splicekit.core.features.add_psi(\"" + comp_name + "\")'")
-    commands = "export BSUB_QUIET=Y; " + " & ".join(commands) + "; wait"
-    os.system(commands)
+    if config.platform=="cluster":
+        commands = []
+        commands.append("export BSUB_QUIET=Y")
+        for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
+            commands.append("bsub -q short -o /dev/null -e /dev/null -K python -c 'import splicekit; splicekit.core.features.add_psi(\"" + comp_name + "\")'")
+        commands = "export BSUB_QUIET=Y; " + " & ".join(commands) + "; wait"
+        os.system(commands)
+    if config.platform=="desktop":
+        for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
+            command = "python -c 'import splicekit; splicekit.core.features.add_psi(\"" + comp_name + "\")'"
+            os.system(command)
 
 def add_psi(comp_name):
     read_length = 150
