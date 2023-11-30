@@ -49,5 +49,5 @@ for rid in $runs
 do
     echo "downloading $rid"
     fastq-dump -A $rid
-    gzip ${rid}.fastq
+    gzip -f ${rid}.fastq
 done

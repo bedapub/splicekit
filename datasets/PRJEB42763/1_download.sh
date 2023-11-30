@@ -26,19 +26,12 @@ ERR5303527
 ERR5303529
 ERR5305084"
 
-runs="ERR5296631
-ERR5296647
-ERR5303525
-ERR5303527
-ERR5303529
-ERR5305084"
-
 cd fastq
 
 for rid in $runs
 do
     echo "downloading $rid"
     fastq-dump --split-3 -A $rid
-    gzip ${rid}_1.fastq
-    gzip ${rid}_2.fastq
+    pigz -f ${rid}_1.fastq
+    pigz -f ${rid}_2.fastq
 done
