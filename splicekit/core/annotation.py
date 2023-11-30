@@ -150,11 +150,9 @@ def write_comparisons():
 
 ml R
 {container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comp_name} {control_list} {test_list} {filter_low} < {core_path}/comps_edgeR.R
-    """
-
-    job_sh_edgeR="""
-{container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comp_name} {control_list} {test_list} {filter_low} < {core_path}/comps_edgeR.R
 """
+
+    job_sh_edgeR="""{container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comp_name} {control_list} {test_list} {filter_low} < {core_path}/comps_edgeR.R"""
 
     job_rmats="""
 #!/bin/bash
@@ -166,7 +164,7 @@ ml R
 #BSUB -e logs/logs_rmats/{comp_name}.err         # Error file
 
 {container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp
-    """
+"""
 
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "compound_samples", "DMSO_samples", "compound_group_id", "dmso_group_id"]
@@ -224,35 +222,35 @@ ml R
         fout_exons.write(job_exons)
         fout_exons.close()        
         job_sh_exons = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_exons_data", atype="exons", control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_exons.write(job_sh_exons)
+        fsh_exons.write(job_sh_exons+"\n")
 
         # edgeR junctions
         job_junctions = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_junctions_data", atype="junctions", job_name="edgeR_junctions_"+comp2_compound, control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
         fout_junctions.write(job_junctions)
         fout_junctions.close()
         job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_junctions_data", atype="junctions", control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_junctions.write(job_sh_junctions)
+        fsh_junctions.write(job_sh_junctions+"\n")
 
         # edgeR donor anchors
         job_donor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_donor_anchors_data", atype="donor_anchors", job_name="edgeR_donor_anchors_"+comp2_compound, control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
         fout_donor_anchors.write(job_donor_anchors)
         fout_donor_anchors.close()
         job_sh_donor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_donor_anchors_data", atype="donor_anchors", control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_donor_anchors.write(job_sh_donor_anchors)
+        fsh_donor_anchors.write(job_sh_donor_anchors+"\n")
 
         # edgeR acceptor anchors
         job_acceptor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_acceptor_anchors_data", atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+comp2_compound, control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
         fout_acceptor_anchors.write(job_acceptor_anchors)
         fout_acceptor_anchors.close()
         job_sh_acceptor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_acceptor_anchors_data", atype="acceptor_anchors", control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_acceptor_anchors.write(job_sh_acceptor_anchors)
+        fsh_acceptor_anchors.write(job_sh_acceptor_anchors+"\n")
 
         # edgeR genes
         job_genes = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_genes_data", atype="genes", job_name="edgeR_genes_"+comp2_compound, control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
         fout_genes.write(job_genes)
         fout_genes.close()
         job_sh_genes = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, input_folder=os.getcwd(), data_folder="data/comparison_genes_data", atype="genes", control_name=comp1_compound, test_name=comp2_compound, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_genes.write(job_sh_genes)
+        fsh_genes.write(job_sh_genes+"\n")
 
         row = [comp_name, ",".join(str(el) for el in test_ids), ",".join(str(el) for el in control_ids), compound_group_id, dmso_group_id]
         comps_table.write("\t".join(row) + "\n")
