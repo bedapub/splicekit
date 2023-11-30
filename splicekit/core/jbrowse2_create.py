@@ -50,11 +50,7 @@ def write_sample_jobs(force_samples):
 {container} samtools index {cram_fname}
     """
 
-    job_sh_bw="""
-{container} bamCoverage --ignoreDuplicates --binSize {bamCoverage_binSize}  -b {bam_fname} -o {bigwig_fname} -of bigwig 2> logs/logs_jbrowse/{sample}.err
-{container} samtools view -C -T {genome_fa} {bam_fname} -O CRAM -o {cram_fname} 2> logs/logs_jbrowse/{sample}.err
-{container} samtools index {cram_fname} 2>> logs/logs_jbrowse/{sample}.err
-"""
+    job_sh_bw="""{container} bamCoverage --ignoreDuplicates --binSize {bamCoverage_binSize}  -b {bam_fname} -o {bigwig_fname} -of bigwig 2> logs/logs_jbrowse/{sample}.err; {container} samtools view -C -T {genome_fa} {bam_fname} -O CRAM -o {cram_fname} 2> logs/logs_jbrowse/{sample}.err; {container} samtools index {cram_fname} 2>> logs/logs_jbrowse/{sample}.err"""
     
     # start job creation
     for dir in dirs_to_check:
@@ -79,7 +75,7 @@ def write_sample_jobs(force_samples):
             fout.close()        
             job_sh_bw_out = job_sh_bw.format(container=container, sample=sample, bamCoverage_binSize=bamCoverage_binSize,
                                             bam_fname=bam_fname,cram_fname=cram_fname, bigwig_fname=bigwig_fname, genome_fa=genome_fa)
-            fsh.write(job_sh_bw_out)
+            fsh.write(job_sh_bw_out+"\n")
         else:
             print(f'[jbrowse] sample {sample} already processed (.bw and .cram in results/results_jbrowse) --> use "splicekit jbrowse2_create samples -force" to overwrite')
     fsh.close()
@@ -147,5 +143,6 @@ def process(force_samples=False, force_annotation=False):
         if splicekit.config.platform=="cluster":
             os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_jbrowse/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[jbrowse] submitted $job_fname"; bsub -K < ${job_fname} & done; wait; echo "[jbrowse] processing next 10"; done; echo "[jbrowse] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(". jobs/jobs_jbrowse/process.sh")
+            splicekit.core.mprocess("jobs/jobs_jbrowse/process.sh")
+            #os.system(". jobs/jobs_jbrowse/process.sh")
     create_jbrowse_config(force_annotation)
