@@ -1,6 +1,5 @@
 """
-# Description
-Core modules and methods of splicekit.
+core module of splicekit
 """
 
 import os
@@ -30,7 +29,7 @@ def mprocess(fname):
             tasks.append(r)
         r = f.readline()
     f.close()
-    print("[splicekit] started processing")
+    print(f"splicekit | started multicore ({num_worker_threads}) processing: {fname}")
     for i in range(num_worker_threads):
         t = Thread(target=worker)
         t.daemon = True
@@ -40,5 +39,5 @@ def mprocess(fname):
         q.put(task)
 
     q.join()
-    print("[splicekit] done processing")
+    print("splicekit | done multicore ({num_worker_threads}) processing: {fname}")
 

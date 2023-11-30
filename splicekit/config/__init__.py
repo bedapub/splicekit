@@ -1,3 +1,7 @@
+"""
+config module of splicekit
+"""
+
 import os
 import sys
 import splicekit.core as core
@@ -35,4 +39,3 @@ for line in temp:
         gtf_path = line
     if line.endswith(".gff3.gz"):
         gff3_path = line
-

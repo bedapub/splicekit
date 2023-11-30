@@ -1,9 +1,4 @@
-"""
-Module to communicate with Moose:
- * downloads sample annotation to annotation/moose_api_{study_id}_samples.tab
- * prepares annotation/comparisons.tab
- * creates design and contrast matrices
-"""
+# splicekit annotation module
 
 import requests
 import os
@@ -14,10 +9,11 @@ import splicekit.core.annotation as annotation
 import splicekit.core as core
 import splicekit
 
-"""
-# dictionary of last nucleotide of first exon of transcripts; we use this to then annotate if junctions are hitting 5'UTR / alternative 5'UTR -> promoter changes
-annotation.first_exons((chr, strand, pos)) = (transcript_id, gene_id)
-"""
+
+# dictionary of last nucleotide of first exon of transcripts
+# used to annotate junctions hitting 5'UTR / alternative 5'UTR
+# -> promoter changes
+# annotation.first_exons[(chr, strand, pos)] = (transcript_id, gene_id)
 
 def short_names(text):
     result = text
@@ -86,19 +82,22 @@ def read_comparisons():
             continue
         r = r.replace("\r", "").replace("\n", "").split("\t")
         data = dict(zip(header, r))
-        sample_id = data[config.sample_column] # well samples, but we actually work with readout_ids, since these are used in bam file names
+        sample_id = data[config.sample_column]
         samples.add(sample_id)
         compound_id = data[config.treatment_column]
         separates.add(data.get(config.separate_column, ""))
         annotation.compounds.setdefault(compound_id, []).append((sample_id, compound_id, data.get(config.separate_column, ""), data.get(config.group_column, "")))
         r = f.readline()
     f.close()
-    # sort by sample ID, it's nice to have it sorted in the comparisons
+    # sort by sample ID
     for compound, data in annotation.compounds.items():
         annotation.compounds[compound] = sort_readout_id(data)
     dmso_hash = {}
     dmso_letter = "A"
-    separates = sorted(separates) # sometimes the set was reshufled! not always in the same order, very difficult to pinpoint this "feature"
+    # sometimes the separates set was reshufled
+    # very difficult to pinpoint/debug this
+    # sort it
+    separates = sorted(separates)
     temp = []
     for sep in separates:
         for compound1, data1 in annotation.compounds.items():
@@ -117,7 +116,7 @@ def read_comparisons():
                 if len(temp2)==0:
                     continue
                 # add comparison to the list
-                # the thing is, we need also a unique DMSO comparison name, not only with _sep
+                # also add a unique DMSO comparison name, not only with _sep
                 # this is then useful for the contrast and design matrix for DGE analysis
                 temp.append((compound1, compound2))
                 if dmso_hash.get(tuple(temp2), None)==None:
@@ -333,7 +332,7 @@ def bam_count():
         bam_fname = os.path.join(config.bam_path, data[config.sample_column]+".bam")
         output = subprocess.check_output(f"samtools view -@ 4 -c {bam_fname}", shell=True)
         count = int(output.decode().split("\n")[0])
-        print(f"[splicekit] counted reads for sample {data['readout_id']}, bam file {bam_fname}, counts = {count}")
+        print(f"splicekit | bam read counts: {data['readout_id']}, bam file {bam_fname}, counts = {count}")
         row = [data[config.sample_column], count]
         fout.write("\t".join([str(x) for x in row]) + "\n")
         r = f.readline()
