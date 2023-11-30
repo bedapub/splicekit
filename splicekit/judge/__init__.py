@@ -133,7 +133,7 @@ def process():
         header = ["gene_id", "gene_name", "gene_logFC", "junctions_logFC"]
         fdata.write("\t".join(header) + "\n")
         for gene_id, (gene_name, gene_fdr) in gene_data.items():
-            junction_fdr_list = gene_junction_data.get(gene_name, [])
+            junction_fdr_list = gene_junction_data.get(gene_id, [])
             compound_junction_counts[comp_name] = compound_junction_counts.setdefault(comp_name, 0) + len(junction_fdr_list)
             row = [gene_id, gene_name, gene_fdr, ",".join([str(el) for el in junction_fdr_list])]
             if len(junction_fdr_list)>0:

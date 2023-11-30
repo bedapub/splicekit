@@ -113,11 +113,9 @@ def make_jobs():
 #BSUB -e logs/logs_junctions/{sample_id}.err # Error file
 
 python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
-    """
+"""
 
-    job_sh_junctions="""
-python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
-    """
+    job_sh_junctions="""python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"""
 
     fsh = open("jobs/jobs_junctions/process.sh", "wt")
     for sample_id in splicekit.core.annotation.samples:
@@ -126,7 +124,7 @@ python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{s
         f = open("jobs/jobs_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
         f.write(job_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname, job_name="detect_junctions_{sample_id}".format(sample_id=sample_id)))
         f.close()
-        fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname))
+        fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname)+"\n")
     fsh.close()
     
 def detect_junctions(positions, cigar, read, pair=None):
