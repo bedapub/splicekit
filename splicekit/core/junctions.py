@@ -1,4 +1,4 @@
-# script to produce junction database + counts from bam files
+# produce junction database + counts from bam files
 # usage: python junctions.py filename.bam result
 # outputs result.tab, result.bed
 
@@ -37,7 +37,7 @@ gene_name_gid = {}
 gene_id_strand = {}
 
 def read_exons():
-    print(f"[junctions] reading {splicekit.config.gtf_path} to get gene and exon coordinates")
+    print(f"splicekit | junctions | reading {splicekit.config.gtf_path} to get gene and exon coordinates")
     f = gzip.open(splicekit.config.gtf_path, "rt")
     r = f.readline()
     while r:
@@ -184,7 +184,7 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
     for read in samfile.fetch():
         count += 1
         if count%1e5==0:
-            print(f"[junctions] processed %.1f M alignments from {sam_fname}" % (count/1e6))
+            print(f"splicekit | junctions |  processed %.1f M alignments from {sam_fname}" % (count/1e6))
         cigar = read.cigar
         pair = None
         if read.is_paired:
@@ -254,7 +254,7 @@ def read_raw():
     junctions = {}
     for sample_id in splicekit.core.annotation.samples:
         raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab"
-        print("processing", raw_fname)
+        print("spicekit | junctions | processing", raw_fname)
         f = open(raw_fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
@@ -354,7 +354,7 @@ def junctions_per_sample():
     junctions = read_junctions()
     for sample_id in splicekit.core.annotation.samples:
         sample_counts = {}
-        print(f"[core.junctions] reading raw junctions: data/sample_junctions_data/sample_{sample_id}_raw.tab")
+        print(f"splicekit | junctions | reading: data/sample_junctions_data/sample_{sample_id}_raw.tab")
         f = open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
@@ -372,7 +372,7 @@ def junctions_per_sample():
             r = f.readline()
         f.close()
 
-        print(f"[core.junctions] writting junctions counts file: data/sample_junctions_data/sample_{sample_id}.tab")
+        print(f"splicekit | junctions | writting counts: data/sample_junctions_data/sample_{sample_id}.tab")
         fout = open(f"data/sample_junctions_data/sample_{sample_id}.tab", "wt")
         header = ["junction_id", "count"]
         fout.write("\t".join(header) + "\n")

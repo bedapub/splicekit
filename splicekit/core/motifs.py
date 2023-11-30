@@ -1,10 +1,7 @@
-"""
-[motifs] module of splicekit
-
-* retrieve sequence patterns (donor sites, classified by junction type) and construct sequence logos
-* prepare fasta files for scanRBP and dreme
-* generate html reports
-"""
+# splicekit motifs module
+# retrieve sequence patterns and construct sequence logos
+# prepare FASTA for scanRBP and DREME
+# html reports
 
 import pybio
 import math
@@ -87,12 +84,10 @@ criteria_name_list = [item for sublist in criteria_name_list for item in sublist
 assert(len(set(criteria_name_list))==len(criteria_name_list))
 
 def compute_mean_levdist(seq_list):   
-    """
-    given list of sequences, create list of all pairwise combinations (tuples)
-    iterate over list and compute levensthein distance
-    return average levensthein distance as float
-    """
-    # makes no biological sense to judge accuracy of seq_list of len > 3000 
+    # given list of sequences, create list of all pairwise combinations (tuples)
+    # iterate over list and compute levensthein distance
+    # return average levensthein distance as float
+    # max 3000 sequences 
     seq_list = seq_list[:3000]
     if len(seq_list)>1:
         seq_pairs = list(itertools.combinations(seq_list, 2))
@@ -161,13 +156,12 @@ Background ({num_background_sites}K donor sites)<br>
 
 scanRBP_data = {}
 def make_scanRBP():
-    print("[splicekit.core.motifs.make_scanRBP] start")
-
+    print("splicekit | make_scanRBP | start")
     scanRBP_to_process = [[a,b,c,d] for (_,a,b,c,d) in scanRBP_pairs]
     scanRBP_to_process = [item for sublist in scanRBP_to_process for item in sublist]
     comparison_counts = {}
     for feature_type, mcriteria in motif_criteria.items():
-        print(f"[splicekit.core.motifs.make_scanRBP] processing {feature_type} criteria")
+        print(f"[splicekit | make_scanRBP |  processing {feature_type} criteria")
         scanRBP_data = {}
         f = open(f"results/results_edgeR_{feature_type}_all.tab", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
@@ -219,7 +213,7 @@ def make_scanRBP():
         for (criteria_name, comparison), result_data in scanRBP_data.items():
             if criteria_name not in scanRBP_to_process:
                 continue
-            print(f"[splicekit.core.motifs.make_scanRBP] {comparison}: {criteria_name} {feature_type}")
+            print(f"splicekit | make_scanRBP | {comparison}: {criteria_name} {feature_type}")
             fasta_fname = f"results/motifs/scanRBP/fasta/{comparison}_{criteria_name}_scanRBP.fasta"
             f = open(fasta_fname, "wt")
             for fasta_id, data in result_data.items():
@@ -267,7 +261,7 @@ def bootstrap_logfc(matrix_signal, matrix_control, smoothing=6, iterations=1000)
     return boot_values
 
 def plot_scanRBP():
-    print("[splicekit.core.motifs.plot_scanRBP] start")
+    print("splicekit | plot_scanRBP | start")
 
     smoothing = 6
     protein = config.protein
