@@ -1,5 +1,5 @@
 import os
-import splicekit
+import splicekit.config as config
 import http.server
 import socket
 import socketserver
@@ -18,8 +18,8 @@ def server():
     ip_addr=socket.gethostbyname(hostname)
     Handler = RangeHTTPServer.RangeRequestHandler
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print(f"{module_desc} http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json")
+    with socketserver.TCPServer(("", config.jbrowse2_port), Handler) as httpd:
+        print(f"{module_desc} http://{ip_addr}:{config.jbrowse2_port}/jbrowse2/?config=splicekit_data/config.json")
         httpd.serve_forever()
 
 def setup():
@@ -35,11 +35,11 @@ def setup():
 # JBrowse2 part
 
 # for every bam file create bigwig and cram file plus a bed file that shows the junctions
-bam_dir = splicekit.config.bam_path
-container = splicekit.config.container
+bam_dir = config.bam_path
+container = config.container
 bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
-genome_fa = splicekit.config.fasta_path
-gff_fname =  splicekit.config.gff3_path
+genome_fa = config.fasta_path
+gff_fname =  config.gff3_path
 dirs_to_check = ['logs/logs_jbrowse/', 'jobs/jobs_jbrowse/','results/results_jbrowse/'] 
 
 def check_genome():
