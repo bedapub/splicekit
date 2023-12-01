@@ -173,6 +173,7 @@ ml R
     fsh_donor_anchors = open(f"jobs/jobs_edgeR_donor_anchors/process.sh", "wt")
     fsh_acceptor_anchors = open(f"jobs/jobs_edgeR_acceptor_anchors/process.sh", "wt")
     fsh_genes = open(f"jobs/jobs_edgeR_genes/process.sh", "wt")
+    fsh_rmats = open(f"jobs/rmats/process.sh", "wt")
     for (comp_name, comp1, comp2, compound_group_id, dmso_group_id) in annotation.comparisons:
         comp1_compound = comp1[0][1]
         comp2_compound = comp2[0][1]
@@ -208,9 +209,7 @@ ml R
             f_rmats = open(f"results/rmats/{comp_name}_{rtype}.tab", "wt")
             f_rmats.write(",".join(bams))
             f_rmats.close()
-        f_rmats = open(f"jobs/rmats/{comp_name}.sh", "wt")
-        f_rmats.write(f"{config.container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp")
-        f_rmats.close()
+        fsh_rmats.write(f"{config.container} run_rmats --b1 results/rmats/{comp_name}_test.tab --b2 results/rmats/{comp_name}_control.tab --gtf {splicekit.config.gtf_path[:-3]} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comp_name}_results --tmp results/rmats/{comp_name}_temp\n")
         f_rmats = open(f"jobs/rmats/{comp_name}.job", "wt")
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comp_name=comp_name, job_name="rmats_"+comp_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
@@ -258,6 +257,7 @@ ml R
     fsh_junctions.close()
     fsh_donor_anchors.close()
     fsh_acceptor_anchors.close()
+    fsh_rmats.close()
 
 def make_design_contrast():
     # write design matrix

@@ -239,7 +239,7 @@ def rmats():
     if splicekit.config.platform=="cluster":
         os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/rmats/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[splicekit.rmats] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[splicekit.rmats] processing next 10"; done; echo "[splicekit.rmats] processing complete"')
     if splicekit.config.platform=="desktop":
-        os.system(". jobs/rmats/*.sh")
+        splicekit.core.mprocess("jobs/rmats/process.sh")
 
 def process(force=False):
     setup()
