@@ -18,8 +18,8 @@ def server():
     ip_addr=socket.gethostbyname(hostname)
     Handler = RangeHTTPServer.RangeRequestHandler
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print(f"{module_desc} http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json")
+    with socketserver.TCPServer(("", config.jbrowse2_port), Handler) as httpd:
+        print(f"{module_desc} http://{ip_addr}:{config.jbrowse2_port}/jbrowse2/?config=splicekit_data/config.json")
         httpd.serve_forever()
 
 def setup():
