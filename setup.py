@@ -27,5 +27,5 @@ setup(
     package_data={
         'splicekit': ['folders.setup', 'splicekit.config.template', 'version', 'core/comps_edgeR.R'],
     },
-    install_requires=["logomaker", "plotly", "python-dateutil>=2.8.2", "pybio", "scanRBP", "pysam", "numpy>=1.20", "psutil", "bs4", "requests", "rangehttpserver"],
+    install_requires=["levenshtein", "logomaker", "plotly", "python-dateutil>=2.8.2", "pybio", "scanRBP", "pysam", "numpy>=1.20", "psutil", "bs4", "requests", "rangehttpserver"],
 )
