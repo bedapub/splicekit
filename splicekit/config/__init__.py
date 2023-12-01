@@ -5,7 +5,6 @@ config module of splicekit
 import os
 import sys
 import splicekit.core as core
-import splicekit.core.jbrowse2 as jbrowse2
 import socket
 
 if os.path.exists("splicekit.config"):
@@ -13,12 +12,13 @@ if os.path.exists("splicekit.config"):
     for cline in config_lines:
         exec(cline.replace("\r", "").replace("\n", ""))
 
+jbrowse2_port = 8007
 jbrowse2_url = ""
 
 def jbrowse2_config(hostname):
     global jbrowse2_url
     # JBrowse2 URL
-    port = jbrowse2.port
+    port = jbrowse2_port
     if hostname==None: # get hostname?
         hostname=socket.gethostname()
     ip_addr=socket.gethostbyname(hostname)

@@ -1,12 +1,11 @@
+# splicekit exons module
+# generate exon count data
+# use featureCounts and provided gtf file + bam files
+
 import os
 import sys
 import splicekit.config as config
 import gzip
-
-"""
-generate exon count data
-use featureCounts and provided gtf file + bam files
-"""
 
 def write_exons_gtf():
 

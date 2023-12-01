@@ -1,12 +1,11 @@
+# splicekit genes module
+# generate gene count data
+# use featureCounts and provided gtf file + bam files
+
 import os
 import sys
 import splicekit.config as config
 import gzip
-
-"""
-generate gene count data
-use featureCounts and provided gtf file + bam files
-"""
 
 def write_genes_gtf():
 

@@ -33,8 +33,6 @@ print("[splicekit] loading splicekit.core.anchors ")
 import splicekit.core.anchors 
 print("[splicekit] loading splicekit.core.junctions")
 import splicekit.core.junctions
-print("[splicekit] loading splicekit.core.jbrowse2_create")
-import splicekit.core.jbrowse2_create
 print("[splicekit] loading splicekit.core.jbrowse2")
 import splicekit.core.jbrowse2
 print("[splicekit] loading splicekit.core.juan")
@@ -195,7 +193,7 @@ def edgeR(run=None):
     if run=="anchors" or run==None:
         os.system("rm -f results/results_edgeR_donor_anchors/*.tab > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB-K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
         if splicekit.config.platform=="desktop":
             os.system(". jobs/jobs_edgeR_donor_anchors/process.sh")
         splicekit.core.report.edgeR_feature('donor_anchors')
@@ -233,7 +231,7 @@ def clusterlogfc_process():
     splicekit.clusterlogfc.process()
 
 def jbrowse2_process(force_samples=False, force_annotation=False):
-    splicekit.core.jbrowse2_create.process(force_samples, force_annotation)
+    splicekit.core.jbrowse2.process(force_samples, force_annotation)
 
 def rmats():
     if splicekit.config.platform=="cluster":
