@@ -193,7 +193,7 @@ def edgeR(run=None):
     if run=="anchors" or run==None:
         os.system("rm -f results/results_edgeR_donor_anchors/*.tab > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB-K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
         if splicekit.config.platform=="desktop":
             os.system(". jobs/jobs_edgeR_donor_anchors/process.sh")
         splicekit.core.report.edgeR_feature('donor_anchors')
