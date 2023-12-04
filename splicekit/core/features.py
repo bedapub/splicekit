@@ -1,7 +1,5 @@
-"""
-# Description
-Generates juncion, exon, genes, anchor count tables.
-"""
+# module features
+# generates count tables: juncion, exon, genes, anchor
 
 import os
 import sys
