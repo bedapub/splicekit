@@ -1,3 +1,7 @@
+# clusterlogfc module of splicekit
+# clustering on logFC of comparison values (FDR<0.05)
+# clustering at the junction, exon and gene levels (separately)
+
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt

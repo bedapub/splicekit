@@ -1,6 +1,4 @@
-"""
-config module of splicekit
-"""
+# config module of splicekit
 
 import os
 import sys
