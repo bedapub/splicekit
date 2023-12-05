@@ -1,7 +1,5 @@
-"""
-# Description
-Generates juncion, exon, genes, anchor count tables.
-"""
+# module features
+# generates count tables: juncion, exon, genes, anchor
 
 import os
 import sys
@@ -13,6 +11,8 @@ import splicekit.core.annotation as annotation
 import scipy
 import scipy.stats
 
+module_name = "splicekit | features |"
+
 # load genes with exons, junctions and anchors
 def load_genes():
     annotation.junctions_genes = {}
@@ -20,7 +20,7 @@ def load_genes():
     annotation.acceptor_anchors_genes = {}
     annotation.exons_genes = {}
     transcript_exons = {}
-    print("[features] Reading annotation:", config.gtf_path)
+    print(f"{module_name} reading annotation: {config.gtf_path}")
     f = gzip.open(config.gtf_path, "rt")
     r = f.readline()
     while r:
@@ -88,13 +88,13 @@ def load_genes():
                     annotation_data[chr, strand, exon_stop] = (transcript_id, gene_id, exon_start, exon_stop)
 
     # save last nucleotide of first/second exon of each transcript)
-    print("splicekit.features: saving last nucleotide of first/second exon of each transcript")
+    print(f"{module_name} saving last nucleotide of first/second exon of each transcript")
     annotation.first_exons = {}
     identify_exons(transcript_exons, annotation.first_exons, 0)
     #annotation.second_exons = {}
     #identify_exons(transcript_exons, annotation.second_exons, 1)
     
-    print("splicekit.features: reading junctions and anchors annotation from: reference/junctions.tab")
+    print(f"{module_name} reading junctions and anchors annotation from: reference/junctions.tab")
     f = open("reference/junctions.tab", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
@@ -153,7 +153,7 @@ def read_junctions():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print("[features] Junction read OK, sample={sample_id}, from=data/sample_junctions_data/sample_{sample_id}.tab, ({a}/{b}, {c}% done)".format(a=count, b=count_all, c="%.2f" % (count/count_all*100), sample_id=sample_id))
+        print(f"{module_name} junction read OK, sample={sample_id}, from=data/sample_junctions_data/sample_{sample_id}.tab, ({count}/{count_all}")
         f.close()
 
 def read_anchors(anchor_type):
@@ -188,7 +188,7 @@ def read_anchors(anchor_type):
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print("[features] Anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab, ({a}/{b}, {c}% done)".format(a=count, b=count_all, c="%.2f" % (count/count_all*100), sample_id=sample_id, anchor_type=anchor_type))
+        print(f"{module_name} anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab, ({count}/{count_all}")
         f.close()
 
 def read_exons():
@@ -220,7 +220,7 @@ def read_exons():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print("[features] Exons read OK, sample={sample_id}, from=data/sample_exons_data/sample_{sample_id}.tab, ({a}/{b}, {c}% done)".format(a=count, b=count_all, c="%.2f" % (count/count_all*100), sample_id=sample_id))
+        print(f"{module_name} exons read OK, sample={sample_id}, from=data/sample_exons_data/sample_{sample_id}.tab, ({count}/{count_all})")
         f.close()
 
 def read_genes():
@@ -247,7 +247,7 @@ def read_genes():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print("[features] Genes read OK, sample={sample_id}, from=data/sample_genes_data/sample_{sample_id}.tab, ({a}/{b}, {c}% done)".format(a=count, b=count_all, c="%.2f" % (count/count_all*100), sample_id=sample_id))
+        print(f"{module_name} genes read OK, sample={sample_id}, from=data/sample_genes_data/sample_{sample_id}.tab, ({count}/{count_all}")
         f.close()
 
 def save_comps_feature_data(feature_type):
@@ -326,7 +326,43 @@ def save_comps_feature_data(feature_type):
                 fout.write("\t".join(str(el) for el in row)+"\n")
         fout.close()
         count += 1
-        print("[features] Saved comparison_{feature}_data/{comp_name}.tab ({a}/{b}, {c}% done)".format(comp_name=comp_name, a=count, b=count_all, c="%.2f" % (count/count_all*100), feature=feature_type))
+
+        # at the end, add a general matrix (all samples), with a slightly different structure (no control/test sum etc.)
+        # all sample ids are in: annotation.samples
+        fout = gzip.open(f"data/samples_{feature_type}_counts.tab.gz", "wt")
+        header = ["gene_id", "gene_name", "chr", "strand", "feature_start", "feature_stop", "length", "feature_id"]
+        for sample_id in annotation.samples:
+            header.append(sample_id)
+        fout.write("\t".join(header)+"\n")
+        for gene_id, gene_data in annotation.genes.items():
+            if gene_data.get(feature_type, None)==None:
+                continue
+            for feature_id, feature_data in gene_data[feature_type].items():
+                # propagate gene start stop from gene object to count object
+                if feature_type=="genes" and feature_id in ["start", "stop"]:
+                    continue
+                if feature_type=="genes":
+                    feature_data["start"] = gene_data["genes"]["start"]
+                    feature_data["stop"] = gene_data["genes"]["stop"]
+                for (sample_id, compound, rep, _) in comp2:
+                    sum_gene_test += feature_data.get(sample_id, 0)
+                for (sample_id, compound, rep, _) in comp1:
+                    sum_gene_control += feature_data.get(sample_id, 0)
+            for feature_id, feature_data in gene_data[feature_type].items():
+                # propagate gene start stop from gene object to count object
+                if feature_type=="genes" and feature_id in ["start", "stop"]:
+                    continue
+                if feature_type=="genes":
+                    feature_data["start"] = gene_data["genes"]["start"]
+                    feature_data["stop"] = gene_data["genes"]["stop"]
+                row = [gene_id, "{symbol}\t{chr}\t{strand}\t{feature_start}\t{feature_stop}\t{length}".format(chr=gene_data["chr"], strand=gene_data["strand"], symbol=gene_data["gene_name"], feature_start=feature_data["start"], feature_stop=feature_data["stop"], length=feature_data["stop"]-feature_data["start"]+1)]
+                row.append(feature_id)
+                for sample_id in annotation.samples:
+                    row.append(feature_data.get(sample_id, 0))
+                fout.write("\t".join(str(el) for el in row)+"\n")
+        fout.close()
+
+        print(f"{module_name} saved comparison_{feature_type}_data/{comp_name}.tab ({count}/{count_all})")
     return True
 
 def add_psi_cluster():
@@ -368,7 +404,7 @@ def add_psi(comp_name):
     fin_junctions = open("data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
     data_junctions = {} # chr / strand + list of junctions
     # first read in the junctions
-    print("[features] reading junctions from: data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name))
+    print(f"{module_name} reading junctions from: data/comparison_junctions_data/{comp_name}.tab")
     header = fin_junctions.readline().replace("\r", "").replace("\n", "").split("\t")
     r = fin_junctions.readline()
     while r:
@@ -415,15 +451,11 @@ def add_psi(comp_name):
             test_PSI = test_IR/(test_IR + test_ER) * 100
         except:
             test_PSI = 0
-            #print("ZERO", chr, strand, exon_length, sum_exon_test, sum_exon_control, sum_junction_test, sum_junction_control, test_IR, test_ER)
         try:
             control_PSI = control_IR/(control_IR + control_ER) * 100
         except:
             control_PSI = 0
-            #print("ZERO", chr, strand, exon_length, sum_exon_test, sum_exon_control, sum_junction_test, sum_junction_control, test_IR, test_ER)
         delta_PSI = test_PSI - control_PSI
-        #if abs(delta_PSI>10):
-        #    print(chr, strand, exon_length, sum_exon_test, sum_exon_control, sum_junction_test, sum_junction_control, test_PSI, control_PSI, delta_PSI)
         data_out = dict(zip(header_out, r))
         data_out["test_PSI"] = "%.2f" % test_PSI
         data_out["control_PSI"] = "%.2f" % control_PSI
@@ -433,7 +465,7 @@ def add_psi(comp_name):
     fin_exons.close()
     fout_exons.close()
     os.system("mv {fout_exons_new} {fout_exons}".format(fout_exons_new="data/comparison_exons_data/{comp_name}_new.tab".format(comp_name=comp_name), fout_exons="data/comparison_exons_data/{comp_name}.tab".format(comp_name=comp_name)))
-    print("[features] Added PSI for comparison_exons_data/{comp_name}.tab".format(comp_name=comp_name))
+    print(f"{module_name} added PSI for comparison_exons_data/{comp_name}.tab")
     return True    
 
 def add_dai():
@@ -469,7 +501,7 @@ def add_dai():
 
         # read in donors
         data_donor_anchors = {}
-        print("[features] reading donor anchors from: data/comparison_donor_anchors_data/{comp_name}.tab".format(comp_name=comp_name))
+        print(f"{module_name} reading donor anchors from: data/comparison_donor_anchors_data/{comp_name}.tab")
         header = fin_donor_anchors.readline().replace("\r", "").replace("\n", "").split("\t")
         r = fin_donor_anchors.readline()
         while r:
@@ -486,7 +518,7 @@ def add_dai():
 
         # read in anchors
         data_acceptor_anchors = {}
-        print("[features] reading acceptor anchors from: data/comparison_acceptor_anchors_data/{comp_name}.tab".format(comp_name=comp_name))
+        print(f"{module_name} reading acceptor anchors from: data/comparison_acceptor_anchors_data/{comp_name}.tab")
         header = fin_acceptor_anchors.readline().replace("\r", "").replace("\n", "").split("\t")
         r = fin_acceptor_anchors.readline()
         while r:
@@ -502,7 +534,7 @@ def add_dai():
         fin_acceptor_anchors.close()
 
         fout_junctions = open("data/comparison_junctions_data/{comp_name}_new.tab".format(comp_name=comp_name), "wt")
-        print("[features] processing junctions from: data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name))
+        print(f"{module_name} processing junctions from: data/comparison_junctions_data/{comp_name}.tab")
         header = fin_junctions.readline().replace("\r", "").replace("\n", "").split("\t")
         header_out = header.copy()
         if "donor_DAI" not in header_out:
@@ -553,7 +585,7 @@ def add_dai():
         fout_junctions.close()
         count += 1
         os.system("mv data/comparison_junctions_data/{comp_name}_new.tab data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name))
-        print("[features] Added DAI for comparison_junctions_data/{comp_name}.tab ({a}/{b}, {c}% done)".format(comp_name=comp_name, a=count, b=count_all, c="%.2f" % (count/count_all*100)))
+        print(f"{module_name} Added DAI for comparison_junctions_data/{comp_name}.tab ({count}/{count_all}")
     return True    
 
 def save_feature_data(feature_type, filter=None):
@@ -575,4 +607,4 @@ def save_feature_data(feature_type, filter=None):
                     fout.write("\t".join(str(el) for el in row)+"\n")
         fout.close()
         count += 1
-        print("[features] Saved {feature_type} data, sample={sample_id}, file={fname} ({a}/{b}, {c}% done)".format(a=count, b=count_all, c="%.2f" % (count/count_all*100), feature_type=feature_type, sample_id=sample_id, fname=fname))
+        print(f"{module_name} saved {feature_type} data, sample={sample_id}, file={fname} ({count}/{count_all}")
