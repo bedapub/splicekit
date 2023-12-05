@@ -18,6 +18,8 @@ import argparse
 import splicekit
 import gzip
 
+module_name = "splicekit | junctions |"
+
 # per sample per raw junction count
 min_count = 0
 
@@ -37,7 +39,7 @@ gene_name_gid = {}
 gene_id_strand = {}
 
 def read_exons():
-    print(f"splicekit | junctions | reading {splicekit.config.gtf_path} to get gene and exon coordinates")
+    print(f"{module_name} reading {splicekit.config.gtf_path} to get gene and exon coordinates")
     f = gzip.open(splicekit.config.gtf_path, "rt")
     r = f.readline()
     while r:
@@ -158,7 +160,7 @@ def detect_junctions(positions, cigar, read, pair=None):
     return num_junctions
 
 def plot_hist(data, label):
-    print("plotting", label)
+    print(f"{module_name} plotting", label)
     plt.figure()
     sns.set(font_scale=0.5)
     sns.set_style("dark")
@@ -175,7 +177,7 @@ def plot_hist(data, label):
     plt.close()
 
 def parse_sam(sam_fname, out_fname, output_bed=True):
-    print(f"[junctions] parsing sam {sam_fname} to {out_fname}")
+    print(f"{module_name} parsing sam {sam_fname} to {out_fname}")
     cigar_types = {0:"M", 1:"I", 2:"D", 3:"N", 4:"S", 5:"H", 6:"P", 7:"=", 8:"X"}
     sam_fname = sys.argv[1]
     out_fname = sys.argv[2]
@@ -184,7 +186,7 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
     for read in samfile.fetch():
         count += 1
         if count%1e5==0:
-            print(f"splicekit | junctions |  processed %.1f M alignments from {sam_fname}" % (count/1e6))
+            print(f"{module_name} processed %.1f M alignments from {sam_fname}" % (count/1e6))
         cigar = read.cigar
         pair = None
         if read.is_paired:
@@ -254,7 +256,7 @@ def read_raw():
     junctions = {}
     for sample_id in splicekit.core.annotation.samples:
         raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab"
-        print("spicekit | junctions | processing", raw_fname)
+        print(f"{module_name} processing: {raw_fname}")
         f = open(raw_fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
@@ -354,7 +356,7 @@ def junctions_per_sample():
     junctions = read_junctions()
     for sample_id in splicekit.core.annotation.samples:
         sample_counts = {}
-        print(f"splicekit | junctions | reading: data/sample_junctions_data/sample_{sample_id}_raw.tab")
+        print(f"{module_name} reading: data/sample_junctions_data/sample_{sample_id}_raw.tab")
         f = open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
@@ -372,7 +374,7 @@ def junctions_per_sample():
             r = f.readline()
         f.close()
 
-        print(f"splicekit | junctions | writting counts: data/sample_junctions_data/sample_{sample_id}.tab")
+        print(f"{module_name} writting counts: data/sample_junctions_data/sample_{sample_id}.tab")
         fout = open(f"data/sample_junctions_data/sample_{sample_id}.tab", "wt")
         header = ["junction_id", "count"]
         fout.write("\t".join(header) + "\n")
