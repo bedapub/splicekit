@@ -149,7 +149,7 @@ elif args.command[0]=="juan":
     splicekit.juan()
 elif args.command[0]=="rmats":
     splicekit.rmats()
-elif args.command[0] == "jbrowse2":
+elif args.command[0] in ["jbrowse2", "jbrowse"]:
     if len(args.command)>1:
         if args.command[1]=="process":
             splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
