@@ -75,6 +75,7 @@ def annotation():
     os.system("rm -f jobs/jobs_edgeR_anchors/* > /dev/null 2>&1")
     splicekit.core.annotation.read_comparisons()
     splicekit.core.annotation.write_comparisons()
+    splicekit.core.annotation.write_comparisons_edgeR2()
     splicekit.core.annotation.make_design_contrast()
 
 def junctions_master():
