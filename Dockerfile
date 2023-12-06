@@ -27,6 +27,7 @@ RUN R -e "install.packages('BiocManager')"
 RUN R -e "BiocManager::install('edgeR')"
 RUN R -e "install.packages('data.table')"
 RUN R -e "install.packages('statmod')"
+RUN R -e "install.packages('R.utils')"
 
 # Perl modules
 RUN cpanm XML::Compile::Transport::SOAPHTTP XML::Compile::WSDL11 XML::Compile::SOAP11 XML::Compile XML::LibXML::Simple XML::LibXML Log::Log4perl Math::CDF CGI File::Which Data::Dumper File::Copy File::Spec::Functions HTML::PullParser HTML::Template HTML::TreeBuilder JSON Pod::Usage XML::Simple XML::Parser::Expat
