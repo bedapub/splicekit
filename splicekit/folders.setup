@@ -1,3 +1,17 @@
+logs/logs_edgeR2_junctions
+logs/logs_edgeR2_exons
+logs/logs_edgeR2_genes
+logs/logs_edgeR2_donor_anchors
+logs/logs_edgeR2_acceptor_anchors
+results/results_edgeR2_junctions
+results/results_edgeR2_exons
+results/results_edgeR2_genes
+results/results_edgeR2_donor_anchors
+results/results_edgeR2_acceptor_anchors
+results/results_edgeR2_junctions/plots
+results/results_edgeR2_exons/plots
+results/results_edgeR2_donor_anchors/plots
+results/results_edgeR2_acceptor_anchors/plots
 jobs/jobs_edgeR2_junctions
 jobs/jobs_edgeR2_exons
 jobs/jobs_edgeR2_donor_anchors

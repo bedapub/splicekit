@@ -21,8 +21,8 @@ if (length(args) >= 9) {
     filter_low = "filter_low" # filter our lowly expressed features by default
 }
 
-all_samples = c(samples_control, samples_test)
-print(all_samples)
+samples_all = c(samples_control, samples_test)
+samples_all_plain <- gsub("_kd|_control", "", samples_all)
 
 right_offset = 0
 #if (atype=="exons") { right_offset = 10 }
@@ -34,36 +34,61 @@ genes <- gx[, -c((offset+1):(ncol(gx)-right_offset)), with=FALSE]
 gxcounts <- gx[, -c(1:offset), with=FALSE] # first 8 columns are feature infos
 gxcounts <- gxcounts[, c(1:(ncol(gxcounts)-right_offset)), with=FALSE] # last 7 (or 10) columns are pji, delta_pji (PSI, delta_PSI)
 
-quit()
+y = DGEList(counts=gxcounts, genes=genes)
+y = calcNormFactors(y)
+#y <- estimateDisp(y, robust=TRUE)
+#print(y$common.dispersion)
 
-# 2vs1 or 1vs2, this changes sign of logFC
-# group <- factor(c(rep(c(1), num_test), rep(c(2), num_control)))
-group <- factor(c(rep(c(2), num_test), rep(c(1), num_control)))
+y_subset = y[, colnames(y) %in% c(samples_control, samples_test)]
 
-y.all <- DGEList(counts=gxcounts, group=group, genes=genes)
-y <- y.all
-
-# filter out junctions with low read counts
-if (filter_low=="filter_low") { 
-    keep <- filterByExpr(y, group=group, min.count = 5, min.total.count = 10, large.n = 3) 
-    table(keep)
-    y <- y[keep,]
+listA = colnames(y_subset)
+listB = samples_control
+listC = samples_test
+list_member = character(length(listA))
+for (i in seq_along(listA)) {
+  if (listA[i] %in% listB) {
+    list_member[i] = "control"
+  } else if (listA[i] %in% listC) {
+    list_member[i] = "test"
+  } else {
+    list_member[i] = "None"
+  }
 }
 
-y <- estimateDisp(y, robust=TRUE)
-y$common.dispersion
+# with intercept
+#group <- factor(list_member, levels = c("control", "test"), labels = c("control", "test"))
+#design <- model.matrix(~group)
+#colnames(design) <- c("intercept", "test")
+#contrast <- makeContrasts(mytest = test, levels = design)
+#contrast
 
-fit <- glmQLFit(y, robust=TRUE)
+# without intercept
+group <- factor(list_member, levels = c("control", "test"), labels = c("control", "test"))
+design <- model.matrix(~0 + group)
+colnames(design) <- c("control", "test")
+contrast <- makeContrasts(mytest = test - control, levels = design)
+contrast
 
-qlf <- glmQLFTest(fit)
+# filter out features with low read counts
+if (filter_low=="filter_low") { 
+    keep <- filterByExpr(y_subset, group=group, min.count = 5, min.total.count = 10, large.n = 3) 
+    table(keep)
+    y_subset <- y_subset[keep,]
+}
+
+y_subset <- estimateDisp(y_subset, design, robust=TRUE)
+
+fit <- glmQLFit(y_subset, design, robust=TRUE)
+
+qlf <- glmQLFTest(fit, contrast=contrast)
 d = topTags(qlf, n=Inf)
 d = d$table
 d["pi_value"] = -log10(d["PValue"]) * d["logFC"] # add pi value
-output_fname = paste(input_folder, "/results/results_edgeR_", atype, "/", comp_name, "_difffeature.tab", sep="")
-write.table(d, file=output_fname, sep="\t", row.names=FALSE, quote=FALSE)
+output_fname = paste(input_folder, "/results/results_edgeR2_", atype, "/", comp_name, "_difffeature.tab.gz", sep="")
+write.table(d, file=gzfile(output_fname), sep="\t", row.names=FALSE, quote=FALSE)
 
-sp <- diffSpliceDGE(fit, geneid="gene_id", exonid="feature_id")
+sp <- diffSpliceDGE(fit, geneid="gene_id", exonid="feature_id", contrast=contrast)
 d = topSpliceDGE(sp, test="exon", n=Inf)
 d["pi_value"] = -log10(d["P.Value"]) * d["logFC"] # add pi value
-output_fname = paste(input_folder, "/results/results_edgeR_", atype, "/", comp_name, "_altsplice.tab", sep="")
-write.table(d, file=output_fname, sep="\t", row.names=FALSE, quote=FALSE)
+output_fname = paste(input_folder, "/results/results_edgeR2_", atype, "/", comp_name, "_altsplice.tab.gz", sep="")
+write.table(d, file=gzfile(output_fname), sep="\t", row.names=FALSE, quote=FALSE)

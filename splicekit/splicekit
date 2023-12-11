@@ -125,6 +125,18 @@ elif args.command[0]=="edgeR":
     else:
         print(help_edgeR)
         sys.exit(0)
+elif args.command[0]=="edgeR2":
+    if args.help:
+        print(help_edgeR)
+        sys.exit(0)
+    if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
+        splicekit.core.features.load_genes()
+        splicekit.edgeR(run=args.command[1], version="2")
+    elif len(args.command)==1:
+        splicekit.edgeR(version="2")
+    else:
+        print(help_edgeR)
+        sys.exit(0)
 elif args.command[0]=="motifs":
     if args.help:
         print(help_motifs)

@@ -1,21 +1,22 @@
 import os
 import sys
+import gzip
 import splicekit.config as config
 import pybio
 import copy
 
 pattern_area = (-2, 6)
 
-def process():
+def process(version=""):
     def process_file(fname):
-        fin = open(f"results/{fname}.tab", "rt")
+        fin = gzip.open(f"results/{fname}.tab.gz", "rt")
         header = fin.readline().replace("\r", "").replace("\n", "").split("\t")
         header_out = header.copy()
         if "donor_pattern" not in header_out:
             header_out.append("donor_pattern")
         if "acceptor_pattern" not in header_out:
             header_out.append("acceptor_pattern")
-        fout = open(f"results/{fname}_new.tab", "wt")
+        fout = gzip.open(f"results/{fname}_new.tab.gz", "wt")
         fout.write("\t".join(header_out)+"\n")
         r = fin.readline()
         while r:
@@ -37,7 +38,7 @@ def process():
             fout.write("\t".join(str(data_out[h]) for h in header_out) + "\n")
             r = fin.readline()
         fout.close()
-        os.system(f"mv results/{fname}_new.tab results/{fname}.tab")
+        os.system(f"mv results/{fname}_new.tab.gz results/{fname}.tab.gz")
         fin.close()
-    process_file("results_edgeR_junctions")
-    process_file("results_edgeR_junctions_all")
+    process_file(f"results_edgeR{version}_junctions")
+    process_file(f"results_edgeR{version}_junctions_all")
