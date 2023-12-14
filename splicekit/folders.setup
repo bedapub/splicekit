@@ -3,6 +3,12 @@ logs/logs_edgeR2_exons
 logs/logs_edgeR2_genes
 logs/logs_edgeR2_donor_anchors
 logs/logs_edgeR2_acceptor_anchors
+results/edgeR
+results/edgeR/junctions
+results/edgeR/exons
+results/edgeR/donor_anchors
+results/edgeR/acceptor_anchors
+results/edgeR/dispersion
 results/results_edgeR2_junctions
 results/results_edgeR2_exons
 results/results_edgeR2_genes

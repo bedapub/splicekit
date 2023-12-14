@@ -41,7 +41,7 @@ def write_exons_gtf():
     # iterate over original gtf file
     gtf_file = gzip.open(config.gtf_path, 'rt')
     r = gtf_file.readline()
-    exons_file = open("reference/exons.gtf", "wt")
+    exons_file = gzip.open("reference/exons.gtf.gz", "wt")
     while r:
         if r.startswith("#"):
             r = gtf_file.readline()
@@ -69,7 +69,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type]
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     
-    gtf_fname = f"reference/exons.gtf"
+    gtf_fname = f"reference/exons.gtf.gz"
     bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
     out_dir = f'data/sample_exons_data'
     jobs_dir = f'jobs/jobs_exons'

@@ -1,7 +1,10 @@
 import os
 import splicekit
 import glob
+import gzip
 import pandas as pd
+
+module_name = "splicekit | juan |"
 
 # append anchor edgeR results (donor+acceptor) to results_edgeR_junctions
 def append_results():
@@ -9,11 +12,12 @@ def append_results():
         temp = {}
         for comparison in splicekit.core.annotation.comparisons:
             comp_id = comparison[0]
-            print("[juan] reading:", f"results/results_edgeR_{anchor_type}/{comp_id}_altsplice.tab")
-            if not os.path.exists(f"results/results_edgeR_{anchor_type}/{comp_id}_altsplice.tab"):
-                print("[juan] warning, do such file:", f"results/results_edgeR_{anchor_type}/{comp_id}_altsplice.tab")
+            altsplice_fname = f"results/edgeR/{anchor_type}/{comp_id}_altsplice.tab.gz"
+            print(f"{module_name} reading {altsplice_fname}")
+            if not os.path.exists(altsplice_fname):
+                print(f"{module_name} warning, missing file {altsplice_fname}")
                 continue
-            f = open(f"results/results_edgeR_{anchor_type}/{comp_id}_altsplice.tab", "rt")
+            f = gzip.open(altsplice_fname, "rt")
             header = f.readline().replace("\r", "").replace("\n", "").split("\t")
             r = f.readline()
             while r:
@@ -28,13 +32,13 @@ def append_results():
     database_donor_anchors = read_database("donor_anchors")
     database_acceptor_anchors = read_database("acceptor_anchors")
 
-    for fname in ["results/results_edgeR_junctions", "results/results_edgeR_junctions_all"]:
-        f = open(f"{fname}.tab", "rt")
-        fout = open(f"{fname}2.tab", "wt")
+    for fname in ["results/edgeR/junctions_results_complete.tab.gz", "results/edgeR/junctions_results_fdr005.tab.gz"]:
+        f = gzip.open(fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         # already appended anchor info to the results file?
         if "donor_anchor_fdr" in header:
             continue
+        fout = gzip.open(f"{fname}_temp", "wt")
         header_new = header
         header_new.append("donor_anchor_fdr")
         header_new.append("donor_anchor_logfc")
@@ -64,4 +68,4 @@ def append_results():
             r = f.readline()
         f.close()
         fout.close()
-        os.system(f"mv {fname}2.tab {fname}.tab")
+        os.system(f"mv {fname}_temp {fname}")

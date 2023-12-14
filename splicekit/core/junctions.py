@@ -208,7 +208,7 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
         junction_results.append(row)
 
     junction_results = sorted(junction_results, key = lambda x: (x[0], -x[-1]))    
-    f = open(f"{out_fname}_raw.tab", "wt")
+    f = gzip.open(f"{out_fname}_raw.tab.gz", "wt")
     header = ["chr", "strand", "start", "stop", "count"]
     f.write("\t".join(header) + "\n")
     for (chr, strand, start, stop, count) in junction_results:
@@ -218,7 +218,7 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
     f.close()
 
     if output_bed:
-        f = open(f"{out_fname}_raw.bed", "wt")
+        f = gzip.open(f"{out_fname}_raw.bed.gz", "wt")
         for (chr, strand, start, stop, count) in junction_results:
             if count>=min_count:
                 bed_row = [chr, start, stop, count]
@@ -255,9 +255,9 @@ def sort_junctions(data):
 def read_raw():
     junctions = {}
     for sample_id in splicekit.core.annotation.samples:
-        raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab"
+        raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab.gz"
         print(f"{module_name} processing: {raw_fname}")
-        f = open(raw_fname, "rt")
+        f = gzip.open(raw_fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -322,7 +322,7 @@ def make_master():
                 stats["unresolved"] = stats["unresolved"] + 1
 
     junctions_annotated.sort(key=jsort)
-    f = open("reference/junctions.tab", "wt")
+    f = gzip.open("reference/junctions.tab.gz", "wt")
     header = ["junction_id", "donor_anchor_id", "acceptor_anchor_id", "gene_id", "gene_name", "chr", "strand", "annotated", "count"]
     f.write("\t".join(header) + "\n")
     for (chr, start, stop, strand, gene_id, gene_name, annotated, count) in junctions_annotated:
@@ -334,10 +334,10 @@ def make_master():
             f.write("\t".join([str(el) for el in row]) + "\n")
     f.close()
 
-# read in and return reference/junctions.tab (junctions master table)
+# read in and return reference/junctions.tab.gz (junctions master table)
 def read_junctions():
     junctions = []
-    f = open("reference/junctions.tab", "rt")
+    f = gzip.open("reference/junctions.tab.gz", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
@@ -356,8 +356,8 @@ def junctions_per_sample():
     junctions = read_junctions()
     for sample_id in splicekit.core.annotation.samples:
         sample_counts = {}
-        print(f"{module_name} reading: data/sample_junctions_data/sample_{sample_id}_raw.tab")
-        f = open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab", "rt")
+        print(f"{module_name} reading: data/sample_junctions_data/sample_{sample_id}_raw.tab.gz")
+        f = gzip.open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -374,8 +374,8 @@ def junctions_per_sample():
             r = f.readline()
         f.close()
 
-        print(f"{module_name} writting counts: data/sample_junctions_data/sample_{sample_id}.tab")
-        fout = open(f"data/sample_junctions_data/sample_{sample_id}.tab", "wt")
+        print(f"{module_name} writting counts: data/sample_junctions_data/sample_{sample_id}.tab.gz")
+        fout = gzip.open(f"data/sample_junctions_data/sample_{sample_id}.tab.gz", "wt")
         header = ["junction_id", "count"]
         fout.write("\t".join(header) + "\n")
         for data in junctions:

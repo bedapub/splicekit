@@ -94,8 +94,8 @@ def load_genes():
     #annotation.second_exons = {}
     #identify_exons(transcript_exons, annotation.second_exons, 1)
     
-    print(f"{module_name} reading junctions and anchors annotation from: reference/junctions.tab")
-    f = open("reference/junctions.tab", "rt")
+    print(f"{module_name} reading junctions and anchors annotation from: reference/junctions.tab.gz")
+    f = gzip.open("reference/junctions.tab.gz", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
@@ -133,7 +133,7 @@ def read_junctions():
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
-        f = open(f"data/sample_junctions_data/sample_{sample_id}.tab", "rt")
+        f = gzip.open(f"data/sample_junctions_data/sample_{sample_id}.tab.gz", "rt")
         r = f.readline() # header
         r = f.readline()
         while r:
@@ -165,7 +165,7 @@ def read_anchors(anchor_type):
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
-        f = open(f"data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab", "rt")
+        f = gzip.open(f"data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab.gz", "rt")
         r = f.readline() # header
         r = f.readline()
         while r:
@@ -188,7 +188,7 @@ def read_anchors(anchor_type):
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print(f"{module_name} anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab, ({count}/{count_all}")
+        print(f"{module_name} anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab.gz, ({count}/{count_all}")
         f.close()
 
 def read_exons():
@@ -200,7 +200,7 @@ def read_exons():
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
-        f = open(f"data/sample_exons_data/sample_{sample_id}.tab", "rt")
+        f = gzip.open(f"data/sample_exons_data/sample_{sample_id}.tab.gz", "rt")
         r = f.readline() # header
         r = f.readline()
         while r:
@@ -220,7 +220,7 @@ def read_exons():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print(f"{module_name} exons read OK, sample={sample_id}, from=data/sample_exons_data/sample_{sample_id}.tab, ({count}/{count_all})")
+        print(f"{module_name} exons read OK, sample={sample_id}, from=data/sample_exons_data/sample_{sample_id}.tab.gz, ({count}/{count_all})")
         f.close()
 
 def read_genes():
@@ -232,7 +232,7 @@ def read_genes():
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
-        f = open(f"data/sample_genes_data/sample_{sample_id}.tab", "rt")
+        f = gzip.open(f"data/sample_genes_data/sample_{sample_id}.tab.gz", "rt")
         r = f.readline() # header
         r = f.readline()
         while r:
@@ -247,7 +247,7 @@ def read_genes():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print(f"{module_name} genes read OK, sample={sample_id}, from=data/sample_genes_data/sample_{sample_id}.tab, ({count}/{count_all}")
+        print(f"{module_name} genes read OK, sample={sample_id}, from=data/sample_genes_data/sample_{sample_id}.tab.gz, ({count}/{count_all}")
         f.close()
 
 def save_comps_feature_data(feature_type):
@@ -266,7 +266,7 @@ def save_comps_feature_data(feature_type):
     count = 0
     count_all = len(annotation.comparisons)
     for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
-        fout = open("data/comparison_{feature}_data/{comp_name}.tab".format(feature=feature_type, comp_name=comp_name), "wt")
+        fout = gzip.open(f"data/comparison_{feature_type}_data/{comp_name}.tab.gz", "wt")
         header = ["gene_id", "gene_name", "chr", "strand", "feature_start", "feature_stop", "length", "feature_id"]
         for (sample_id, compound, rep, _) in comp2:
             header.append("{sample}_{compound}".format(sample=sample_id, compound=compound))
@@ -362,7 +362,7 @@ def save_comps_feature_data(feature_type):
                 fout.write("\t".join(str(el) for el in row)+"\n")
         fout.close()
 
-        print(f"{module_name} saved comparison_{feature_type}_data/{comp_name}.tab ({count}/{count_all})")
+        print(f"{module_name} saved comparison_{feature_type}_data/{comp_name}.tab.gz ({count}/{count_all})")
     return True
 
 def add_psi_cluster():
@@ -400,11 +400,11 @@ def add_psi(comp_name):
                 sum_control += junction_control
         return sum_test, sum_control
 
-    fin_exons = open("data/comparison_exons_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
-    fin_junctions = open("data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
+    fin_exons = gzip.open(f"data/comparison_exons_data/{comp_name}.tab.gz", "rt")
+    fin_junctions = gzip.open(f"data/comparison_junctions_data/{comp_name}.tab.gz", "rt")
     data_junctions = {} # chr / strand + list of junctions
     # first read in the junctions
-    print(f"{module_name} reading junctions from: data/comparison_junctions_data/{comp_name}.tab")
+    print(f"{module_name} reading junctions from: data/comparison_junctions_data/{comp_name}.tab.gz")
     header = fin_junctions.readline().replace("\r", "").replace("\n", "").split("\t")
     r = fin_junctions.readline()
     while r:
@@ -420,8 +420,8 @@ def add_psi(comp_name):
         r = fin_junctions.readline()
     fin_junctions.close()
 
-    fout_exons = open("data/comparison_exons_data/{comp_name}_new.tab".format(comp_name=comp_name), "wt")
-    print("[features] processing exons from: data/comparison_exons_data/{comp_name}.tab".format(comp_name=comp_name))
+    fout_exons = gzip.open(f"data/comparison_exons_data/{comp_name}.tab.gz.temp", "wt")
+    print(f"{module_name} processing exons from: data/comparison_exons_data/{comp_name}.tab.gz")
     header = fin_exons.readline().replace("\r", "").replace("\n", "").split("\t")
     header_out = header.copy()
     if "test_PSI" not in header_out:
@@ -464,8 +464,8 @@ def add_psi(comp_name):
         r = fin_exons.readline()
     fin_exons.close()
     fout_exons.close()
-    os.system("mv {fout_exons_new} {fout_exons}".format(fout_exons_new="data/comparison_exons_data/{comp_name}_new.tab".format(comp_name=comp_name), fout_exons="data/comparison_exons_data/{comp_name}.tab".format(comp_name=comp_name)))
-    print(f"{module_name} added PSI for comparison_exons_data/{comp_name}.tab")
+    os.system(f"mv data/comparison_exons_data/{comp_name}.tab.gz.temp data/comparison_exons_data/{comp_name}.tab.gz")
+    print(f"{module_name} added PSI for comparison_exons_data/{comp_name}.tab.gz")
     return True    
 
 def add_dai():
@@ -483,7 +483,7 @@ def add_dai():
     # read junctions, donors, anchors mapping
     mapping_junction_donor = {}
     mapping_junction_acceptor = {}
-    fin_database = open("reference/junctions.tab", "rt")
+    fin_database = gzip.open("reference/junctions.tab.gz", "rt")
     header = fin_database.readline().replace("\r", "").replace("\n", "").split("\t")
     r = fin_database.readline()
     while r:
@@ -495,13 +495,13 @@ def add_dai():
     fin_database.close()
 
     for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
-        fin_junctions = open("data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
-        fin_donor_anchors = open("data/comparison_donor_anchors_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
-        fin_acceptor_anchors = open("data/comparison_acceptor_anchors_data/{comp_name}.tab".format(comp_name=comp_name), "rt")
+        fin_junctions = gzip.open(f"data/comparison_junctions_data/{comp_name}.tab.gz", "rt")
+        fin_donor_anchors = gzip.open("data/comparison_donor_anchors_data/{comp_name}.tab.gz", "rt")
+        fin_acceptor_anchors = gzip.open("data/comparison_acceptor_anchors_data/{comp_name}.tab.gz", "rt")
 
         # read in donors
         data_donor_anchors = {}
-        print(f"{module_name} reading donor anchors from: data/comparison_donor_anchors_data/{comp_name}.tab")
+        print(f"{module_name} reading donor anchors from: data/comparison_donor_anchors_data/{comp_name}.tab.gz")
         header = fin_donor_anchors.readline().replace("\r", "").replace("\n", "").split("\t")
         r = fin_donor_anchors.readline()
         while r:
@@ -518,7 +518,7 @@ def add_dai():
 
         # read in anchors
         data_acceptor_anchors = {}
-        print(f"{module_name} reading acceptor anchors from: data/comparison_acceptor_anchors_data/{comp_name}.tab")
+        print(f"{module_name} reading acceptor anchors from: data/comparison_acceptor_anchors_data/{comp_name}.tab.gz")
         header = fin_acceptor_anchors.readline().replace("\r", "").replace("\n", "").split("\t")
         r = fin_acceptor_anchors.readline()
         while r:
@@ -533,8 +533,8 @@ def add_dai():
             r = fin_acceptor_anchors.readline()
         fin_acceptor_anchors.close()
 
-        fout_junctions = open("data/comparison_junctions_data/{comp_name}_new.tab".format(comp_name=comp_name), "wt")
-        print(f"{module_name} processing junctions from: data/comparison_junctions_data/{comp_name}.tab")
+        fout_junctions = gzip.open("data/comparison_junctions_data/{comp_name}.tab.gz.temp", "wt")
+        print(f"{module_name} processing junctions from: data/comparison_junctions_data/{comp_name}.tab.gz")
         header = fin_junctions.readline().replace("\r", "").replace("\n", "").split("\t")
         header_out = header.copy()
         if "donor_DAI" not in header_out:
@@ -584,8 +584,8 @@ def add_dai():
         fin_junctions.close()
         fout_junctions.close()
         count += 1
-        os.system("mv data/comparison_junctions_data/{comp_name}_new.tab data/comparison_junctions_data/{comp_name}.tab".format(comp_name=comp_name))
-        print(f"{module_name} Added DAI for comparison_junctions_data/{comp_name}.tab ({count}/{count_all}")
+        os.system(f"mv data/comparison_junctions_data/{comp_name}.tab.gz.temp data/comparison_junctions_data/{comp_name}.tab.gz")
+        print(f"{module_name} Added DAI for comparison_junctions_data/{comp_name}.tab.gz ({count}/{count_all}")
     return True    
 
 def save_feature_data(feature_type, filter=None):
@@ -593,10 +593,10 @@ def save_feature_data(feature_type, filter=None):
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
         if filter==None:
-            fname = "data/sample_{feature}_data/sample_{sample_id}.tab".format(feature=feature_type, sample_id=sample_id)
+            fname = f"data/sample_{feature_type}_data/sample_{sample_id}.tab.gz"
         else:
-            fname = "data/sample_{feature}_data/sample_{sample_id}_filtered.tab".format(feature=feature_type, sample_id=sample_id)
-        fout = open(fname, "wt")
+            fname = f"data/sample_{feature_type}_data/sample_{sample_id}.tab.gz.filtered"
+        fout = gzip.open(fname, "wt")
         for gene_id, gene_data in annotation.genes.items():
             if gene_data.get(feature_type, None)==None:
                 continue

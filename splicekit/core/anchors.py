@@ -7,6 +7,7 @@
 import os
 import sys
 import splicekit.config as config
+import gzip
 
 def write_anchor_gtf():
 
@@ -32,8 +33,8 @@ def write_anchor_gtf():
     header = junction_file.readline().replace("\r", "").replace("\n", "").split("\t")
     r = junction_file.readline()
     anchor_files = {}
-    anchor_files["donor"] = open("reference/donor_anchors.gtf", "wt")
-    anchor_files["acceptor"] = open("reference/acceptor_anchors.gtf", "wt")
+    anchor_files["donor"] = gzip.open("reference/donor_anchors.gtf.gz", "wt")
+    anchor_files["acceptor"] = gzip.open("reference/acceptor_anchors.gtf.gz", "wt")
     while r:
         r = r.replace("\n", "").replace("\r", "").split("\t")
         data = dict(zip(header, r))
@@ -60,7 +61,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     
     for anchor_type in ["donor", "acceptor"]:
-        gtf_fname = f"reference/{anchor_type}_anchors.gtf"
+        gtf_fname = f"reference/{anchor_type}_anchors.gtf.gz"
         bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
         out_dir = f'data/sample_{anchor_type}_anchors_data'
         jobs_dir = f'jobs/jobs_{anchor_type}_anchors'

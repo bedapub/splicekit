@@ -9,7 +9,7 @@ pattern_area = (-2, 6)
 
 def process(version=""):
     def process_file(fname):
-        fin = gzip.open(f"results/{fname}.tab.gz", "rt")
+        fin = gzip.open(f"results/edgeR/{fname}.tab.gz", "rt")
         header = fin.readline().replace("\r", "").replace("\n", "").split("\t")
         header_out = header.copy()
         if "donor_pattern" not in header_out:
@@ -40,5 +40,5 @@ def process(version=""):
         fout.close()
         os.system(f"mv results/{fname}_new.tab.gz results/{fname}.tab.gz")
         fin.close()
-    process_file(f"results_edgeR{version}_junctions")
-    process_file(f"results_edgeR{version}_junctions_all")
+    process_file(f"junctions_results")
+    process_file(f"junctions_results_complete")
