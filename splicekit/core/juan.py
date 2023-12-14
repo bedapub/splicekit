@@ -35,37 +35,23 @@ def append_results():
     for fname in ["results/edgeR/junctions_results_complete.tab.gz", "results/edgeR/junctions_results_fdr005.tab.gz"]:
         f = gzip.open(fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
-        # already appended anchor info to the results file?
-        if "donor_anchor_fdr" in header:
-            continue
-        fout = gzip.open(f"{fname}_temp", "wt")
-        header_new = header
-        header_new.append("donor_anchor_fdr")
-        header_new.append("donor_anchor_logfc")
-        header_new.append("acceptor_anchor_fdr")
-        header_new.append("acceptor_anchor_logfc")
+        header_new = header.copy()
+        for el in ["donor_anchor_fdr", "donor_anchor_logfc", "acceptor_anchor_fdr", "acceptor_anchor_logfc"]:
+            if el not in header:
+                header_new.append(el)
+        fout = gzip.open(f"{fname}.temp", "wt")
         fout.write("\t".join(header_new) + "\n")
         r = f.readline()
         while r:
             r = r.replace("\r", "").replace("\n", "").split("\t")
-            data = dict(zip(header, r))
-            comp_id = data["comparison"]
-            donor_anchor_data = database_donor_anchors.get(comp_id+"_"+data["donor_anchor_id"], None)
-            acceptor_anchor_data = database_acceptor_anchors.get(comp_id+"_"+data["acceptor_anchor_id"], None)
-            if donor_anchor_data!=None:
-                r.append(donor_anchor_data["FDR"])
-                r.append(donor_anchor_data["logFC"])
-            else:
-                r.append("")
-                r.append("")
-            if acceptor_anchor_data!=None:
-                r.append(acceptor_anchor_data["FDR"])
-                r.append(acceptor_anchor_data["logFC"])
-            else:
-                r.append("")
-                r.append("")
-            fout.write("\t".join(r) + "\n")
+            data_new = dict(zip(header_new, r))
+            comp_id = data_new["comparison"]
+            data_new["donor_anchor_fdr"] = database_donor_anchors.get(comp_id+"_"+data["donor_anchor_id"], {}).get("FDR", "")
+            data_new["donor_anchor_logfc"] = database_donor_anchors.get(comp_id+"_"+data["donor_anchor_id"], {}).get("logFC", "")
+            data_new["acceptor_anchor_fdr"] = database_acceptor_anchors.get(comp_id+"_"+data["acceptor_anchor_id"], {}).get("FDR", "")
+            data_new["acceptor_anchor_logfc"] = database_acceptor_anchors.get(comp_id+"_"+data["acceptor_anchor_id"], {}).get("logFC", "")
+            fout.write("\t".join([str(data_new[x]) for x in header_new]) + "\n")
             r = f.readline()
         f.close()
         fout.close()
-        os.system(f"mv {fname}_temp {fname}")
+        os.system(f"mv {fname}.temp {fname}")
