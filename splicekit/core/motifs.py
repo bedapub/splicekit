@@ -66,12 +66,12 @@ motif_criteria["exons"].append(("exons_down_controls", "donor", f"float(data['fd
 # dreme negative sequences = criteria_name2
 # format of tuples (name is used for output folder name):
 # (name, criteria_name1, criteria_name2)
-dreme_criteria = {}
-dreme_criteria = [("junctions_up_donor", "junctions_up_donor", "junction_up_donor_controls")]
-dreme_criteria = [("junctions_down_donor", "junctions_down_donor", "junction_down_donor_controls")]
-dreme_criteria = [("jup", "jup", "jcontrols")]
-dreme_criteria = [("jdown", "jdown", "jcontrols")]
-dreme_criteria = [("jirr", "jirr", "jcontrols")]
+dreme_criteria = []
+dreme_criteria.append(("junctions_up_donor", "junctions_up_donor", "junctions_up_donor_controls"))
+dreme_criteria.append(("junctions_down_donor", "junctions_down_donor", "junctions_down_donor_controls"))
+dreme_criteria.append(("jup", "jup", "jcontrols"))
+dreme_criteria.append(("jdown", "jdown", "jcontrols"))
+dreme_criteria.append(("jirr", "jirr", "jcontrols"))
 
 # pairs for scanRBP plots
 # criteria_* refers to criteria_name
@@ -588,14 +588,18 @@ def dreme():
     print(f"{module_name} dreme | start")
     for comparison in splicekit.core.annotation.comparisons:
         comp_id = comparison[0]
-        for feature_type, mcriteria in motif_criteria.items():
-            for (criteria_name, _, _) in mcriteria:
-                if criteria_name.endswith("_controls"):
-                    continue
-                if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
-                    if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
-                        command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
-                        os.system(command)
+        for dreme_name, dreme_positive, dreme_negative in dreme_criteria:
+            command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{dreme_positive}.fasta -n results/motifs/fasta/{comp_id}_{dreme_negative}.fasta -oc results/motifs/dreme/{comp_id}_{dreme_name}"
+            os.system(command)
+
+        # for feature_type, mcriteria in motif_criteria.items():
+        #     for (criteria_name, _, _) in mcriteria:
+        #         if criteria_name.endswith("_controls"):
+        #             continue
+        #         if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
+        #             if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
+        #                 command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
+        #                 os.system(command)
 
 def make_distance():
     print(f"{module_name} make_distance | start")
