@@ -72,12 +72,12 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     gtf_fname = f"reference/exons.gtf.gz"
     bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
     out_dir = f'data/sample_exons_data'
-    jobs_dir = f'jobs/jobs_exons'
-    logs_dir = f'logs/logs_exons'
+    jobs_dir = f'jobs/count_exons'
+    logs_dir = f'logs/count_exons'
 
     job_exons="""
     #!/bin/bash
-    #BSUB -J exons_{sample_id}  # Job name
+    #BSUB -J count_exons_{sample_id}            # Job name
     #BSUB -n 12                                 # number of tasks
     #BSUB -R "span[hosts=1]"                    # Allocate all tasks in 1 host
     #BSUB -q short                              # Select queue
@@ -94,8 +94,10 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     echo "{header_line}" >| {out_fname}
     tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 
     rm {out_fname}_temp
+    gzip {out_fname}
     # move summary from featureCount to logs
     mv {out_fname}.summary {logs_dir}/
+    gzip {out_fname}
     """
 
     job_sh_exons="""
@@ -105,6 +107,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 
     rm {out_fname}_temp
     mv {out_fname}.summary {logs_dir}/
+    gzip {out_fname}
     """
 
     bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]

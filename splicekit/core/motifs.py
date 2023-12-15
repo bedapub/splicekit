@@ -38,10 +38,10 @@ motif_criteria = {}
 # (criteria_name, donor/acceptor, actual criteria)
 # note that criteria_name must be unique across all feature types
 motif_criteria["junctions"] = []
-motif_criteria["junctions"].append(("jup", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])>{logFC_thresh}"))
-motif_criteria["junctions"].append(("jdown", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])<-{logFC_thresh}"))
-motif_criteria["junctions"].append(("jirr", "donor", f"float(data['fdr'])<{motif_FDR} and abs(float(data['donor_anchor_logfc']))<{logFC_thresh}"))
-motif_criteria["junctions"].append(("jcontrols", "donor", f"float(data['fdr'])>{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_up_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])>{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_down_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])<-{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_irr_donor", "donor", f"float(data['fdr'])<{motif_FDR} and abs(float(data['donor_anchor_logfc']))<{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_controls", "donor", f"float(data['fdr'])>0.5"))
 
 # junctions_donor sites
 motif_criteria["junctions"].append(("junctions_up_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['logFC'])>{logFC_thresh}"))
@@ -69,9 +69,9 @@ motif_criteria["exons"].append(("exons_down_controls", "donor", f"float(data['fd
 dreme_criteria = []
 dreme_criteria.append(("junctions_up_donor", "junctions_up_donor", "junctions_up_donor_controls"))
 dreme_criteria.append(("junctions_down_donor", "junctions_down_donor", "junctions_down_donor_controls"))
-dreme_criteria.append(("jup", "jup", "jcontrols"))
-dreme_criteria.append(("jdown", "jdown", "jcontrols"))
-dreme_criteria.append(("jirr", "jirr", "jcontrols"))
+dreme_criteria.append(("juan_up_donor", "juan_up_donor", "juan_controls"))
+dreme_criteria.append(("juan_down_donor", "juan_down_donor", "juan_controls"))
+dreme_criteria.append(("juan_irr_donor", "juan_irr_donor", "juan_controls"))
 
 # pairs for scanRBP plots
 # criteria_* refers to criteria_name

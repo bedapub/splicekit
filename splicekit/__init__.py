@@ -49,7 +49,7 @@ splicekit.core.annotation.compounds = {}
 splicekit.core.annotation.samples = set()
 splicekit.core.annotation.comparisons = []
 splicekit.core.annotation.genes = {}
-splicekit.core.annotation.read_comparisons() # load existing comparisons
+splicekit.core.annotation.make_comparisons() # load existing comparisons
 
 def setup():
     core_path = os.path.dirname(splicekit.__file__)
@@ -63,73 +63,73 @@ def setup():
     print("splicekit | setup | successfully setup splicekit v{version} analysis in {folder}\n".format(folder=os.getcwd(), version=version))
 
 def clean():
-    os.system("rm -f results/results_edgeR_junctions/*.tab > /dev/null 2>&1")
-    os.system("rm -f jobs/jobs_edgeR_junctions/*.job > /dev/null 2>&1")
-    os.system("rm -f results/results_edgeR_exons/*.tab > /dev/null 2>&1")
-    os.system("rm -f jobs/jobs_edgeR_exons/*.job > /dev/null 2>&1")
+    os.system("rm -f results/edgeR/junctions/*.tab > /dev/null 2>&1")
+    os.system("rm -f jobs/edgeR/junctions/*.job > /dev/null 2>&1")
+    os.system("rm -f results/edgeR/exons/*.tab > /dev/null 2>&1")
+    os.system("rm -f jobs/edgeR/exons/*.job > /dev/null 2>&1")
 
 def annotation():
-    folders = ["annotation", "jobs/jobs_edgeR_junctions", "jobs/jobs_edgeR_exons", "jobs/jobs_edgeR_donor_anchors", "jobs/jobs_edgeR_acceptor_anchors", "jobs/jobs_edgeR_genes"]
-    folders+= ["jobs/jobs_edgeR2_junctions", "jobs/jobs_edgeR2_exons", "jobs/jobs_edgeR2_donor_anchors", "jobs/jobs_edgeR2_acceptor_anchors", "jobs/jobs_edgeR2_genes"]
+    folders = ["annotation", "jobs/edgeR/junctions", "jobs/edgeR/exons", "jobs/edgeR/donor_anchors", "jobs/edgeR/acceptor_anchors", "jobs/edgeR/genes"]
     for folder in folders:
         os.system(f"rm -f {folder}/* > /dev/null 2>&1")
-    splicekit.core.annotation.read_comparisons()
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.annotation.write_comparisons()
-    splicekit.core.annotation.write_comparisons_edgeR2()
     splicekit.core.annotation.make_design_contrast()
 
 def junctions_master():
-    splicekit.core.annotation.read_comparisons()
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.junctions.make_jobs()
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[junctions] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[junctions] processing next 10"; done; echo "[junctions] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "splicekit | features | junctions | submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | junctions | processing next 10"; done; echo "splicekit | features | junctions | processing complete"')
         os.system("export BSUB_QUIET=Y; bsub -q short -M 16GB -o /dev/null -e /dev/null -K python -c 'import splicekit; splicekit.core.junctions.make_master()'; wait;") # run make master as cluster job
     if splicekit.config.platform=="desktop":
-        splicekit.core.mprocess("jobs/jobs_junctions/process.sh")
-        #os.system(". jobs/jobs_junctions/process.sh")
+        splicekit.core.mprocess("jobs/count_junctions/process.sh")
         splicekit.core.junctions.make_master()
 
 def junctions():
-    splicekit.core.annotation.read_comparisons()
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.junctions.junctions_per_sample()
     splicekit.core.features.load_genes()
     splicekit.core.features.read_junctions()
     os.system("rm -f data/comparison_junctions_data/*.tab.gz > /dev/null 2>&1")
-    splicekit.core.features.save_comps_feature_data("junctions")
+    #splicekit.core.features.save_comps_feature_data("junctions")
+    splicekit.core.features.make_counts_table("junctions")
     splicekit.core.features.add_dai() # add dai to junctions
 
 def exons():
     os.system(f"rm -f reference/exons.gtf > /dev/null 2>&1")
-    os.system(f"rm -f jobs/jobs_exons/*.job > /dev/null 2>&1")
-    os.system(f"rm -f logs/logs_exons/* > /dev/null 2>&1")
+    os.system(f"rm -f jobs/count_exons/*.job > /dev/null 2>&1")
+    os.system(f"rm -f logs/count_exons/* > /dev/null 2>&1")
     splicekit.core.exons.write_exons_gtf()
     splicekit.core.exons.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand)
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[exons] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[exons] processing next 10"; done; echo "[exons] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "splicekit | features | exons | submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | exons | processing next 10"; done; echo "[exons] processing complete"')
     if splicekit.config.platform=="desktop":
-        os.system(". jobs/jobs_exons/process.sh")
-    splicekit.core.annotation.read_comparisons()
+        os.system(". jobs/count_exons/process.sh")
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.features.load_genes()
     splicekit.core.features.read_exons()
     os.system("rm -f data/comparison_exons_data/*.tab > /dev/null 2>&1")
-    splicekit.core.features.save_comps_feature_data("exons")
+    #splicekit.core.features.save_comps_feature_data("exons")
+    splicekit.core.features.make_counts_table("exons")
     splicekit.core.features.add_psi_cluster() # cluster, each comparison one job
 
 def genes():
     os.system(f"rm -f reference/genes.gtf > /dev/null 2>&1")
-    os.system(f"rm -f jobs/jobs_genes/*.job > /dev/null 2>&1")
-    os.system(f"rm -f logs/logs_genes/* > /dev/null 2>&1")
+    os.system(f"rm -f jobs/count_genes/*.job > /dev/null 2>&1")
+    os.system(f"rm -f logs/count_genes/* > /dev/null 2>&1")
     splicekit.core.genes.write_genes_gtf()
     splicekit.core.genes.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand)
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[genes] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[exons] processing next 10"; done; echo "[exons] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[genes] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | genes | processing next 10"; done; echo "splicekit | features | genes | processing complete"')
     if splicekit.config.platform=="desktop":
-        os.system(". jobs/jobs_genes/process.sh")
-    splicekit.core.annotation.read_comparisons()
+        os.system(". jobs/count_genes/process.sh")
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.features.load_genes()
     splicekit.core.features.read_genes()
     os.system("rm -f data/comparison_genes_data/*.tab.gz > /dev/null 2>&1")
-    splicekit.core.features.save_comps_feature_data("genes")
+    #splicekit.core.features.save_comps_feature_data("genes")
+    splicekit.core.features.make_counts_table("genes")
 
 def features():
     junctions_master()
@@ -141,70 +141,70 @@ def features():
 def anchors():
     for anchor_type in ["donor", "acceptor"]:
         os.system(f"rm -f reference/{anchor_type}_anchors.gtf > /dev/null 2>&1")
-        os.system(f"rm -f jobs/jobs_{anchor_type}_anchors/*.job > /dev/null 2>&1")
-        os.system(f"rm -f logs/logs_{anchor_type}_anchors/* > /dev/null 2>&1")
+        os.system(f"rm -f jobs/count_{anchor_type}_anchors/*.job > /dev/null 2>&1")
+        os.system(f"rm -f logs/count_{anchor_type}_anchors/* > /dev/null 2>&1")
     splicekit.core.anchors.write_anchor_gtf()
     splicekit.core.anchors.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand) # takes ~ 10 minutes
     if splicekit.config.platform=="cluster":
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[anchors] processing next 10"; done; echo "[anchors] processing complete"')
-        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[anchors] processing next 10"; done; echo "[anchors] processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | donor_anchors | processing next 10"; done; echo "splicekit | features | donor_anchors | processing complete"')
+        os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | acceptor_anchors | processing next 10"; done; echo "splicekit | features | acceptor_anchors | processing complete"')
     if splicekit.config.platform=="desktop":
-        os.system(". jobs/jobs_donor_anchors/process.sh")
-        os.system(". jobs/jobs_acceptor_anchors/process.sh")
+        os.system(". jobs/count_donor_anchors/process.sh")
+        os.system(". jobs/count_acceptor_anchors/process.sh")
 
-    splicekit.core.annotation.read_comparisons()
+    splicekit.core.annotation.make_comparisons()
     splicekit.core.features.load_genes()
     splicekit.core.features.read_anchors("donor")
     splicekit.core.features.read_anchors("acceptor")
     os.system("rm -f data/comparison_donor_anchors_data/*.tab.gz > /dev/null 2>&1")
     os.system("rm -f data/comparison_acceptor_anchors_data/*.tab.gz > /dev/null 2>&1")
-    splicekit.core.features.save_comps_feature_data("donor_anchors")
-    splicekit.core.features.save_comps_feature_data("acceptor_anchors")
+    splicekit.core.features.make_counts_table("donor_anchors")
+    splicekit.core.features.make_counts_table("acceptor_anchors")
 
 def patterns():
     splicekit.core.patterns.process()
 
-def edgeR(run=None, version=""):
+def edgeR(run=None):
 
     if run=="junctions" or run==None:
-        splicekit.core.annotation.read_comparisons()
-        os.system(f"rm -f results/results_edgeR{version}_junctions/*.tab.gz > /dev/null 2>&1")
+        splicekit.core.annotation.make_comparisons()
+        os.system(f"rm -f results/edgeR/junctions/*.tab.gz > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR' + version + '_junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.junctions] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.junctions] processing next 10"; done; echo "[edgeR.junctions] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/edgeR/junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.junctions] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.junctions] processing next 10"; done; echo "[edgeR.junctions] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(f". jobs/jobs_edgeR{version}_junctions/process.sh")
-        splicekit.core.report.edgeR_feature('junctions', version=version)
-        #splicekit.core.patterns.process(version=version) # adds donor patterns
+            os.system(f". jobs/edgeR/junctions/process.sh")
+        splicekit.core.report.edgeR_feature('junctions')
+        splicekit.core.patterns.process() # adds donor patterns
 
     if run=="exons" or run==None:
-        os.system(f"rm -f results/results_edgeR{version}_exons/*.tab.gz > /dev/null 2>&1")
+        os.system(f"rm -f results/edgeR/exons/*.tab.gz > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR' + version + '_exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.exons] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.exons] processing next 10"; done; echo "[edgeR.exons] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/edgeR/exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.exons] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.exons] processing next 10"; done; echo "[edgeR.exons] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(f". jobs/jobs_edgeR{version}_exons/process.sh")
-        splicekit.core.report.edgeR_feature('exons', version=version)
+            os.system(f". jobs/edgeR/exons/process.sh")
+        splicekit.core.report.edgeR_feature('exons')
 
     if run=="genes" or run==None:
-        os.system(f"rm -f results/results_edgeR{version}_genes/*.tab.gz > /dev/null 2>&1")
+        os.system(f"rm -f results/edgeR/genes/*.tab.gz > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR' + version + '_genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.genes] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.genes] processing next 10"; done; echo "[edgeR.exons] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/edgeR/genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.genes] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR.genes] processing next 10"; done; echo "[edgeR.exons] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(f". jobs/jobs_edgeR{version}_genes/process.sh")
-        splicekit.core.report.edgeR_feature('genes', version=version)
+            os.system(f". jobs/edgeR/genes/process.sh")
+        splicekit.core.report.edgeR_feature('genes')
 
     if run=="anchors" or run==None:
-        os.system(f"rm -f results/results_edgeR{version}_donor_anchors/*.tab.gz > /dev/null 2>&1")
+        os.system(f"rm -f results/edgeR/donor_anchors/*.tab.gz > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR' + version + '_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/edgeR/donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.donor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.donor_anchors] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(f". jobs/jobs_edgeR{version}_donor_anchors/process.sh")
-        splicekit.core.report.edgeR_feature('donor_anchors', version=version)
-        os.system(f"rm -f results/results_edgeR{version}_acceptor_anchors/*.tab.gz > /dev/null 2>&1")
+            os.system(f". jobs/edgeR/donor_anchors/process.sh")
+        splicekit.core.report.edgeR_feature('donor_anchors')
+        os.system(f"rm -f results/edgeR/acceptor_anchors/*.tab.gz > /dev/null 2>&1")
         if splicekit.config.platform=="cluster":
-            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/jobs_edgeR' + version + '_acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.acceptor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.acceptor_anchors] processing complete"')
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/edgeR/acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[edgeR.acceptor_anchors] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "[edgeR] processing next 10"; done; echo "[edgeR.acceptor_anchors] processing complete"')
         if splicekit.config.platform=="desktop":
-            os.system(f". jobs/jobs_edgeR{version}_acceptor_anchors/process.sh")
-        splicekit.core.report.edgeR_feature('acceptor_anchors', version=version)
+            os.system(f". jobs/edgeR/acceptor_anchors/process.sh")
+        splicekit.core.report.edgeR_feature('acceptor_anchors')
 
 def juan():
     splicekit.core.juan.append_results() # reads in results_edgeR_junctions.tab and appends anchor info from results/results_edgeR_anchors/{comparison}_altsplice.tab

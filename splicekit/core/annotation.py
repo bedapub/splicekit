@@ -65,7 +65,7 @@ class Cmd():
         self.returncode = self.process.returncode
         return output.decode("utf-8"), error.decode("utf-8")
 
-def read_comparisons():
+def make_comparisons():
     if not os.path.exists("samples.tab"):
         return
     annotation.comparisons = []
@@ -95,7 +95,6 @@ def read_comparisons():
     dmso_letter = "A"
     # sometimes the separates set was reshufled
     # very difficult to pinpoint/debug this
-    # sort it
     separates = sorted(separates)
     for sep in separates:
         for test_sample, test_data in annotation.treatments.items():
@@ -126,8 +125,8 @@ def read_comparisons():
                     comparison_name = f"{test_sample}_{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
                 else:
                     test_group_id = f"{test_sample}"
-                    control_group_id = f"{control_sample}_{dmso_hash[tuple(temp_control)]}"
-                    comparison_name = f"{test_sample}_{control_sample}_{dmso_hash[tuple(temp_control)]}"
+                    control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
+                    comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}"
                 annotation.comparisons.append((short_names(comparison_name), temp_control, temp_test, short_names(control_group_id), short_names(test_group_id)))
     # sort and cast sample_ids to string
     annotation.samples = list(samples)
@@ -135,22 +134,6 @@ def read_comparisons():
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
-    job_edgeR="""
-#!/bin/bash
-#BSUB -J {job_name}                              # job name
-#BSUB -n 1                                       # number of tasks
-#BSUB -R "span[hosts=1]"                         # allocate hosts
-#BSUB -M 8GB                                     # allocate memory
-#BSUB -q short                                   # select queue
-#BSUB -o logs/logs_edgeR_{atype}/{comparison_name}.out # output file
-#BSUB -e logs/logs_edgeR_{atype}/{comparison_name}.err # error file
-
-ml R
-{container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comparison_name} {control_list} {test_list} {filter_low} < {core_path}/comps_edgeR.R
-"""
-
-    job_sh_edgeR="""{container} R --no-save --args {input_folder} {data_folder} {atype} {control_name} {test_name} {comparison_name} {control_list} {test_list} {filter_low} < {core_path}/comps_edgeR.R"""
-
     job_rmats="""
 #!/bin/bash
 #BSUB -J {job_name}                        # job name
@@ -158,8 +141,8 @@ ml R
 #BSUB -M 8GB                               # allocate memory
 #BSUB -R "span[hosts=1]"                   # allocate hosts
 #BSUB -q short                             # select queue
-#BSUB -o logs/logs_rmats/{comparison_name}.out   # output file
-#BSUB -e logs/logs_rmats/{comparison_name}.err   # error file
+#BSUB -o logs/rmats/{comparison_name}.out   # output file
+#BSUB -e logs/rmats/{comparison_name}.err   # error file
 
 {container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
 """
@@ -167,20 +150,10 @@ ml R
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "control_samples", "test_samples", "control_group_id", "test_group_id"]
     comps_table.write("\t".join(header) + "\n")
-    fsh_exons = open(f"jobs/jobs_edgeR_exons/process.sh", "wt")
-    fsh_junctions = open(f"jobs/jobs_edgeR_junctions/process.sh", "wt")
-    fsh_donor_anchors = open(f"jobs/jobs_edgeR_donor_anchors/process.sh", "wt")
-    fsh_acceptor_anchors = open(f"jobs/jobs_edgeR_acceptor_anchors/process.sh", "wt")
-    fsh_genes = open(f"jobs/jobs_edgeR_genes/process.sh", "wt")
     fsh_rmats = open(f"jobs/rmats/process.sh", "wt")
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         control_name = control_set[0][1]
         test_name = test_set[0][1]
-        fout_exons = open(f"jobs/jobs_edgeR_exons/{comparison_name}.job", "wt")
-        fout_junctions = open(f"jobs/jobs_edgeR_junctions/{comparison_name}.job", "wt")
-        fout_donor_anchors = open(f"jobs/jobs_edgeR_donor_anchors/{comparison_name}.job", "wt")
-        fout_acceptor_anchors = open(f"jobs/jobs_edgeR_acceptor_anchors/{comparison_name}.job", "wt")
-        fout_genes = open(f"jobs/jobs_edgeR_genes/{comparison_name}.job", "wt")
         control_ids = []
         test_ids = []
         for (sample_id, compound, rep, _) in control_set:
@@ -189,11 +162,6 @@ ml R
             test_ids.append(sample_id)
         control_ids = sort_readout_id(control_ids)
         test_ids = sort_readout_id(test_ids)
-
-        try:
-            filter_low = splicekit.config.filter_low
-        except:
-            filter_low = "filter_low"
 
         # write rMATS {comparison_name}_control.tab, {comparison_name}_test.tab and {comparison_name}_run.sh
         for rtype, rfile in [("control", control_ids), ("test", test_ids)]:
@@ -209,52 +177,12 @@ ml R
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, job_name="rmats_"+comparison_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
-
-        # edgeR exons
-        job_exons = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_exons_data", atype="exons", job_name="edgeR_exons_"+test_name, control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fout_exons.write(job_exons)
-        fout_exons.close()        
-        job_sh_exons = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_exons_data", atype="exons", control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_exons.write(job_sh_exons+"\n")
-
-        # edgeR junctions
-        job_junctions = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_junctions_data", atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fout_junctions.write(job_junctions)
-        fout_junctions.close()
-        job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_junctions_data", atype="junctions", control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_junctions.write(job_sh_junctions+"\n")
-
-        # edgeR donor anchors
-        job_donor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_donor_anchors_data", atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fout_donor_anchors.write(job_donor_anchors)
-        fout_donor_anchors.close()
-        job_sh_donor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_donor_anchors_data", atype="donor_anchors", control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_donor_anchors.write(job_sh_donor_anchors+"\n")
-
-        # edgeR acceptor anchors
-        job_acceptor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_acceptor_anchors_data", atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fout_acceptor_anchors.write(job_acceptor_anchors)
-        fout_acceptor_anchors.close()
-        job_sh_acceptor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_acceptor_anchors_data", atype="acceptor_anchors", control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_acceptor_anchors.write(job_sh_acceptor_anchors+"\n")
-
-        # edgeR genes
-        job_genes = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_genes_data", atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fout_genes.write(job_genes)
-        fout_genes.close()
-        job_sh_genes = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), data_folder="data/comparison_genes_data", atype="genes", control_name=control_name, test_name=test_name, control_list=",".join(str(el) for el in control_ids), test_list=",".join(str(el) for el in test_ids))
-        fsh_genes.write(job_sh_genes+"\n")
-
-        row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
-        comps_table.write("\t".join(row) + "\n")
+        row = [comparison_name, ",".join(str(el) for el in test_ids), ",".join(str(el) for el in control_ids), control_group_id, test_group_id]
+        comps_table.write("\t".join(row) + "\n") 
     comps_table.close()
-    fsh_exons.close()
-    fsh_junctions.close()
-    fsh_donor_anchors.close()
-    fsh_acceptor_anchors.close()
-    fsh_rmats.close()
+    write_edgeR_jobs()
 
-def write_comparisons_edgeR2():
+def write_edgeR_jobs():
     job_edgeR="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
@@ -266,16 +194,15 @@ def write_comparisons_edgeR2():
 #BSUB -e logs/logs_edgeR2_{atype}/{comparison_name}.err # error file
 
 ml R
-{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR2.R
+{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
 """
 
-    job_sh_edgeR="""{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR2.R"""
-
-    fsh_exons = open(f"jobs/jobs_edgeR2_exons/process.sh", "wt")
-    fsh_junctions = open(f"jobs/jobs_edgeR2_junctions/process.sh", "wt")
-    fsh_donor_anchors = open(f"jobs/jobs_edgeR2_donor_anchors/process.sh", "wt")
-    fsh_acceptor_anchors = open(f"jobs/jobs_edgeR2_acceptor_anchors/process.sh", "wt")
-    fsh_genes = open(f"jobs/jobs_edgeR2_genes/process.sh", "wt")
+    job_sh_edgeR="""{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R"""
+    fsh_exons = open(f"jobs/edgeR/exons/process.sh", "wt")
+    fsh_junctions = open(f"jobs/edgeR/junctions/process.sh", "wt")
+    fsh_donor_anchors = open(f"jobs/edgeR/donor_anchors/process.sh", "wt")
+    fsh_acceptor_anchors = open(f"jobs/edgeR/acceptor_anchors/process.sh", "wt")
+    fsh_genes = open(f"jobs/edgeR/genes/process.sh", "wt")
     sample_membership = {}
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         for (sample_id, _, _, _) in control_set:
@@ -288,11 +215,11 @@ ml R
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         control_name = control_group_id
         test_name = test_group_id
-        fout_exons = open(f"jobs/jobs_edgeR2_exons/{comparison_name}.job", "wt")
-        fout_junctions = open(f"jobs/jobs_edgeR2_junctions/{comparison_name}.job", "wt")
-        fout_donor_anchors = open(f"jobs/jobs_edgeR2_donor_anchors/{comparison_name}.job", "wt")
-        fout_acceptor_anchors = open(f"jobs/jobs_edgeR2_acceptor_anchors/{comparison_name}.job", "wt")
-        fout_genes = open(f"jobs/jobs_edgeR2_genes/{comparison_name}.job", "wt")
+        fout_exons = open(f"jobs/edgeR/exons/{comparison_name}.job", "wt")
+        fout_junctions = open(f"jobs/edgeR/junctions/{comparison_name}.job", "wt")
+        fout_donor_anchors = open(f"jobs/edgeR/donor_anchors/{comparison_name}.job", "wt")
+        fout_acceptor_anchors = open(f"jobs/edgeR/acceptor_anchors/{comparison_name}.job", "wt")
+        fout_genes = open(f"jobs/edgeR/genes/{comparison_name}.job", "wt")
         control_ids = []
         test_ids = []
         for (sample_id, compound, rep, _) in control_set:

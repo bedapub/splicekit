@@ -326,44 +326,41 @@ def save_comps_feature_data(feature_type):
                 fout.write("\t".join(str(el) for el in row)+"\n")
         fout.close()
         count += 1
-
-        # at the end, add a general matrix (all samples), with a slightly different structure (no control/test sum etc.)
-        # all sample ids are in: annotation.samples
-        fout = gzip.open(f"data/samples_{feature_type}_counts.tab.gz", "wt")
-        header = ["gene_id", "gene_name", "chr", "strand", "feature_start", "feature_stop", "length", "feature_id"]
-        for sample_id in annotation.samples:
-            header.append(sample_id)
-        fout.write("\t".join(header)+"\n")
-        for gene_id, gene_data in annotation.genes.items():
-            if gene_data.get(feature_type, None)==None:
-                continue
-            for feature_id, feature_data in gene_data[feature_type].items():
-                # propagate gene start stop from gene object to count object
-                if feature_type=="genes" and feature_id in ["start", "stop"]:
-                    continue
-                if feature_type=="genes":
-                    feature_data["start"] = gene_data["genes"]["start"]
-                    feature_data["stop"] = gene_data["genes"]["stop"]
-                for (sample_id, compound, rep, _) in comp2:
-                    sum_gene_test += feature_data.get(sample_id, 0)
-                for (sample_id, compound, rep, _) in comp1:
-                    sum_gene_control += feature_data.get(sample_id, 0)
-            for feature_id, feature_data in gene_data[feature_type].items():
-                # propagate gene start stop from gene object to count object
-                if feature_type=="genes" and feature_id in ["start", "stop"]:
-                    continue
-                if feature_type=="genes":
-                    feature_data["start"] = gene_data["genes"]["start"]
-                    feature_data["stop"] = gene_data["genes"]["stop"]
-                row = [gene_id, "{symbol}\t{chr}\t{strand}\t{feature_start}\t{feature_stop}\t{length}".format(chr=gene_data["chr"], strand=gene_data["strand"], symbol=gene_data["gene_name"], feature_start=feature_data["start"], feature_stop=feature_data["stop"], length=feature_data["stop"]-feature_data["start"]+1)]
-                row.append(feature_id)
-                for sample_id in annotation.samples:
-                    row.append(feature_data.get(sample_id, 0))
-                fout.write("\t".join(str(el) for el in row)+"\n")
-        fout.close()
-
         print(f"{module_name} saved comparison_{feature_type}_data/{comp_name}.tab.gz ({count}/{count_all})")
     return True
+
+def make_counts_table(feature_type):
+    # general matrix (all samples), with a slightly different structure (no control/test sum etc.)
+    # all sample ids are in: annotation.samples
+    print(f"{module_name} make counts table: data/samples_{feature_type}_counts.tab.gz")
+    fout = gzip.open(f"data/samples_{feature_type}_counts.tab.gz", "wt")
+    header = ["gene_id", "gene_name", "chr", "strand", "feature_start", "feature_stop", "length", "feature_id"]
+    for sample_id in annotation.samples:
+        header.append(sample_id)
+    fout.write("\t".join(header)+"\n")
+    for gene_id, gene_data in annotation.genes.items():
+        if gene_data.get(feature_type, None)==None:
+            continue
+        for feature_id, feature_data in gene_data[feature_type].items():
+            # propagate gene start stop from gene object to count object
+            if feature_type=="genes" and feature_id in ["start", "stop"]:
+                continue
+            if feature_type=="genes":
+                feature_data["start"] = gene_data["genes"]["start"]
+                feature_data["stop"] = gene_data["genes"]["stop"]
+        for feature_id, feature_data in gene_data[feature_type].items():
+            # propagate gene start stop from gene object to count object
+            if feature_type=="genes" and feature_id in ["start", "stop"]:
+                continue
+            if feature_type=="genes":
+                feature_data["start"] = gene_data["genes"]["start"]
+                feature_data["stop"] = gene_data["genes"]["stop"]
+            row = [gene_id, "{symbol}\t{chr}\t{strand}\t{feature_start}\t{feature_stop}\t{length}".format(chr=gene_data["chr"], strand=gene_data["strand"], symbol=gene_data["gene_name"], feature_start=feature_data["start"], feature_stop=feature_data["stop"], length=feature_data["stop"]-feature_data["start"]+1)]
+            row.append(feature_id)
+            for sample_id in annotation.samples:
+                row.append(feature_data.get(sample_id, 0))
+            fout.write("\t".join(str(el) for el in row)+"\n")
+    fout.close()
 
 def add_psi_cluster():
     if config.platform=="cluster":

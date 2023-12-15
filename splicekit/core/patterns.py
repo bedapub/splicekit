@@ -7,7 +7,7 @@ import copy
 
 pattern_area = (-2, 6)
 
-def process(version=""):
+def process():
     def process_file(fname):
         fin = gzip.open(f"results/edgeR/{fname}.tab.gz", "rt")
         header = fin.readline().replace("\r", "").replace("\n", "").split("\t")
@@ -37,7 +37,7 @@ def process(version=""):
             fout.write("\t".join(str(data_out[h]) for h in header_new) + "\n")
             r = fin.readline()
         fout.close()
-        os.system(f"mv results/{fname}tab.gz.temp results/{fname}.tab.gz")
+        os.system(f"mv results/edgeR/{fname}tab.gz.temp results/edgeR/{fname}.tab.gz")
         fin.close()
     process_file(f"junctions_results")
     process_file(f"junctions_results_complete")

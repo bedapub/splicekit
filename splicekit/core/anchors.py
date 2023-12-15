@@ -28,8 +28,8 @@ def write_anchor_gtf():
     we need 9 columns https://www.ensembl.org/info/website/upload/gff.html/
     <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [attributes]
     """
-    # iterate over junctions.tab file and for every junction, create the anchor_[donor/acceptor].gtf
-    junction_file = open("reference/junctions.tab", 'r')
+    # iterate over junctions.tab.gz file and for every junction, create the anchor_[donor/acceptor].gtf.gz
+    junction_file = gzip.open("reference/junctions.tab.gz", "rt")
     header = junction_file.readline().replace("\r", "").replace("\n", "").split("\t")
     r = junction_file.readline()
     anchor_files = {}
@@ -64,8 +64,8 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         gtf_fname = f"reference/{anchor_type}_anchors.gtf.gz"
         bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
         out_dir = f'data/sample_{anchor_type}_anchors_data'
-        jobs_dir = f'jobs/jobs_{anchor_type}_anchors'
-        logs_dir = f'logs/logs_{anchor_type}_anchors'
+        jobs_dir = f'jobs/count_{anchor_type}_anchors'
+        logs_dir = f'logs/count_{anchor_type}_anchors'
 
         job_anchors="""
         #!/bin/bash
@@ -88,6 +88,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         rm {out_fname}_temp
         # move summary from featureCount to logs
         mv {out_fname}.summary {logs_dir}/
+        gzip {out_fname}
         """
 
         job_sh_anchors="""
@@ -97,6 +98,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 
         rm {out_fname}_temp
         mv {out_fname}.summary {logs_dir}/
+        gzip {out_fname}
         """
 
         bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
