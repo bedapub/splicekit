@@ -94,7 +94,8 @@ def junctions():
     os.system("rm -f data/comparison_junctions_data/*.tab.gz > /dev/null 2>&1")
     #splicekit.core.features.save_comps_feature_data("junctions")
     splicekit.core.features.make_counts_table("junctions")
-    splicekit.core.features.add_dai() # add dai to junctions
+    # TODO
+    #splicekit.core.features.add_dai() # add dai to junctions
 
 def exons():
     os.system(f"rm -f reference/exons.gtf > /dev/null 2>&1")
@@ -112,7 +113,8 @@ def exons():
     os.system("rm -f data/comparison_exons_data/*.tab > /dev/null 2>&1")
     #splicekit.core.features.save_comps_feature_data("exons")
     splicekit.core.features.make_counts_table("exons")
-    splicekit.core.features.add_psi_cluster() # cluster, each comparison one job
+    # TODO
+    #splicekit.core.features.add_psi_cluster() # cluster, each comparison one job
 
 def genes():
     os.system(f"rm -f reference/genes.gtf > /dev/null 2>&1")

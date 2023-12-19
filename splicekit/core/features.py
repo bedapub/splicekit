@@ -153,7 +153,7 @@ def read_junctions():
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print(f"{module_name} junction read OK, sample={sample_id}, from=data/sample_junctions_data/sample_{sample_id}.tab, ({count}/{count_all}")
+        print(f"{module_name} junction read OK, sample={sample_id}, from=data/sample_junctions_data/sample_{sample_id}.tab {count}/{count_all}")
         f.close()
 
 def read_anchors(anchor_type):
@@ -188,7 +188,7 @@ def read_anchors(anchor_type):
             annotation.genes[gene_id] = gene
             r = f.readline()
         count += 1
-        print(f"{module_name} anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab.gz, ({count}/{count_all}")
+        print(f"{module_name} anchors read OK, sample={sample_id}, from=data/sample_{anchor_type}_anchors_data/sample_{sample_id}.tab.gz {count}/{count_all}")
         f.close()
 
 def read_exons():
