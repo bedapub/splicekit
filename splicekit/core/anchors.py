@@ -15,8 +15,8 @@ def write_anchor_gtf():
     def make_row(data, field):
         temp_id = data[field+"_id"]
         coords = temp_id.split('_')
-        start = int(coords[-2])
-        stop = int(coords[-1])
+        start = int(coords[-2])+1 # GTF file 1-index coordinates (junctions.tab.gz is 0-indexed)
+        stop = int(coords[-1])+1 # GTF file 1-index coordinates (junctions.tab.gz is 0-indexed)
         strand = coords[-3][-1]
         chr = '_'.join(coords[:-2])[:-1]
         attributes_str = '; '.join([key + "=" + data[key] for key in data.keys()])

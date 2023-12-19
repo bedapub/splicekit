@@ -11,8 +11,8 @@ def write_exons_gtf():
 
     def make_row(r):
         chr = r[0]
-        start = int(r[3])-1
-        stop = int(r[4])-1
+        start = int(r[3]) # ! GTF file to GTF file, no change of coordinates here
+        stop = int(r[4]) # ! GTF file to GTF file, no change of coordinates here
         strand = r[6]
         attributes = r[-1].split(";")
         new_attributes = []
