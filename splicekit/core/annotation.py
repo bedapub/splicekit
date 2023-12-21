@@ -35,9 +35,12 @@ def break_readout_id(item):
         item_process = item
     for splitter in [" ", "_", "-"]:
         item_temp = item_process.split(splitter)
+        # separates the string by splitter
+        # find the first element that could be casted to integer and return (integer, string_without_element)
         if len(item_temp)>1:
-            if item_temp[0].isdigit():
-                return (int(item_temp[0]), splitter.join(item_temp[1:]))
+            for item_index_test in range(0, len(item_temp)):
+                if item_temp[item_index_test].isdigit():
+                    return (int(item_temp[item_index_test]), splitter.join(item_temp[:item_index_test]+item_temp[item_index_test+1:]))
     if item_process.isdigit():
         return int(item_process)
     else:
@@ -190,8 +193,8 @@ def write_edgeR_jobs():
 #BSUB -R "span[hosts=1]"                                # allocate hosts
 #BSUB -M 8GB                                            # allocate memory
 #BSUB -q short                                          # select queue
-#BSUB -o logs/logs_edgeR2_{atype}/{comparison_name}.out # output file
-#BSUB -e logs/logs_edgeR2_{atype}/{comparison_name}.err # error file
+#BSUB -o logs/edgeR/{atype}/{comparison_name}.out # output file
+#BSUB -e logs/edgeR/{atype}/{comparison_name}.err # error file
 
 ml R
 {container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R

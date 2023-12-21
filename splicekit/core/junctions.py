@@ -31,7 +31,6 @@ except:
 
 exons_gtf = {}
 genes_gtf = {}
-gene_name_gid = {}
 gene_id_strand = {}
 
 def read_exons():
@@ -59,7 +58,10 @@ def read_exons():
             atts[el[0]] = el[1].replace("\"", "")
         gene_id = atts["gene_id"]
         gene_name = atts.get("gene_name", "")
-        gene_name_gid[gene_name] = gene_id
+        if gene_name=="":
+            gene_name = atts.get("gene", "")
+            if gene_name=="":
+                gene_name = gene_id
         gene_id_strand[gene_id] = strand
         genes_chrstrand = genes_gtf.get(f"{chr}{strand}", {})
         gene_start, gene_stop, _, _ = genes_chrstrand.get(gene_id, (float("inf"), 0, gene_id, gene_name))

@@ -45,7 +45,10 @@ def load_genes():
         gene["chr"] = chr
         gene["strand"] = strand
         gene["gene_name"] = atts.get("gene_name", "")
-
+        if gene["gene_name"]=="":
+            gene["gene_name"] = atts.get("gene", "")
+            if gene["gene_name"]=="":
+                gene["gene_name"] = gene["gene_id"]
         # because we have a feature called "genes" (and exons, donor_anchors, acceptor_anchors and junctions)
         # this stores gene counts
         gene_info = gene.get("genes", {})
@@ -105,7 +108,6 @@ def load_genes():
         gene = annotation.genes.get(gene_id, {})
         gene["chr"] = data["chr"]
         gene["strand"] = data["strand"]
-        gene["gene_name"] = data["gene_name"]
         # junctions
         annotation.junctions_genes[data["junction_id"]] = gene_id
         junctions = gene.get("junctions", {})
@@ -128,8 +130,6 @@ def load_genes():
 
 # simply reads in the data from the sample_junctions_data files
 def read_junctions():
-    novel_ok = 0
-    novel_fail = 0
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
@@ -172,10 +172,11 @@ def read_anchors(anchor_type):
             r = r.replace("\r", "").replace("\n", "").split("\t")
             anchor_id = r[0]
             coords = anchor_id.split('_')
-            start = int(coords[-2])
-            stop = int(coords[-1])
+            start = int(coords[-2]) - 1 # reports by featureCounts are on 1-indexed gtf regions, convert back
+            stop = int(coords[-1]) - 1 # reports by featureCounts are on 1-indexed gtf regions, convert back
             strand = coords[-3][-1]
-            chr = '_'.join(coords[:-2])[:-1]            
+            chr = '_'.join(coords[:-2])[:-1]
+            anchor_id = f"{chr}{strand}_{start}_{stop}" # reconstruct anchor_id with 0-indexed coords
             raw_count = int(r[-1])
             if anchor_type=="donor":
                 gene_id = annotation.donor_anchors_genes[anchor_id]
@@ -207,10 +208,11 @@ def read_exons():
             r = r.replace("\r", "").replace("\n", "").split("\t")
             exon_id = r[0]
             coords = exon_id.split('_')
-            start = int(coords[-2])
-            stop = int(coords[-1])
+            start = int(coords[-2])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
+            stop = int(coords[-1])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
             strand = coords[-3][-1]
-            chr = '_'.join(coords[:-2])[:-1]            
+            chr = '_'.join(coords[:-2])[:-1]      
+            exon_id = f"{chr}{strand}_{start}_{stop}" # reconstruct exon_id with 0-indexed coords
             raw_count = int(r[-1])
             gene_id = annotation.exons_genes[exon_id]
             gene = annotation.genes.get(gene_id, {})

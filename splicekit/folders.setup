@@ -54,6 +54,7 @@ results/splicemap
 results/edgeR
 results/edgeR/junctions
 results/edgeR/exons
+results/edgeR/genes
 results/edgeR/donor_anchors
 results/edgeR/acceptor_anchors
 results/edgeR/dispersion

@@ -32,7 +32,7 @@ def edgeR_feature(feature_name, version=""):
     # read junctions reference
     if feature_name=="junctions":
         features.load_genes() # for loading promoters
-        f = open("reference/junctions.tab", "rt")
+        f = gzip.open("reference/junctions.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -91,6 +91,10 @@ def edgeR_feature(feature_name, version=""):
             r = r.replace("\n", "").replace("\r", "").split("\t")
             data = dict(zip(header, r))
             tracks_fixed = ["annotation_track"] # New JBrowse2
+            assembly = "GenomeSequence"
+            if config.jbrowse2_url.startswith("https://genomebrowser"):
+                assembly = {"homo_sapiens":"hg38", "mus_musculus":"mm39"}[config.species]
+                tracks_fixed = ["gene-refseq", "transcript-refseq", "transcript-ensembl"]
             tracks_control, tracks_test = comparisons[comparison] 
             tracks_control = [track+'_bw' for track in tracks_control] # New JBrowse2 --> bigwig files are called by id_bw
             tracks_test = [track+'_bw' for track in tracks_test] # New JBrowse2 --> bigwig files are called by id_bw
@@ -113,7 +117,7 @@ def edgeR_feature(feature_name, version=""):
             if feature_name=="junctions":
                 row.append(junction_first_exon)
             row += [data["gene_id"], data["gene_name"], "{chr}:{f_from}..{f_to}".format(chr=data["chr"], f_from=data["feature_start"], f_to=data["feature_stop"])]
-            row.append("{jbrowse_url}&assembly=GenomeSequence&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
+            row.append("{jbrowse_url}&assembly={assembly}&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(assembly=assembly, jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
             if feature_name=="junctions":
                 row.append(database[data["feature_id"]]["annotated"]) 
                 row.append(database[data["feature_id"]]["donor_anchor_id"])

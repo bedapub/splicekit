@@ -97,7 +97,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     rm {out_fname}_temp
     # move summary from featureCount to logs
     mv {out_fname}.summary {logs_dir}/
-    gzip {out_fname}
+    gzip -f {out_fname}
     """
 
     job_sh_genes="""
@@ -108,7 +108,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     tail -n +3 {out_fname}_temp| cut -f1,7 | awk '{{sum[$1]+=$2}} END {{OFS="\\t"; for (i in sum) print i, sum[i]}}' | sort -n >> {out_fname}
     rm {out_fname}_temp
     mv {out_fname}.summary {logs_dir}/
-    gzip {out_fname}
+    gzip -f {out_fname}
     """
 
     bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
