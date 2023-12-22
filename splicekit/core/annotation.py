@@ -125,7 +125,7 @@ def make_comparisons():
                 if sep_temp!="":
                     test_group_id = f"{test_sample}_{sep_temp}"
                     control_group_id = f"{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
-                    comparison_name = f"{test_sample}_{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
+                    comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}_{sep_temp}"
                 else:
                     test_group_id = f"{test_sample}"
                     control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
