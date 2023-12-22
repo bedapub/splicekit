@@ -48,7 +48,7 @@ def load_genes():
         if gene["gene_name"]=="":
             gene["gene_name"] = atts.get("gene", "")
             if gene["gene_name"]=="":
-                gene["gene_name"] = gene["gene_id"]
+                gene["gene_name"] = gene_id
         # because we have a feature called "genes" (and exons, donor_anchors, acceptor_anchors and junctions)
         # this stores gene counts
         gene_info = gene.get("genes", {})

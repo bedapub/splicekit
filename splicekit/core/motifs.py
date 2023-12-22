@@ -734,9 +734,9 @@ def cluster(cutoff=9):
         f.close()
 
 def process():
-    #if config.scanRBP:
-    #    make_scanRBP()
-    #    plot_scanRBP()
+    if config.scanRBP:
+        make_scanRBP()
+        plot_scanRBP()
     make_logos()
     dreme()
     make_distance()
