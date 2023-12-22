@@ -71,7 +71,7 @@ splicekit_path = splicekit_init.origin
 splicekit_folder = os.path.dirname(splicekit_path)
 version = open(os.path.join(splicekit_folder, "version"), "rt").readlines()[0].replace("\n", "").replace("\r", "")
 
-print(f"[splicekit] v{version}, https://github.com/bedapub/splicekit")
+print(f"splicekit | v{version}, https://github.com/bedapub/splicekit")
 print()
 
 if args.version:
@@ -83,7 +83,7 @@ if len(args.command)==0 and args.help:
 
 if len(args.command)==0 and not args.help:
     print()
-    print("[splicekit] Please specify an action to perform or specify --help to get help on available actions. Running 'splicekit process' will perform all available analyses.")
+    print("splicekit | please provide an action to perform or specify --help to get help on available actions; running 'splicekit process' will perform all available analyses")
     sys.exit(0)
 
 # loading splicekit modules takes time, only load if the user is not asking to display help
@@ -119,9 +119,21 @@ elif args.command[0]=="edgeR":
         sys.exit(0)
     if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
         splicekit.core.features.load_genes()
-        splicekit.edgeR(run=args.command[1])
+        splicekit.edgeR(run=args.command[1], args=args)
     elif len(args.command)==1:
         splicekit.edgeR()
+    else:
+        print(help_edgeR)
+        sys.exit(0)
+elif args.command[0]=="edgeR2":
+    if args.help:
+        print(help_edgeR)
+        sys.exit(0)
+    if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
+        splicekit.core.features.load_genes()
+        splicekit.edgeR(run=args.command[1], version="2")
+    elif len(args.command)==1:
+        splicekit.edgeR(version="2")
     else:
         print(help_edgeR)
         sys.exit(0)

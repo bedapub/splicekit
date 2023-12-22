@@ -11,10 +11,15 @@ if os.path.exists("splicekit.config"):
         exec(cline.replace("\r", "").replace("\n", ""))
 
 jbrowse2_port = 8007
-jbrowse2_url = ""
+try:
+    jbrowse2_url
+except:
+    jbrowse2_url = None
 
 def jbrowse2_config(hostname):
     global jbrowse2_url
+    if jbrowse2_url not in [None, ""]: # user defined JBrowse2 url? -> do not change it
+        return
     # JBrowse2 URL
     port = jbrowse2_port
     if hostname==None: # get hostname?

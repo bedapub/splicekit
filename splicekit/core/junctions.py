@@ -29,13 +29,8 @@ try:
 except:
     min_master_junction = 30
 
-cigar_dist = {}
-junctions = {}
-junctions_stats = []
-read_junctions_dist = {}
 exons_gtf = {}
 genes_gtf = {}
-gene_name_gid = {}
 gene_id_strand = {}
 
 def read_exons():
@@ -63,7 +58,10 @@ def read_exons():
             atts[el[0]] = el[1].replace("\"", "")
         gene_id = atts["gene_id"]
         gene_name = atts.get("gene_name", "")
-        gene_name_gid[gene_name] = gene_id
+        if gene_name=="":
+            gene_name = atts.get("gene", "")
+            if gene_name=="":
+                gene_name = gene_id
         gene_id_strand[gene_id] = strand
         genes_chrstrand = genes_gtf.get(f"{chr}{strand}", {})
         gene_start, gene_stop, _, _ = genes_chrstrand.get(gene_id, (float("inf"), 0, gene_id, gene_name))
@@ -107,29 +105,30 @@ def make_jobs():
     job_junctions="""
 #!/bin/bash
 #BSUB -J {job_name}                               # Job name
-#BSUB -n 4                                        # number of tasks
+#BSUB -n 1                                        # number of tasks
 #BSUB -R "span[hosts=1]"                          # Allocate all tasks in 1 host
-#BSUB -M 16GB                                     # Memory
+#BSUB -M 4GB                                      # Memory
 #BSUB -q short                                    # Select queue
-#BSUB -o logs/logs_junctions/{sample_id}.out # Output file
-#BSUB -e logs/logs_junctions/{sample_id}.err # Error file
+#BSUB -o logs/count_junctions/{sample_id}.out     # Output file
+#BSUB -e logs/count_junctions/{sample_id}.err     # Error file
 
 python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
 """
 
     job_sh_junctions="""python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"""
 
-    fsh = open("jobs/jobs_junctions/process.sh", "wt")
+    fsh = open("jobs/count_junctions/process.sh", "wt")
     for sample_id in splicekit.core.annotation.samples:
         core_path=os.path.dirname(splicekit.core.__file__)
         bam_fname = f"{splicekit.config.bam_path}/{sample_id}.bam"
-        f = open("jobs/jobs_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
-        f.write(job_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname, job_name="detect_junctions_{sample_id}".format(sample_id=sample_id)))
+        f = open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
+        f.write(job_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname, job_name="count_junctions_{sample_id}".format(sample_id=sample_id)))
         f.close()
         fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname)+"\n")
     fsh.close()
     
-def detect_junctions(positions, cigar, read, pair=None):
+def detect_junctions(database, positions, cigar, read, pair=None, stats=False):
+    junctions_stats = []
     chr = read.reference_name
     strand = "-" if read.is_reverse else "+"
     if pair==1 and splicekit.config.library_strand=="SECOND_READ_TRANSCRIPTION_STRAND": # paired-end, second read is in transcription direction, reverse first read
@@ -150,11 +149,12 @@ def detect_junctions(positions, cigar, read, pair=None):
             coverage_left = cigar_left[1]
             coverage_right = cigar_right[1]
             junction_size = v
-            junctions_stats.append((junction_size, coverage_left, coverage_right))
+            if stats: # memory
+                junctions_stats.append((junction_size, coverage_left, coverage_right))
             junction_start = positions[cpos-1] # last nucleotide of exon, 5'ss
             junction_stop = junction_start + v + 1  # first nucleotide of exon, 3'ss
             junction_key = (chr, strand, junction_start, junction_stop)
-            junctions[junction_key] = junctions.get(junction_key, 0) + 1
+            database[junction_key] = database.get(junction_key, 0) + 1
         if t in [0, 1, 4, 5, 6, 7, 8, 9]:
             cpos += v
     return num_junctions
@@ -176,11 +176,14 @@ def plot_hist(data, label):
     plt.savefig(f"{label}.png", dpi=300)
     plt.close()
 
-def parse_sam(sam_fname, out_fname, output_bed=True):
+def parse_sam(sam_fname, out_fname, output_bed=False):
     print(f"{module_name} parsing sam {sam_fname} to {out_fname}")
     cigar_types = {0:"M", 1:"I", 2:"D", 3:"N", 4:"S", 5:"H", 6:"P", 7:"=", 8:"X"}
     sam_fname = sys.argv[1]
     out_fname = sys.argv[2]
+    database = {}
+    read_junctions_dist = {}
+    cigar_dist = {}
     count = 0
     samfile = pysam.AlignmentFile(sam_fname, "rb")
     for read in samfile.fetch():
@@ -199,16 +202,16 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
         if 3 not in cigar_types_present:
             continue
         cigar_dist[len(cigar)] = cigar_dist.get(len(cigar), 0) + 1
-        read_junctions = detect_junctions(read.get_reference_positions(full_length=True), cigar, read, pair=pair)
+        read_junctions = detect_junctions(database, read.get_reference_positions(full_length=True), cigar, read, pair=pair)
         read_junctions_dist[read_junctions] = read_junctions_dist.get(read_junctions, 0) + 1
 
     junction_results = []
-    for (chr, strand, start, stop), count in junctions.items():
+    for (chr, strand, start, stop), count in database.items():
         row = [chr, strand, start, stop, count]
         junction_results.append(row)
 
     junction_results = sorted(junction_results, key = lambda x: (x[0], -x[-1]))    
-    f = open(f"{out_fname}_raw.tab", "wt")
+    f = gzip.open(f"{out_fname}_raw.tab.gz", "wt")
     header = ["chr", "strand", "start", "stop", "count"]
     f.write("\t".join(header) + "\n")
     for (chr, strand, start, stop, count) in junction_results:
@@ -218,7 +221,7 @@ def parse_sam(sam_fname, out_fname, output_bed=True):
     f.close()
 
     if output_bed:
-        f = open(f"{out_fname}_raw.bed", "wt")
+        f = gzip.open(f"{out_fname}_raw.bed.gz", "wt")
         for (chr, strand, start, stop, count) in junction_results:
             if count>=min_count:
                 bed_row = [chr, start, stop, count]
@@ -255,9 +258,9 @@ def sort_junctions(data):
 def read_raw():
     junctions = {}
     for sample_id in splicekit.core.annotation.samples:
-        raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab"
+        raw_fname = f"data/sample_junctions_data/sample_{sample_id}_raw.tab.gz"
         print(f"{module_name} processing: {raw_fname}")
-        f = open(raw_fname, "rt")
+        f = gzip.open(raw_fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -322,7 +325,7 @@ def make_master():
                 stats["unresolved"] = stats["unresolved"] + 1
 
     junctions_annotated.sort(key=jsort)
-    f = open("reference/junctions.tab", "wt")
+    f = gzip.open("reference/junctions.tab.gz", "wt")
     header = ["junction_id", "donor_anchor_id", "acceptor_anchor_id", "gene_id", "gene_name", "chr", "strand", "annotated", "count"]
     f.write("\t".join(header) + "\n")
     for (chr, start, stop, strand, gene_id, gene_name, annotated, count) in junctions_annotated:
@@ -334,10 +337,10 @@ def make_master():
             f.write("\t".join([str(el) for el in row]) + "\n")
     f.close()
 
-# read in and return reference/junctions.tab (junctions master table)
+# read in and return reference/junctions.tab.gz (junctions master table)
 def read_junctions():
     junctions = []
-    f = open("reference/junctions.tab", "rt")
+    f = gzip.open("reference/junctions.tab.gz", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
@@ -356,8 +359,8 @@ def junctions_per_sample():
     junctions = read_junctions()
     for sample_id in splicekit.core.annotation.samples:
         sample_counts = {}
-        print(f"{module_name} reading: data/sample_junctions_data/sample_{sample_id}_raw.tab")
-        f = open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab", "rt")
+        print(f"{module_name} reading: data/sample_junctions_data/sample_{sample_id}_raw.tab.gz")
+        f = gzip.open(f"data/sample_junctions_data/sample_{sample_id}_raw.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -374,8 +377,8 @@ def junctions_per_sample():
             r = f.readline()
         f.close()
 
-        print(f"{module_name} writting counts: data/sample_junctions_data/sample_{sample_id}.tab")
-        fout = open(f"data/sample_junctions_data/sample_{sample_id}.tab", "wt")
+        print(f"{module_name} writting counts: data/sample_junctions_data/sample_{sample_id}.tab.gz")
+        fout = gzip.open(f"data/sample_junctions_data/sample_{sample_id}.tab.gz", "wt")
         header = ["junction_id", "count"]
         fout.write("\t".join(header) + "\n")
         for data in junctions:
