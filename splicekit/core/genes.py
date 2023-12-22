@@ -11,8 +11,8 @@ def write_genes_gtf():
 
     def make_row(r):
         chr = r[0]
-        start = int(r[3])-1
-        stop = int(r[4])-1
+        start = int(r[3]) # ! GTF file to GTF file, no change of coordinates here
+        stop = int(r[4]) # ! GTF file to GTF file, no change of coordinates here
         strand = r[6]
         attributes = r[-1].split(";")
         new_attributes = []
@@ -41,7 +41,7 @@ def write_genes_gtf():
     # iterate over original gtf file
     gtf_file = gzip.open(config.gtf_path, 'rt')
     r = gtf_file.readline()
-    exons_file = open("reference/genes.gtf", "wt")
+    exons_file = gzip.open("reference/genes.gtf.gz", "wt")
     while r:
         if r.startswith("#"):
             r = gtf_file.readline()
@@ -69,20 +69,20 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type]
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     
-    gtf_fname = f"reference/genes.gtf"
+    gtf_fname = f"reference/genes.gtf.gz"
     bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
     out_dir = f"data/sample_genes_data"
-    jobs_dir = f"jobs/jobs_genes"
-    logs_dir = f"logs/logs_genes"
+    jobs_dir = f"jobs/count_genes"
+    logs_dir = f"logs/count_genes"
 
     job_genes="""
     #!/bin/bash
-    #BSUB -J genes_{sample_id}  # Job name
+    #BSUB -J count_genes_{sample_id}            # Job name
     #BSUB -n 12                                 # number of tasks
     #BSUB -R "span[hosts=1]"                    # Allocate all tasks in 1 host
     #BSUB -q short                              # Select queue
-    #BSUB -o {logs_dir}/genes_{sample_id}.out # Output file
-    #BSUB -e {logs_dir}/genes_{sample_id}.err # Error file    
+    #BSUB -o {logs_dir}/genes_{sample_id}.out   # Output file
+    #BSUB -e {logs_dir}/genes_{sample_id}.err   # Error file    
         
     ml .testing
     ml Subread/2.0.3-GCC-9.3.0
@@ -97,6 +97,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     rm {out_fname}_temp
     # move summary from featureCount to logs
     mv {out_fname}.summary {logs_dir}/
+    gzip -f {out_fname}
     """
 
     job_sh_genes="""
@@ -107,6 +108,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     tail -n +3 {out_fname}_temp| cut -f1,7 | awk '{{sum[$1]+=$2}} END {{OFS="\\t"; for (i in sum) print i, sum[i]}}' | sort -n >> {out_fname}
     rm {out_fname}_temp
     mv {out_fname}.summary {logs_dir}/
+    gzip -f {out_fname}
     """
 
     bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]

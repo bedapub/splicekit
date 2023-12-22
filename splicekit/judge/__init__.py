@@ -11,6 +11,9 @@ import plotly.express as px
 import pandas
 import pybio
 import numpy
+import gzip
+
+module_name = "splicekit | judge |"
 
 # this produces a juDGE plot from results_edgeR_genes
 def process():
@@ -89,16 +92,15 @@ def process():
 
     data_x = {}
     data_y = {}
-    data_dpfi = {}
     data_genes = {}
 
     compound_junction_counts = {}
     present_comps = []
     for (comp_name, _, _, _, _) in splicekit.core.annotation.comparisons:
-        print(f"[judge] processing {comp_name}")
+        print(f"{module_name} processing {comp_name}")
         gene_data = {}
         gene_junction_data = {}
-        f = open(f"results/results_edgeR_genes_all.tab", "rt")
+        f = gzip.open(f"results/edgeR/genes_results_complete.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -110,7 +112,8 @@ def process():
             gene_data[data["gene_id"]] = (data["gene_name"], float(data["logFC"]))
             r = f.readline()
         f.close()
-        f = open("results/results_edgeR_junctions.tab", "rt")
+
+        f = gzip.open("results/edgeR/junctions_results_complete.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -121,7 +124,6 @@ def process():
                 continue
             if gene_data.get(data["gene_id"], None)!=None:
                 if float(data["fdr"])<splicekit.config.edgeR_FDR_thr:
-                    data_dpfi.setdefault(comp_name, []).append(float(data["delta_pfi"]))
                     data_y.setdefault(comp_name, []).append(float(data["logFC"]))
                     data_x.setdefault(comp_name, []).append(gene_data[data["gene_id"]][1])
                     data_genes.setdefault(comp_name, []).append(data["gene_name"])
@@ -129,7 +131,7 @@ def process():
             r = f.readline()
         f.close()
 
-        fdata = open(f"results/judge/data/{comp_name}_data.tab", "wt")
+        fdata = gzip.open(f"results/judge/data/{comp_name}_data.tab.gz", "wt")
         header = ["gene_id", "gene_name", "gene_logFC", "junctions_logFC"]
         fdata.write("\t".join(header) + "\n")
         for gene_id, (gene_name, gene_fdr) in gene_data.items():
@@ -144,7 +146,7 @@ def process():
             present_comps.append(comp_name)
 
     # score compounds
-    f = open("results/judge/scored.tab", "wt")
+    f = gzip.open("results/judge/scored.tab.gz", "wt")
     f.write("compound_name\tjunctions\tstdev_gene\tstdev_junction\tscore\n")
     results = []
     for comp_name, junctions_count in compound_junction_counts.items():
@@ -245,13 +247,12 @@ def process_old():
 
     data_x = {}
     data_y = {}
-    data_dpfi = {}
     data_genes = {}
 
     compound_junction_counts = {}
     present_comps = []
     for (comp_name, _, _, _, _) in splicekit.core.annotation.comparisons:
-        print(f"[judge] processing {comp_name}")
+        print(f"{module_name} processing {comp_name}")
         gene_data = {}
         gene_junction_data = {}
         f = open(f"results/dge/dgeTables/topTable-{comp_name}.txt", "rt")
@@ -274,7 +275,6 @@ def process_old():
                 continue
             if gene_data.get(data["gene_name"], None)!=None:
                 if float(data["fdr"])<splicekit.config.edgeR_FDR_thr:
-                    data_dpfi.setdefault(comp_name, []).append(float(data["delta_pfi"]))
                     data_y.setdefault(comp_name, []).append(float(data["logFC"]))
                     data_x.setdefault(comp_name, []).append(gene_data[data["gene_name"]])
                     data_genes.setdefault(comp_name, []).append(data["gene_name"])

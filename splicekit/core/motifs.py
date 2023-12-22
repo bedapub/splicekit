@@ -5,6 +5,7 @@
 
 import pybio
 import math
+import gzip
 import random
 random.seed(42)
 import numpy as np
@@ -23,12 +24,13 @@ import pandas as pd
 import seaborn as sns
 import copy
 
+module_name = "splicekit | motifs |"
 logFC_thresh = 1 # threshold for events to be considered by effect size
 motif_FDR = 0.05 # we use this threshold for motifs
 
 # scan / motif areas
-scanRBP_area = 100 # site-scanRBP_area .. site+-scanRBP_area
-splice_sites_area = (-2, 6) # take -2 .. 6 around splice site (donor or acceptor)
+scanRBP_area = 100 # feature_site-scanRBP_area ... feature_site+scanRBP_area
+splice_sites_area = (-2, 6) # take -2 ... 6 around splice site (donor or acceptor)
 
 # criteria is split by feature type, data read-in from "results/results_edgeR_{feature_type}_all.tab"
 motif_criteria = {}
@@ -36,10 +38,10 @@ motif_criteria = {}
 # (criteria_name, donor/acceptor, actual criteria)
 # note that criteria_name must be unique across all feature types
 motif_criteria["junctions"] = []
-motif_criteria["junctions"].append(("jup", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])>{logFC_thresh}"))
-motif_criteria["junctions"].append(("jdown", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])<-{logFC_thresh}"))
-motif_criteria["junctions"].append(("jirr", "donor", f"float(data['fdr'])<{motif_FDR} and abs(float(data['donor_anchor_logfc']))<{logFC_thresh}"))
-motif_criteria["junctions"].append(("jcontrols", "donor", f"float(data['fdr'])>{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_up_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])>{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_down_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['donor_anchor_logfc'])<-{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_irr_donor", "donor", f"float(data['fdr'])<{motif_FDR} and abs(float(data['donor_anchor_logfc']))<{logFC_thresh}"))
+motif_criteria["junctions"].append(("juan_controls", "donor", f"float(data['fdr'])>0.5"))
 
 # junctions_donor sites
 motif_criteria["junctions"].append(("junctions_up_donor", "donor", f"float(data['fdr'])<{motif_FDR} and float(data['logFC'])>{logFC_thresh}"))
@@ -64,12 +66,12 @@ motif_criteria["exons"].append(("exons_down_controls", "donor", f"float(data['fd
 # dreme negative sequences = criteria_name2
 # format of tuples (name is used for output folder name):
 # (name, criteria_name1, criteria_name2)
-dreme_criteria = {}
-dreme_criteria = [("junctions_up_donor", "junctions_up_donor", "junction_up_donor_controls")]
-dreme_criteria = [("junctions_down_donor", "junctions_down_donor", "junction_down_donor_controls")]
-dreme_criteria = [("jup", "jup", "jcontrols")]
-dreme_criteria = [("jdown", "jdown", "jcontrols")]
-dreme_criteria = [("jirr", "jirr", "jcontrols")]
+dreme_criteria = []
+dreme_criteria.append(("junctions_up_donor", "junctions_up_donor", "junctions_up_donor_controls"))
+dreme_criteria.append(("junctions_down_donor", "junctions_down_donor", "junctions_down_donor_controls"))
+dreme_criteria.append(("juan_up_donor", "juan_up_donor", "juan_controls"))
+dreme_criteria.append(("juan_down_donor", "juan_down_donor", "juan_controls"))
+dreme_criteria.append(("juan_irr_donor", "juan_irr_donor", "juan_controls"))
 
 # pairs for scanRBP plots
 # criteria_* refers to criteria_name
@@ -126,7 +128,7 @@ def mat_distance(matA, matB):
 
 html_code = """
 <html>
-    <title>Donor site patterns by compound</title>
+    <title>Donor site patterns by treatment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&display=swap" rel="stylesheet">
@@ -156,14 +158,14 @@ Background ({num_background_sites}K donor sites)<br>
 
 scanRBP_data = {}
 def make_scanRBP():
-    print("splicekit | make_scanRBP | start")
+    print(f"{module_name} start")
     scanRBP_to_process = [[a,b,c,d] for (_,a,b,c,d) in scanRBP_pairs]
     scanRBP_to_process = [item for sublist in scanRBP_to_process for item in sublist]
     comparison_counts = {}
     for feature_type, mcriteria in motif_criteria.items():
-        print(f"[splicekit | make_scanRBP |  processing {feature_type} criteria")
+        print(f"{module_name} make_scanRBP | processing {feature_type} criteria")
         scanRBP_data = {}
-        f = open(f"results/results_edgeR_{feature_type}_all.tab", "rt")
+        f = gzip.open(f"results/edgeR/{feature_type}_results_complete.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -190,7 +192,8 @@ def make_scanRBP():
                             start_pos = donor_site - scanRBP_area
                             stop_pos = donor_site + scanRBP_area
                             donor_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
-                            fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
+                            #fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
+                            fasta_id = f"{chr}{strand}_{donor_site}"
                             result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
                             result_data.setdefault(fasta_id, {})
                             result_data[fasta_id]["seq"] = donor_seq
@@ -201,7 +204,8 @@ def make_scanRBP():
                             start_pos = acceptor_site - scanRBP_area
                             stop_pos = acceptor_site + scanRBP_area
                             acceptor_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
-                            fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
+                            #fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
+                            fasta_id = f"{chr}{strand}_{acceptor_site}"
                             result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
                             result_data[fasta_id] = {}
                             result_data[fasta_id]["seq"] = acceptor_seq
@@ -213,7 +217,7 @@ def make_scanRBP():
         for (criteria_name, comparison), result_data in scanRBP_data.items():
             if criteria_name not in scanRBP_to_process:
                 continue
-            print(f"splicekit | make_scanRBP | {comparison}: {criteria_name} {feature_type}")
+            print(f"{module_name} make_scanRBP | {comparison}: {criteria_name} {feature_type}")
             fasta_fname = f"results/motifs/scanRBP/fasta/{comparison}_{criteria_name}_scanRBP.fasta"
             f = open(fasta_fname, "wt")
             for fasta_id, data in result_data.items():
@@ -221,7 +225,7 @@ def make_scanRBP():
                 seq = data["seq"]
                 f.write(f">{fasta_id} {result_list}\n{seq}\n")
             f.close()
-            os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data  -nonzero -simple_names")
+            os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
 
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
@@ -261,8 +265,7 @@ def bootstrap_logfc(matrix_signal, matrix_control, smoothing=6, iterations=1000)
     return boot_values
 
 def plot_scanRBP():
-    print("splicekit | plot_scanRBP | start")
-
+    print(f"{module_name} plot_scanRBP | start")
     smoothing = 6
     protein = config.protein
     protein_label = config.protein_label
@@ -276,7 +279,7 @@ def plot_scanRBP():
             id_original = f.id.split(" ")[0]
             id = f.id.replace("+", "plus").replace("-", "minus").split(" ")[0]
             if dtype=="PWM":
-                scanRBP_fname = f"results/motifs/scanRBP/data/{id}_PWM.tab"
+                scanRBP_fname = f"results/motifs/scanRBP/data/pwm_{id}.tab.gz"
             elif dtype=="CLIP":
                 scanRBP_fname = f"results/motifs/scanRBP/data/{id}_CLIP.tab"
             df = pd.read_csv(scanRBP_fname, sep='\t', header=0, index_col=0)
@@ -302,7 +305,7 @@ def plot_scanRBP():
                 downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
                 if not os.path.exists(up_fasta) or not os.path.exists(down_fasta) or not os.path.exists(upcontrol_fasta) or not os.path.exists(downcontrol_fasta):
                     continue
-                print(f"[splicekit.core.motifs.plot_scanRBP] processing {cname} {comparison} {dtype}")
+                print(f"{module_name} plot_scanRBP | processing {cname} {comparison} {dtype}")
                 matrix_up, vector_up, rows_up = read_matrix_vector(up_fasta, dtype=dtype)
                 matrix_down, vector_down, rows_down = read_matrix_vector(down_fasta, dtype=dtype)
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
@@ -312,8 +315,8 @@ def plot_scanRBP():
                 value_up = bootup[0]
                 bootup.sort(reverse=True)
                 index_up = bootup.index(value_up)
-                print("[splicekit.core.motifs.plot_scanRBP] up logFC=", value_up)
-                print("[splicekit.core.motifs.plot_scanRBP] p-value up = ", index_up/float(len(bootup)))
+                print(f"{module_name} plot_scanRBP up logFC=", value_up)
+                print(f"{module_name} plot_scanRBP] p-value up = ", index_up/float(len(bootup)))
                 up_file = open(f"results/motifs/scanRBP/{comparison}_{signal_up}_bootstrap.tab", "wt")
                 up_file.write(f"logFC\t{value_up}\np_value\t{index_up/float(len(bootup))}")
                 up_file.close()
@@ -322,8 +325,8 @@ def plot_scanRBP():
                 value_down = bootdown[0]
                 bootdown.sort(reverse=True)
                 index_down = bootdown.index(value_down)
-                print("[splicekit.core.motifs.plot_scanRBP] down logFC=", value_down)
-                print("[splicekit.core.motifs.plot_scanRBP] p-value down = ", index_down/float(len(bootdown)))
+                print(f"{module_name} plot_scanRBP | down logFC=", value_down)
+                print(f"{module_name} plot_scanRBP | p-value down = ", index_down/float(len(bootdown)))
                 down_file = open(f"results/motifs/scanRBP/{comparison}_{signal_down}_bootstrap.tab", "wt")
                 down_file.write(f"logFC\t{value_down}\np_value\t{index_down/float(len(bootdown))}")
                 down_file.close()
@@ -425,9 +428,9 @@ def plot_scanRBP():
 
 
 feature_added = {} # do not add sequences for the same donor/acceptor site multiple times (e.g. several junctions can represent the same donor site)
-compound_seq_bytype = {}
+treatment_seq_bytype = {}
 def make_logos():
-    print("[splicekit.core.motifs.make_logos] start")
+    print(f"{module_name} make_logos | start")
 
     # evaluetes criteria from motif_criteria (see top of file) and distributes sequences accordingly
     # write fasta files
@@ -435,8 +438,7 @@ def make_logos():
 
     for feature_type, mcriteria in motif_criteria.items():
         h_donors = {} # handle to fasta donor sequence files
-        feature_file = f"results/results_edgeR_{feature_type}_all.tab"
-        f = open(feature_file, "rt")
+        f = gzip.open(f"results/edgeR/{feature_type}_results_complete.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
@@ -465,13 +467,7 @@ def make_logos():
             acceptor_seq = pybio.core.genomes.seq(config.species, chr, strand, acceptor_site, splice_sites_area[0], splice_sites_area[1], genome_version=config.genome_version)
             donor_id = f"{chr}{strand}_{donor_site}"
             acceptor_id = f"{chr}{strand}_{acceptor_site}"
-            rank = data["rank"]
-            if rank=="":
-                rank = 0
-            else:
-                rank = int(rank)
-            compound = str(rank)+"_"+data["compound"]
-            ck = (rank, data["compound"]) # compound key (rank and compound name)
+            treatment = data["treatment"]
 
             # add control sequences to control fasta file
             if donor_id not in feature_added.get(f"{feature_type}_donor_controls", set()):
@@ -493,13 +489,13 @@ def make_logos():
 
                 #if criteria_met:
                 if criteria_met and donor_id not in feature_added.get((cryteria_name, seq_field, data["comparison"]), set()):
-                    temp = compound_seq_bytype.get(cryteria_name, {})
+                    temp = treatment_seq_bytype.get(cryteria_name, {})
                     if seq_field=="donor":
                         temp_seq = donor_seq
                     if seq_field=="acceptor":
                         temp_seq = acceptor_seq
-                    temp.setdefault(ck, []).append(temp_seq)
-                    compound_seq_bytype[cryteria_name] = temp
+                    temp.setdefault(treatment, []).append(temp_seq)
+                    treatment_seq_bytype[cryteria_name] = temp
                     # write sequence to fasta file
                     fasta_id = "junction="+data["feature_id"]
                     f_donor = h_donors.get((cryteria_name, data["comparison"]), open("results/motifs/fasta/"+data["comparison"]+"_" + cryteria_name + ".fasta", "wt"))
@@ -514,52 +510,51 @@ def make_logos():
                     feature_added[(cryteria_name, seq_field, data["comparison"])] = feature_set
 
 
-            temp = compound_seq_bytype.get(f"{feature_type}_all", {})
-            temp.setdefault(ck, []).append(donor_seq)
-            temp.setdefault((0, "overall"), []).append(donor_seq)
-            compound_seq_bytype[f"{feature_type}_all"] = temp
+            temp = treatment_seq_bytype.get(f"{feature_type}_all", {})
+            temp.setdefault(treatment, []).append(donor_seq)
+            temp.setdefault("overall", []).append(donor_seq)
+            treatment_seq_bytype[f"{feature_type}_all"] = temp
             r = f.readline()
         f.close()
         for f_name, f_handle in h_donors.items():
             f_handle.close()
 
-        print(f"[splicekit.core.motifs.make_logos] fasta files saved: {mcriteria}")
+        print(f"{module_name} make_logos | fasta files saved")
         to_remove = []
-        for feature_type, compound_data in compound_seq_bytype.items():
-            for ck, seqs in compound_data.items():
+        for feature_type, treatment_data in treatment_seq_bytype.items():
+            for treatment, seqs in treatment_data.items():
                 if len(seqs)<3:
-                    to_remove.append((feature_type, ck))
-        for (feature_type, ck) in to_remove:
-            del compound_seq_bytype[feature_type][ck]
+                    to_remove.append((feature_type, treatment))
+        for (feature_type, treatment) in to_remove:
+            del treatment_seq_bytype[feature_type][treatment]
         f.close()
     # end of reading data in from result files, now process and plot
 
     len_background, background = get_background()
     background_info = lm.transform_matrix(background, from_type='probability', to_type='information')
-    for feature_type, compound_seq in compound_seq_bytype.items():
-        m = len(compound_seq.keys())
-        compound_seq = list(compound_seq.items())
-        compound_seq.sort()
+    for feature_type, treatment_seq in treatment_seq_bytype.items():
+        m = len(treatment_seq.keys())
+        treatment_seq = list(treatment_seq.items())
         logo = lm.Logo(background_info)
         logo.fig.savefig("results/motifs/images/background.png")
         plt.close()
         image_blocks = []
         image_blocks_md = []
 
-        # write avg. levensthein dist per compound as rows to file per junction-type
-        dist_fname = f"results/motifs/donor_pattern_per_compound_distance_{feature_type}.tab"
+        # write avg. levensthein dist per treatment as rows to file per junction-type
+        dist_fname = f"results/motifs/donor_pattern_per_treatment_distance_{feature_type}.tab"
         dist_file = open(dist_fname, 'w')
         
-        for (rank, compound_name), seqs in compound_seq:
-            # compute per-compound and junction-type pairwise levensthein dist of patterns (so we can judge the accuracy of the splicing modifier) 
+        for treatment, seqs in treatment_seq:
+            # compute per-treatment and junction-type pairwise levensthein dist of patterns (so we can judge the accuracy of the splicing modifier) 
             seqs_mean_lev_pariwise_dist = compute_mean_levdist(seq_list=seqs)
-            dist_file_row = f'{compound_name}\t{str(seqs_mean_lev_pariwise_dist)}\n'
+            dist_file_row = f'{treatment}\t{str(seqs_mean_lev_pariwise_dist)}\n'
             dist_file.write(dist_file_row)
             
-            image_fname = "results/motifs/images/seqlogo_{feature_type}_rank{compound}.png".format(feature_type=feature_type, compound=f"{rank}_{compound_name}")
-            image2_fname = "results/motifs/images/seqlogo2_{feature_type}_rank{compound}.png".format(feature_type=feature_type, compound=f"{rank}_{compound_name}")
-            image_url = "images/seqlogo_{feature_type}_rank{compound}.png".format(feature_type=feature_type, compound=f"{rank}_{compound_name}")
-            image2_url = "images/seqlogo2_{feature_type}_rank{compound}.png".format(feature_type=feature_type, compound=f"{rank}_{compound_name}")
+            image_fname = "results/motifs/images/seqlogo_{feature_type}_{treatment}.png".format(feature_type=feature_type, treatment=treatment)
+            image2_fname = "results/motifs/images/seqlogo2_{feature_type}_{treatment}.png".format(feature_type=feature_type, treatment=treatment)
+            image_url = "images/seqlogo_{feature_type}_{treatment}.png".format(feature_type=feature_type, treatment=treatment)
+            image2_url = "images/seqlogo2_{feature_type}_{treatment}.png".format(feature_type=feature_type, treatment=treatment)
 
             counts_mat = lm.alignment_to_matrix(seqs)
             counts_mat = fix_matrix(counts_mat)
@@ -579,8 +574,8 @@ def make_logos():
             plt.close()
 
             seqs_mean_lev_pariwise_dist = "%.3f" % seqs_mean_lev_pariwise_dist
-            image_blocks.append((rank, "<tr><td style='border-bottom: 1px dashed #aaaaaa; border-right: 1px dashed #cccccc;'>{compound} ({len_seq} sequences) (minus background)<br><img src='{image_fname}' style='width: 300px'></td><td style='border-bottom: 1px dashed #aaaaaa;'>{compound} ({len_seq} sequences, lev={seqs_mean_lev_pariwise_dist})<br><img src='{image2_fname}' style='width: 300px'></td></tr>".format(seqs_mean_lev_pariwise_dist=seqs_mean_lev_pariwise_dist, len_seq=len(seqs), image2_fname=image2_url, image_fname=image_url, compound=compound_name)))
-            print("[splicekit.core.motifs.make_logos] seqlogo: feature_type={feature_type}, compound={compound_name}, sequences={len_seq}".format(feature_type=feature_type, compound_name=compound_name, len_seq=len(seqs)))
+            image_blocks.append((f"<tr><td style='border-bottom: 1px dashed #aaaaaa; border-right: 1px dashed #cccccc;'>{treatment} ({len(seqs)} sequences) (minus background)<br><img src='{image_url}' style='width: 300px'></td><td style='border-bottom: 1px dashed #aaaaaa;'>{treatment} ({len(seqs)} sequences, lev={seqs_mean_lev_pariwise_dist})<br><img src='{image2_url}' style='width: 300px'></td></tr>"))
+            print(f"{module_name} make_logos | seqlogo: feature_type={feature_type}, treatment={treatment}, sequences={len(seqs)}")
 
         image_blocks = [el[1] for el in image_blocks]
         f = open("results/motifs/index_{feature_type}.html".format(feature_type=feature_type), "wt")
@@ -590,31 +585,35 @@ def make_logos():
         dist_file.close()
 
 def dreme():
-    print("[splicekit.core.motifs.dreme] start")
+    print(f"{module_name} dreme | start")
     for comparison in splicekit.core.annotation.comparisons:
         comp_id = comparison[0]
-        for feature_type, mcriteria in motif_criteria.items():
-            for (criteria_name, _, _) in mcriteria:
-                if criteria_name.endswith("_controls"):
-                    continue
-                if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
-                    if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
-                        command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
-                        os.system(command)
+        for dreme_name, dreme_positive, dreme_negative in dreme_criteria:
+            command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{dreme_positive}.fasta -n results/motifs/fasta/{comp_id}_{dreme_negative}.fasta -oc results/motifs/dreme/{comp_id}_{dreme_name}"
+            os.system(command)
+
+        # for feature_type, mcriteria in motif_criteria.items():
+        #     for (criteria_name, _, _) in mcriteria:
+        #         if criteria_name.endswith("_controls"):
+        #             continue
+        #         if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
+        #             if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
+        #                 command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
+        #                 os.system(command)
 
 def make_distance():
-    print("[splicekit.core.motifs.make_distance] start")
+    print(f"{module_name} make_distance | start")
     len_background, background = get_background()
     for feature_type in motif_criteria.keys():
-        compound_seq = compound_seq_bytype[f"{feature_type}_all"] # use all to do the clustering and dendrogram
+        treatment_seq = treatment_seq_bytype[f"{feature_type}_all"] # use all to do the clustering and dendrogram
         f = open(f"results/motifs/{feature_type}_donor_pattern_dm.tab", "wt")
-        f.write("\t".join(["compound1", "compound2", "donnor_pattern_distance"]) + "\n")
-        m = len(compound_seq.keys()) # 179 for ps180
-        for index1, ((rank1, compound_name1), seqs1) in enumerate(compound_seq.items()):
-            for index2, ((rank2, compound_name2), seqs2) in enumerate(compound_seq.items()):
+        f.write("\t".join(["treatment1", "treatment2", "donnor_pattern_distance"]) + "\n")
+        m = len(treatment_seq.keys()) # 179 for ps180
+        for index1, (treatment1, seqs1) in enumerate(treatment_seq.items()):
+            for index2, (treatment2, seqs2) in enumerate(treatment_seq.items()):
                 if not (index1<index2<m):
                     continue
-                print("[splicekit.core.motifs.make_distance] distance for:", compound_name1, compound_name2)
+                print(f"{module_name} make_distance | distance for:", treatment1, treatment2)
                 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html#scipy.spatial.distance.pdist
                 # Returns a condensed distance matrix Y. For each i and j (where i<j<m), where m is the number of original observations. The metric dist(u=X[i], v=X[j]) is computed and stored in entry m * i + j - ((i + 2) * (i + 1)) // 2
                 mij = m * index1 + index2 - ((index1 + 2) * (index1 + 1)) // 2
@@ -629,24 +628,23 @@ def make_distance():
                 weight_mat2 = lm.transform_matrix(counts_mat2, background=background, from_type='counts', to_type='weight')
                 weight_mat2_info = lm.transform_matrix(weight_mat2, from_type='weight', to_type='information')
                 dm = mat_distance(prob_mat1, prob_mat2)
-                row = [compound_name1, compound_name2, LA.norm(dm, 'fro')]
+                row = [treatment1, treatment2, LA.norm(dm, 'fro')]
                 f.write("\t".join([str(el) for el in row]) + "\n")
         f.close()
 
 def cluster(cutoff=9):
-    print("[splicekit.core.motifs.cluster] start")
+    print(f"{module_name} cluster | start")
     from scipy.spatial.distance import pdist
     from scipy.cluster.hierarchy import dendrogram, linkage, cut_tree
     from matplotlib import pyplot as plt
     for feature_type in motif_criteria.keys():
-        compounds = set()
-        for ck, seqs in compound_seq_bytype[f"{feature_type}_all"].items():
-            compounds.add(ck)
+        treatments = set()
+        for treatment, seqs in treatment_seq_bytype[f"{feature_type}_all"].items():
+            treatments.add(treatment)
 
-        compounds = list(compounds)
-        compounds.sort()
-        print("[splicekit.core.motifs.cluster] all compounds = ", len(compounds))
-        print("[splicekit.core.motifs.cluster] cluster cutoff = ", cutoff)
+        treatments = list(treatments)
+        print(f"{module_name} cluster | all treatments = ", len(treatments))
+        print(f"{module_name} cluster | cutoff = ", cutoff)
 
         f = open(f"results/motifs/{feature_type}_donor_pattern_dm.tab", "rt")
         header = f.readline()
@@ -661,19 +659,19 @@ def cluster(cutoff=9):
         Z = linkage(cdm, 'ward')
         cutree = cut_tree(Z, n_clusters=cutoff) # cut dendrogram at point where we have args.cutoff clusters
         clusters = {}
-        for compound_index, cluster_nr in enumerate(cutree):
+        for treatment_index, cluster_nr in enumerate(cutree):
             cluster = clusters.get(cluster_nr[0], [])
-            cluster.append(compounds[compound_index])
+            cluster.append(treatments[treatment_index])
             clusters[cluster_nr[0]] = cluster
 
         fig = plt.figure(figsize=(10, 25))
-        dn = dendrogram(Z, color_threshold=0.9, labels=compounds, truncate_mode="lastp", p=cutoff)
+        dn = dendrogram(Z, color_threshold=0.9, labels=treatments, truncate_mode="lastp", p=cutoff)
         plt.tight_layout()
         plt.savefig(f"results/motifs/{feature_type}_dendrogram_truncated.png", dpi=300)
         plt.close()
 
         fig = plt.figure(figsize=(10, 25))
-        dn = dendrogram(Z, color_threshold=0.9, labels=compounds, orientation="left")
+        dn = dendrogram(Z, color_threshold=0.9, labels=treatments, orientation="left")
         plt.tight_layout()
         plt.savefig(f"results/motifs/{feature_type}_dendrogram.png", dpi=300)
         plt.close()
@@ -718,12 +716,12 @@ def cluster(cutoff=9):
         for cluster_id, cluster_data in clusters.items():
             if len(cluster_data)<5:
                 continue
-            print("[splicekit.core.motifs.cluster] cluster id = ", cluster_id, "size = ", len(cluster_data))
+            print(f"{module_name} cluster | id = ", cluster_id, "size = ", len(cluster_data))
             temp = ["<td style='vertical-align: top; border-bottom: 1px dashed #aaaaaa; padding-bottom: 10px; border-right: 1px dashed #cccccc;'>"]
-            temp.append("<b>cluster</b> id {cluster}, <b>size = {size}</b> (displaying first 3 compounds)<br>".format(size=len(cluster_data), cluster=cluster_id))
-            for (rank, compound) in cluster_data[:3]:
-                image_fname = f"images/seqlogo2_{feature_type}_rank{rank}_{compound}.png"
-                temp.append(f"{compound} (rank {rank})<br><a href='{image_fname}'><img src='{image_fname}' style='width: 300px'></a><br>")
+            temp.append("<b>cluster</b> id {cluster}, <b>size = {size}</b> (displaying first 3 treatments)<br>".format(size=len(cluster_data), cluster=cluster_id))
+            for treatment in cluster_data[:3]:
+                image_fname = f"images/seqlogo2_{feature_type}_{treatment}.png"
+                temp.append(f"{treatment}<br><a href='{image_fname}'><img src='{image_fname}' style='width: 300px'></a><br>")
             temp.append("</td>")
             cluster_row.append("\n".join(temp)+"\n\n")
             if len(cluster_row)==3:
@@ -736,9 +734,9 @@ def cluster(cutoff=9):
         f.close()
 
 def process():
-    if config.scanRBP:
-        make_scanRBP()
-        plot_scanRBP()
+    #if config.scanRBP:
+    #    make_scanRBP()
+    #    plot_scanRBP()
     make_logos()
     dreme()
     make_distance()
