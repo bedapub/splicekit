@@ -19,6 +19,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage, cut_tree
 from matplotlib import pyplot as plt
 import matplotlib.font_manager
 import seaborn as sns
+import gzip
 
 def compute_distance(compound_name1, compound_name2, fname):
     if not os.path.exists(fname):
