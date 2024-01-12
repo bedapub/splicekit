@@ -2,6 +2,7 @@ import os
 import sys
 import splicekit.core.annotation as annotation
 import splicekit.config as config
+import gzip
 
 def toint(temp):
     try:
@@ -16,10 +17,10 @@ def same_junction(data1, data2):
     return False
 
 def process():
-    annotation.read_comparisons()
+    annotation.make_comparisons()
     results = {}
     # populate result list
-    f = open("results/results_edgeR_junctions.tab", "rt")
+    f = gzip.open("results/edgeR/junctions_results_fdr005.tab.gz", "rt")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
@@ -40,7 +41,7 @@ def process():
                 results[id][rdata["comparison"]+"_junction"] = 1
 
     reported_junction = {}
-    fout_junction = open("results/results_edgeR_junctions_promisc.tab", "wt")
+    fout_junction = gzip.open("results/junctions_promisc.tab.gz", "wt")
     header = ["gene_name", "gene_id", "chr", "strand", "feature_start", "feature_stop", "row_sum"]
     for (comparison, _, _, _, _) in annotation.comparisons:
         header.append(comparison)

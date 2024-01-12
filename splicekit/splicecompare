@@ -5,6 +5,7 @@ import sys
 import argparse
 import seaborn as sns
 import matplotlib.pyplot as plt
+import gzip
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('splicekit_run1', help="Main folder with splicekit run 1")
@@ -36,7 +37,7 @@ for feature_type in args.features.split(","):
     fout = open(f"{args.fname_out}_{feature_type}.tab", "wt")
     results = {}
     for splicekit_run, comparison, comparison_fname in [(args.splicekit_run1, args.comparison1, args.comparison1_fname), (args.splicekit_run2, args.comparison2, args.comparison2_fname)]:
-        f = open(os.path.join(splicekit_run, "results", f"results_edgeR_{feature_type}", f"{comparison_fname}"), "rt")
+        f = gzip.open(os.path.join(splicekit_run, "results", "edgeR", feature_type, f"{comparison_fname}.gz"), "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
         while r:
