@@ -180,7 +180,7 @@ def write_comparisons():
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, job_name="rmats_"+comparison_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
-        row = [comparison_name, ",".join(str(el) for el in test_ids), ",".join(str(el) for el in control_ids), control_group_id, test_group_id]
+        row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
         comps_table.write("\t".join(row) + "\n") 
     comps_table.close()
     write_edgeR_jobs()
@@ -209,10 +209,12 @@ ml R
     sample_membership = {}
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         for (sample_id, _, _, _) in control_set:
-            assert(sample_membership.get(sample_id, None) in [None, control_group_id])
+            # in some rare cases, the same sample can be part of diverse control groups
+            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
             sample_membership[sample_id] = control_group_id
         for (sample_id, _, _, _) in test_set:
-            assert(sample_membership.get(sample_id, None) in [None, test_group_id])
+            # in some rare cases, the same sample can be part of diverse test groups
+            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
             sample_membership[sample_id] = test_group_id
     sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:

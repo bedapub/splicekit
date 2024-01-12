@@ -605,7 +605,7 @@ def make_distance():
     print(f"{module_name} make_distance | start")
     len_background, background = get_background()
     for feature_type in motif_criteria.keys():
-        treatment_seq = treatment_seq_bytype[f"{feature_type}_all"] # use all to do the clustering and dendrogram
+        treatment_seq = treatment_seq_bytype.get(f"{feature_type}_all", {}) # use all to do the clustering and dendrogram
         f = open(f"results/motifs/{feature_type}_donor_pattern_dm.tab", "wt")
         f.write("\t".join(["treatment1", "treatment2", "donnor_pattern_distance"]) + "\n")
         m = len(treatment_seq.keys()) # 179 for ps180
@@ -639,7 +639,7 @@ def cluster(cutoff=9):
     from matplotlib import pyplot as plt
     for feature_type in motif_criteria.keys():
         treatments = set()
-        for treatment, seqs in treatment_seq_bytype[f"{feature_type}_all"].items():
+        for treatment, seqs in treatment_seq_bytype.get(f"{feature_type}_all", {}).items():
             treatments.add(treatment)
 
         treatments = list(treatments)
@@ -655,6 +655,9 @@ def cluster(cutoff=9):
             cdm.append(float(r[-1]))
             r = f.readline()
         f.close()
+
+        if len(cmd)==0:
+            continue
 
         Z = linkage(cdm, 'ward')
         cutree = cut_tree(Z, n_clusters=cutoff) # cut dendrogram at point where we have args.cutoff clusters
