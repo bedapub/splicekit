@@ -70,7 +70,33 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         jobs_dir = f'jobs/count_{anchor_type}_anchors'
         logs_dir = f'logs/count_{anchor_type}_anchors'
 
-        job_anchors="""
+        if config.platform == 'SLURM':
+
+            job_anchors="""
+ #!/bin/bash
+#SBATCH --job-name={anchor_type}_anchors_{sample_id}  # Job name
+#SBATCH --ntasks=12                                   # Number of tasks
+#SBATCH --nodes=1                                     # All tasks on one node
+#SBATCH --partition=short                             # Select queue
+#SBATCH --output={logs_dir}/{anchor_type}_anchors_{sample_id}.out # Output file
+#SBATCH --error={logs_dir}/{anchor_type}_anchors_{sample_id}.err  # Error file
+
+module load Subread/2.0.3-GCC-9.3.0
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t anchor -g {anchor_type}_anchor_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+# featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
+# next, we are only interested in the 1st and 7th column (anchor_id and count)
+cp {out_fname} {out_fname}_temp
+# make header line of file and overwrite out_fname as new file
+echo "{header_line}" >| {out_fname}
+tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 
+rm {out_fname}_temp
+# move summary from featureCount to logs
+mv {out_fname}.summary {logs_dir}/
+gzip -f {out_fname}
+            """
+        else:
+
+            job_anchors="""
 #!/bin/bash
 #BSUB -J {anchor_type}_anchors_{sample_id}  # Job name
 #BSUB -n 12                                 # number of tasks
@@ -92,7 +118,7 @@ rm {out_fname}_temp
 # move summary from featureCount to logs
 mv {out_fname}.summary {logs_dir}/
 gzip -f {out_fname}
-        """
+            """
 
         job_sh_anchors="""
 {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t anchor -g {anchor_type}_anchor_id -a {gtf_fname} -o {out_fname} {sam_fname} 

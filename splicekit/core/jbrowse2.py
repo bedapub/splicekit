@@ -53,7 +53,24 @@ def write_sample_jobs(force_samples):
     os.system("rm -r jobs/jobs_jbrowse/* >/dev/null 2>&1") # clean up previous jobs
 
     # create bigwig and then cram files
-    job_bw="""
+    if config.platforn == 'SLURM':
+        job_bw="""
+#!/bin/bash
+#SBATCH --job-name={sample}_jbrowse               # Job name
+#SBATCH --ntasks=4                               # Number of tasks
+#SBATCH --nodes=1                                # All tasks on one node
+#SBATCH --partition=short                        # Select queue
+#SBATCH --output=logs/logs_jbrowse/{sample}.out  # Output file
+#SBATCH --error=logs/logs_jbrowse/{sample}.err   # Error file
+
+{container} bamCoverage --ignoreDuplicates --binSize {bamCoverage_binSize}  -b {bam_fname} -o {bigwig_fname} -of bigwig
+{container} samtools view -C -T {genome_fa} {bam_fname} -O CRAM -o {cram_fname}
+{container} samtools index {cram_fname}
+        """
+    
+    else:
+
+        job_bw="""
 #!/bin/bash
 #BSUB -J {sample}_jbrowse               # job name
 #BSUB -n 4                              # number of tasks
@@ -65,7 +82,7 @@ def write_sample_jobs(force_samples):
 {container} bamCoverage --ignoreDuplicates --binSize {bamCoverage_binSize}  -b {bam_fname} -o {bigwig_fname} -of bigwig
 {container} samtools view -C -T {genome_fa} {bam_fname} -O CRAM -o {cram_fname}
 {container} samtools index {cram_fname}
-    """
+        """
 
     job_sh_bw="""
 {container} bamCoverage --ignoreDuplicates --binSize {bamCoverage_binSize}  -b {bam_fname} -o {bigwig_fname} -of bigwig 2> logs/logs_jbrowse/{sample}.err

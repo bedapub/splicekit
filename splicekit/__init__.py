@@ -85,6 +85,9 @@ def junctions_master():
     if splicekit.config.platform=="desktop":
         splicekit.core.mprocess("jobs/count_junctions/process.sh")
         splicekit.core.junctions.make_master()
+    if splicekit.config.platform=="SLURM":
+        os.system("jobs=( $(ls jobs/count_junctions/*.job) ); g=10; " "for((i=0; i < ${#jobs[@]}; i+=g)); do " "part=( \"${jobs[@]:i:g}\" ); " "for job_fname in ${part[*]}; do " "echo \"splicekit | features | junctions | submitted $job_fname\"; " "sbatch --mem=8G --parsable ${job_fname} & " "done; wait; " "echo \"splicekit | features | junctions | processing next 10\"; " "done; " "echo \"splicekit | features | junctions | processing complete\"")
+        os.system("sbatch --partition=short --mem=16G --output=/dev/null --error=/dev/null " "--wrap=\"python -c 'import splicekit; splicekit.core.junctions.make_master()'\"")
 
 def junctions():
     splicekit.core.annotation.make_comparisons()

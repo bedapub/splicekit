@@ -136,7 +136,23 @@ def make_comparisons():
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
-    job_rmats="""
+    if config.platform == 'SLURM':
+        job_rmats="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                        # Job name
+#SBATCH --ntasks=1                                   # Number of tasks
+#SBATCH --mem=8G                                     # Allocate memory
+#SBATCH --nodes=1                                    # All tasks on one node
+#SBATCH --partition=short                            # Select queue
+#SBATCH --output=logs/rmats/{comparison_name}.out    # Output file
+#SBATCH --error=logs/rmats/{comparison_name}.err     # Error file
+
+{container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
+        """
+
+    else:
+
+        job_rmats="""
 #!/bin/bash
 #BSUB -J {job_name}                        # job name
 #BSUB -n 1                                 # number of tasks
@@ -147,7 +163,7 @@ def write_comparisons():
 #BSUB -e logs/rmats/{comparison_name}.err   # error file
 
 {container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
-"""
+        """
 
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "control_samples", "test_samples", "control_group_id", "test_group_id"]
@@ -185,7 +201,25 @@ def write_comparisons():
     write_edgeR_jobs()
 
 def write_edgeR_jobs():
-    job_edgeR="""
+    if config.platform == 'SLURM':
+            job_edgeR="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                                     # Job name
+#SBATCH --ntasks=1                                                # Number of tasks
+#SBATCH --nodes=1                                                 # All tasks on one node
+#SBATCH --mem=8G                                                  # Allocate memory
+#SBATCH --partition=short                                         # Select queue
+#SBATCH --output=logs/edgeR/{atype}/{comparison_name}.out         # Output file
+#SBATCH --error=logs/edgeR/{atype}/{comparison_name}.err          # Error file
+
+module load R
+{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
+    """
+        
+
+    else:
+
+        job_edgeR="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
 #BSUB -n 1                                              # number of tasks
@@ -197,7 +231,7 @@ def write_edgeR_jobs():
 
 ml R
 {container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
-"""
+    """
 
     job_sh_edgeR="""{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R"""
     fsh_exons = open(f"jobs/edgeR/exons/process.sh", "wt")

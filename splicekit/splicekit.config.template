@@ -28,7 +28,7 @@ protein = "K562.TARDBP.0"
 protein_label = "tdp43" # used in file names and titles
 
 # platform and container
-platform = "desktop" # "desktop" or "cluster" (HPC with SLURM)
+platform = "desktop" # "desktop" or "cluster" or "SLURM" (Cluster refers to HPC systems with LSF queue manager, SLURM refers to HPC systems with SLURM queue manager)
 
 # leaving the container empty will use software dependencies installed on your system
 container = ""
