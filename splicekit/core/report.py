@@ -105,6 +105,11 @@ def edgeR_feature(feature_name, version=""):
                 tracks_test = [track+'_bw' for track in tracks_test] # New JBrowse2 --> bigwig files are called by id_bw
 
             tracks = ",".join(tracks_test[:3]+tracks_control[:3]+tracks_fixed)
+            try:
+                for r1, r2 in config.track_name_replace:
+                    tracks = tracks.replace(r1, r2)
+            except:
+                pass
             f_from=int(data["feature_start"])
             f_to=int(data["feature_stop"])
             delta = round(abs(f_from-f_to)*0.15) # 15% surrounding

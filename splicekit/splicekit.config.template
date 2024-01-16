@@ -35,3 +35,6 @@ container = ""
 
 # using this container definition will import a Docker image to your singularity and use dependencies
 #container = "singularity run docker://ghcr.io/bedapub/splicekit:main"
+
+# memory defaults (cluster jobs)
+edgeR_memory="16GB"

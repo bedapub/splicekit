@@ -42,3 +42,10 @@ for line in temp:
         gtf_path = line
     if line.endswith(".gff3.gz"):
         gff3_path = line
+
+# memory parameters
+        
+try:
+    edgeR_memory
+except:
+    edgeR_memory = "8GB"
