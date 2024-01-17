@@ -225,7 +225,7 @@ module load R
 #BSUB -n 1                                              # number of tasks
 #BSUB -R "span[hosts=1]"                                # allocate hosts
 #BSUB -M {memory}                                       # allocate memory
-#BSUB -q short                                          # select queue
+#BSUB -q {queue}                                        # select queue
 #BSUB -o logs/edgeR/{atype}/{comparison_name}.out # output file
 #BSUB -e logs/edgeR/{atype}/{comparison_name}.err # error file
 
@@ -273,35 +273,35 @@ ml R
             filter_low = "filter_low"
 
         # edgeR exons
-        job_exons = job_edgeR.format(memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", job_name="edgeR_exons_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_exons = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", job_name="edgeR_exons_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_exons.write(job_exons)
         fout_exons.close()        
         job_sh_exons = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_exons.write(job_sh_exons+"\n")
 
         # edgeR junctions
-        job_junctions = job_edgeR.format(memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_junctions = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_junctions.write(job_junctions)
         fout_junctions.close()
         job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_junctions.write(job_sh_junctions+"\n")
 
         # edgeR donor anchors
-        job_donor_anchors = job_edgeR.format(memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_donor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_donor_anchors.write(job_donor_anchors)
         fout_donor_anchors.close()
         job_sh_donor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_donor_anchors.write(job_sh_donor_anchors+"\n")
 
         # edgeR acceptor anchors
-        job_acceptor_anchors = job_edgeR.format(memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_acceptor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_acceptor_anchors.write(job_acceptor_anchors)
         fout_acceptor_anchors.close()
         job_sh_acceptor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_acceptor_anchors.write(job_sh_acceptor_anchors+"\n")
 
         # edgeR genes
-        job_genes = job_edgeR.format(memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_genes = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_genes.write(job_genes)
         fout_genes.close()
         job_sh_genes = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))

@@ -49,3 +49,8 @@ try:
     edgeR_memory
 except:
     edgeR_memory = "8GB"
+
+try:
+    cluster_queue
+except:
+    cluster_queue = "short"
