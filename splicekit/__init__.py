@@ -43,6 +43,8 @@ print("splicekit | loading splicekit.core.delta_dar")
 import splicekit.core.delta_dar
 print("splicekit | loading splicekit.clusterlogfc")
 import splicekit.clusterlogfc
+print("splicekit | loading splicekit.report")
+import splicekit.report
 
 # initialization (triggered once on "import splicekit")
 splicekit.core.annotation.compounds = {}

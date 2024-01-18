@@ -36,7 +36,10 @@ def setup():
 # for every bam file create bigwig and cram file plus a bed file that shows the junctions
 bam_dir = config.bam_path
 container = config.container
-bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
+try:
+    bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
+except:
+    print(f"{module_desc} no bam files found in provided bam folder")
 genome_fa = config.fasta_path
 gff_fname =  config.gff3_path
 dirs_to_check = ['logs/logs_jbrowse/', 'jobs/jobs_jbrowse/','results/results_jbrowse/'] 

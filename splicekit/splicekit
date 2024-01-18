@@ -170,5 +170,7 @@ elif args.command[0] in ["jbrowse2", "jbrowse"]:
     else:
         splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
         splicekit.core.jbrowse2.start()
+elif args.command[0]=="report":
+    splicekit.report.process()
 else:
     print(help_0)
