@@ -56,7 +56,7 @@ def write_sample_jobs(force_samples):
     os.system("rm -r jobs/jobs_jbrowse/* >/dev/null 2>&1") # clean up previous jobs
 
     # create bigwig and then cram files
-    if config.platforn == 'SLURM':
+    if config.platform == 'SLURM':
         job_bw="""
 #!/bin/bash
 #SBATCH --job-name={sample}_jbrowse               # Job name
@@ -132,7 +132,7 @@ def create_jbrowse_config(force_annotation):
         for sample in bam_files:
             os.system(f"rm logs/logs_jbrowse/{sample}.out >/dev/null 2>&1")
             os.system(f"rm logs/logs_jbrowse/{sample}.err >/dev/null 2>&1")
-        print('{module_desc} creating config.json in jbrowse2/splicekit_data')
+        print(f'{module_desc} creating config.json in jbrowse2/splicekit_data')
         if os.path.isabs(genome_fa): # check if genome_fa path is absolute or relative
             os.system(f"cd jbrowse2/splicekit_data; {container} jbrowse add-assembly {genome_fa} --name GenomeSequence --load symlink") # initialize config.json with genome sequence
         else:
@@ -147,15 +147,15 @@ def create_jbrowse_config(force_annotation):
             new_gff_fname = new_gff_fname
         else:
             new_gff_fname = "../../" + new_gff_fname
-        print("{module_desc} start annotation parsing")
+        print(f"{module_desc} start annotation parsing")
         os.system(f'cd jbrowse2/splicekit_data; grep -v "^#" {new_gff_fname} | sed "s/gene/AAA/; s/mRNA/BBB/" | sort -k1,1 -k4,4n | sed "s/AAA/gene/; s/BBB/mRNA/" >| {new_gff_fname}.sorted.gff'); print('[jbrowse2] annotation sorted') 
         os.system(f'cd jbrowse2/splicekit_data; {container} bgzip {new_gff_fname}.sorted.gff -f' ); print('[jbrowse2] annotation compressed')  
         os.system(f'cd jbrowse2/splicekit_data; {container} tabix {new_gff_fname}.sorted.gff.gz'); print('[jbrowse2] annotation indexed')  
         os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track {new_gff_fname}.sorted.gff.gz --trackId annotation_track --name "Gene Annotations" --category "Annotations" --load symlink' ) 
         # indexes all assemblies that it can find in the current directory's config.json
-        print("{module_desc} adding indices for text searching")
+        print(f"{module_desc} adding indices for text searching")
         os.system(f"cd jbrowse2/splicekit_data; {container} jbrowse text-index --out .")
-        print("{module_desc} annotation fully parsed")
+        print(f"{module_desc} annotation fully parsed")
 
         # now we add each sample's files in different track categories  --------------------------------------------------------------------------------------------------------------------------
         for sample in bam_files:
@@ -165,7 +165,7 @@ def create_jbrowse_config(force_annotation):
             os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{bigwig_fname} --name {sample_id}_bw --trackId {sample_id}_bw  --category "Coverage" --load symlink')
             os.system(f'cd jbrowse2/splicekit_data; {container} jbrowse add-track ../../{cram_fname} --name {sample_id}_cram --trackId {sample_id}_cram --category "Reads" --load symlink')
     else:
-        print("{module_desc} config.json already existing in jbrowse2/splicekit_data --> use 'splicekit jbrowse2 process -force' to overwrite")
+        print(f"{module_desc} config.json already existing in jbrowse2/splicekit_data --> use 'splicekit jbrowse2 process -force' to overwrite")
 
 def process(force_samples=False, force_annotation=False):
     check_genome()    
