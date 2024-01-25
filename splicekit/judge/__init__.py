@@ -86,7 +86,7 @@ def process():
         fig.update_layout(title_font_size=11)
         fig.update_layout(font={"size":11})
         fig.update_traces(marker={"size":4})
-        fig.update_traces(customdata=[df["gene_name"].to_numpy()], hovertemplate="%{z} (gene)")
+        fig.update_traces(customdata=df["gene_name"].to_numpy(), hovertemplate="%{customdata} (gene)")
         fig.write_html("results/judge/plots/{comp_name}.html".format(comp_name=comp_name), full_html=False, include_plotlyjs="cdn")
         return True
 
