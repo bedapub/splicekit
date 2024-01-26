@@ -91,6 +91,8 @@ if not args.help:
     import splicekit
     if args.hostname!=None:
         splicekit.config.jbrowse2_config(args.hostname)
+    else:
+        splicekit.config.jbrowse2_config(None)
 
 if args.command[0]=="basic":
     splicekit.setup()
