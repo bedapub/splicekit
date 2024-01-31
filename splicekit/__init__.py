@@ -139,7 +139,6 @@ def genes():
     splicekit.core.features.load_genes()
     splicekit.core.features.read_genes()
     os.system("rm -f data/comparison_genes_data/*.tab.gz > /dev/null 2>&1")
-    #splicekit.core.features.save_comps_feature_data("genes")
     splicekit.core.features.make_counts_table("genes")
 
 def features():
