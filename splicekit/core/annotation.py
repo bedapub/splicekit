@@ -92,7 +92,10 @@ def make_comparisons():
     f.close()
     # sort by sample ID
     for treatment, data in annotation.treatments.items():
-        annotation.treatments[treatment] = sort_readout_id(data)
+        try:
+            annotation.treatments[treatment] = sort_readout_id(data)
+        except:
+            pass
     dmso_hash = {}
     dmso_letter = "A"
     # sometimes the separates set was reshufled
@@ -132,7 +135,10 @@ def make_comparisons():
                 annotation.comparisons.append((short_names(comparison_name), temp_control, temp_test, short_names(control_group_id), short_names(test_group_id)))
     # sort and cast sample_ids to string
     annotation.samples = list(samples)
-    annotation.samples = sort_readout_id(annotation.samples)
+    try:
+        annotation.samples = sort_readout_id(annotation.samples)
+    except:
+        pass
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
@@ -178,8 +184,14 @@ def write_comparisons():
             control_ids.append(sample_id)
         for (sample_id, compound, rep, _) in test_set:
             test_ids.append(sample_id)
-        control_ids = sort_readout_id(control_ids)
-        test_ids = sort_readout_id(test_ids)
+        try:
+            control_ids = sort_readout_id(control_ids)
+        except:
+            pass
+        try:
+            test_ids = sort_readout_id(test_ids)
+        except:
+            pass
 
         # write rMATS {comparison_name}_control.tab, {comparison_name}_test.tab and {comparison_name}_run.sh
         for rtype, rfile in [("control", control_ids), ("test", test_ids)]:
@@ -264,8 +276,14 @@ ml R
             control_ids.append(sample_id)
         for (sample_id, compound, rep, _) in test_set:
             test_ids.append(sample_id)
-        control_ids = sort_readout_id(control_ids)
-        test_ids = sort_readout_id(test_ids)
+        try:
+            control_ids = sort_readout_id(control_ids)
+        except:
+            pass
+        try:
+            test_ids = sort_readout_id(test_ids)
+        except:
+            pass
 
         try:
             filter_low = splicekit.config.filter_low
