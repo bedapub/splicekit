@@ -12,11 +12,13 @@ logs/edgeR/exons
 logs/edgeR/genes
 logs/edgeR/donor_anchors
 logs/edgeR/acceptor_anchors
+logs/edgeR/mds
 jobs/edgeR/junctions
 jobs/edgeR/exons
 jobs/edgeR/donor_anchors
 jobs/edgeR/acceptor_anchors
 jobs/edgeR/genes
+jobs/edgeR/mds
 jobs
 jobs/count_donor_anchors
 jobs/count_acceptor_anchors
@@ -58,5 +60,6 @@ results/edgeR/genes
 results/edgeR/donor_anchors
 results/edgeR/acceptor_anchors
 results/edgeR/dispersion
+results/edgeR/mds
 results/clusterlogfc
 report

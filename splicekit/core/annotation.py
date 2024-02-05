@@ -211,6 +211,7 @@ def write_comparisons():
         comps_table.write("\t".join(row) + "\n") 
     comps_table.close()
     write_edgeR_jobs()
+    write_mds_job()
 
 def write_edgeR_jobs():
     if config.platform == 'SLURM':
@@ -329,6 +330,65 @@ ml R
     fsh_junctions.close()
     fsh_donor_anchors.close()
     fsh_acceptor_anchors.close()
+
+def write_mds_job():
+    if config.platform == 'SLURM':
+            job_mds="""
+#!/bin/bash
+#SBATCH --job-name=edgeR_mds                                      # Job name
+#SBATCH --ntasks=1                                                # Number of tasks
+#SBATCH --nodes=1                                                 # All tasks on one node
+#SBATCH --mem=8G                                                  # Allocate memory
+#SBATCH --partition=short                                         # Select queue
+#SBATCH --output=logs/edgeR/mds/mds.out         # Output file
+#SBATCH --error=logs/edgeR/mds/mds.err          # Error file
+
+module load R
+{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R
+    """
+        
+    else:
+
+        job_mds="""
+#!/bin/bash
+#BSUB -J mds                    # job name
+#BSUB -n 1                      # number of tasks
+#BSUB -R "span[hosts=1]"        # allocate hosts
+#BSUB -M {memory}               # allocate memory
+#BSUB -q {queue}                # select queue
+#BSUB -o logs/edgeR/mds/mds.out # output file
+#BSUB -e logs/edgeR/mds/mds.err # error file
+
+ml R
+{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R
+    """
+
+    job_sh_mds="""{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R"""
+    fsh_mds = open(f"jobs/edgeR/mds/process.sh", "wt")
+    fout_mds = open(f"jobs/edgeR/mds/mds.job", "wt")
+    sample_membership = {}
+    for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
+        for (sample_id, _, _, _) in control_set:
+            # in some rare cases, the same sample can be part of diverse control groups
+            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
+            sample_membership[sample_id] = control_group_id
+        for (sample_id, _, _, _) in test_set:
+            # in some rare cases, the same sample can be part of diverse test groups
+            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
+            sample_membership[sample_id] = test_group_id
+    sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
+    try:
+        filter_low = splicekit.config.filter_low
+    except:
+        filter_low = "filter_low"
+
+    # mds
+    job = job_mds.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    fout_mds.write(job)
+    fout_mds.close()        
+    job = job_sh_mds.format(filter_low=filter_low, container=splicekit.config.container, input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    fsh_mds.write(job+"\n")
+    fsh_mds.close()
 
 def make_design_contrast():
     # write design matrix

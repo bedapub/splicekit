@@ -121,7 +121,7 @@ elif args.command[0]=="edgeR":
         sys.exit(0)
     if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
         splicekit.core.features.load_genes()
-        splicekit.edgeR(run=args.command[1], args=args)
+        splicekit.edgeR(run=args.command[1])
     elif len(args.command)==1:
         splicekit.edgeR()
     else:
