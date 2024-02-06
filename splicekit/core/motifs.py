@@ -656,7 +656,7 @@ def cluster(cutoff=9):
             r = f.readline()
         f.close()
 
-        if len(cmd)==0:
+        if len(cdm)==0:
             continue
 
         Z = linkage(cdm, 'ward')

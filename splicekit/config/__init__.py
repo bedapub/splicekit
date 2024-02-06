@@ -5,6 +5,8 @@ import sys
 import splicekit.core as core
 import socket
 
+module_desc = "splicekit | config |"
+
 if os.path.exists("splicekit.config"):
     config_lines = open("splicekit.config").readlines()
     for cline in config_lines:
@@ -26,8 +28,7 @@ def jbrowse2_config(hostname):
         hostname=socket.gethostname()
     ip_addr=socket.gethostbyname(hostname)
     jbrowse2_url = f"http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json"
-
-jbrowse2_config(None)
+    print(f"{module_desc} setting JBrowse2 URL to {jbrowse2_url}")
 
 # read in location of gtf and fasta files
 if genome_version!=None:
