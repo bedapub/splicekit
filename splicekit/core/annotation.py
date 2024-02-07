@@ -383,10 +383,10 @@ ml R
         filter_low = "filter_low"
 
     # mds
-    job = job_mds.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    job = job_mds.format(core_path=os.path.dirname(core.__file__), queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
     fout_mds.write(job)
     fout_mds.close()        
-    job = job_sh_mds.format(filter_low=filter_low, container=splicekit.config.container, input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    job = job_sh_mds.format(core_path=os.path.dirname(core.__file__), filter_low=filter_low, container=splicekit.config.container, input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
     fsh_mds.write(job+"\n")
     fsh_mds.close()
 
