@@ -14,7 +14,7 @@ offset = 8
 if (length(args) >= 7) {
     filter_low = args[7]
 } else {
-    filter_low = "filter_low" # filter our lowly expressed features by default
+    filter_low = "filter_low" # filter lowly expressed features by default
 }
 
 right_offset = 0

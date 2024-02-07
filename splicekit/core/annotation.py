@@ -9,7 +9,6 @@ import splicekit.core.annotation as annotation
 import splicekit.core as core
 import splicekit
 
-
 # dictionary of last nucleotide of first exon of transcripts
 # used to annotate junctions hitting 5'UTR / alternative 5'UTR
 # -> promoter changes
@@ -93,7 +92,10 @@ def make_comparisons():
     f.close()
     # sort by sample ID
     for treatment, data in annotation.treatments.items():
-        annotation.treatments[treatment] = sort_readout_id(data)
+        try:
+            annotation.treatments[treatment] = sort_readout_id(data)
+        except:
+            pass
     dmso_hash = {}
     dmso_letter = "A"
     # sometimes the separates set was reshufled
@@ -125,7 +127,7 @@ def make_comparisons():
                 if sep_temp!="":
                     test_group_id = f"{test_sample}_{sep_temp}"
                     control_group_id = f"{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
-                    comparison_name = f"{test_sample}_{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
+                    comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}_{sep_temp}"
                 else:
                     test_group_id = f"{test_sample}"
                     control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
@@ -133,11 +135,30 @@ def make_comparisons():
                 annotation.comparisons.append((short_names(comparison_name), temp_control, temp_test, short_names(control_group_id), short_names(test_group_id)))
     # sort and cast sample_ids to string
     annotation.samples = list(samples)
-    annotation.samples = sort_readout_id(annotation.samples)
+    try:
+        annotation.samples = sort_readout_id(annotation.samples)
+    except:
+        pass
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
-    job_rmats="""
+    if config.platform == 'SLURM':
+        job_rmats="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                        # Job name
+#SBATCH --ntasks=1                                   # Number of tasks
+#SBATCH --mem=8G                                     # Allocate memory
+#SBATCH --nodes=1                                    # All tasks on one node
+#SBATCH --partition=short                            # Select queue
+#SBATCH --output=logs/rmats/{comparison_name}.out    # Output file
+#SBATCH --error=logs/rmats/{comparison_name}.err     # Error file
+
+{container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
+        """
+
+    else:
+
+        job_rmats="""
 #!/bin/bash
 #BSUB -J {job_name}                        # job name
 #BSUB -n 1                                 # number of tasks
@@ -148,7 +169,7 @@ def write_comparisons():
 #BSUB -e logs/rmats/{comparison_name}.err   # error file
 
 {container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
-"""
+        """
 
     comps_table = open("annotation/comparisons.tab", "wt")
     header = ["comparison", "control_samples", "test_samples", "control_group_id", "test_group_id"]
@@ -163,8 +184,14 @@ def write_comparisons():
             control_ids.append(sample_id)
         for (sample_id, compound, rep, _) in test_set:
             test_ids.append(sample_id)
-        control_ids = sort_readout_id(control_ids)
-        test_ids = sort_readout_id(test_ids)
+        try:
+            control_ids = sort_readout_id(control_ids)
+        except:
+            pass
+        try:
+            test_ids = sort_readout_id(test_ids)
+        except:
+            pass
 
         # write rMATS {comparison_name}_control.tab, {comparison_name}_test.tab and {comparison_name}_run.sh
         for rtype, rfile in [("control", control_ids), ("test", test_ids)]:
@@ -180,25 +207,44 @@ def write_comparisons():
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, job_name="rmats_"+comparison_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
-        row = [comparison_name, ",".join(str(el) for el in test_ids), ",".join(str(el) for el in control_ids), control_group_id, test_group_id]
+        row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
         comps_table.write("\t".join(row) + "\n") 
     comps_table.close()
     write_edgeR_jobs()
+    write_mds_job()
 
 def write_edgeR_jobs():
-    job_edgeR="""
+    if config.platform == 'SLURM':
+            job_edgeR="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                                     # Job name
+#SBATCH --ntasks=1                                                # Number of tasks
+#SBATCH --nodes=1                                                 # All tasks on one node
+#SBATCH --mem=8G                                                  # Allocate memory
+#SBATCH --partition=short                                         # Select queue
+#SBATCH --output=logs/edgeR/{atype}/{comparison_name}.out         # Output file
+#SBATCH --error=logs/edgeR/{atype}/{comparison_name}.err          # Error file
+
+module load R
+{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
+    """
+        
+
+    else:
+
+        job_edgeR="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
 #BSUB -n 1                                              # number of tasks
 #BSUB -R "span[hosts=1]"                                # allocate hosts
-#BSUB -M 8GB                                            # allocate memory
-#BSUB -q short                                          # select queue
+#BSUB -M {memory}                                       # allocate memory
+#BSUB -q {queue}                                        # select queue
 #BSUB -o logs/edgeR/{atype}/{comparison_name}.out # output file
 #BSUB -e logs/edgeR/{atype}/{comparison_name}.err # error file
 
 ml R
 {container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
-"""
+    """
 
     job_sh_edgeR="""{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R"""
     fsh_exons = open(f"jobs/edgeR/exons/process.sh", "wt")
@@ -209,10 +255,12 @@ ml R
     sample_membership = {}
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         for (sample_id, _, _, _) in control_set:
-            assert(sample_membership.get(sample_id, None) in [None, control_group_id])
+            # in some rare cases, the same sample can be part of diverse control groups
+            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
             sample_membership[sample_id] = control_group_id
         for (sample_id, _, _, _) in test_set:
-            assert(sample_membership.get(sample_id, None) in [None, test_group_id])
+            # in some rare cases, the same sample can be part of diverse test groups
+            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
             sample_membership[sample_id] = test_group_id
     sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
@@ -229,8 +277,14 @@ ml R
             control_ids.append(sample_id)
         for (sample_id, compound, rep, _) in test_set:
             test_ids.append(sample_id)
-        control_ids = sort_readout_id(control_ids)
-        test_ids = sort_readout_id(test_ids)
+        try:
+            control_ids = sort_readout_id(control_ids)
+        except:
+            pass
+        try:
+            test_ids = sort_readout_id(test_ids)
+        except:
+            pass
 
         try:
             filter_low = splicekit.config.filter_low
@@ -238,35 +292,35 @@ ml R
             filter_low = "filter_low"
 
         # edgeR exons
-        job_exons = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", job_name="edgeR_exons_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_exons = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", job_name="edgeR_exons_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_exons.write(job_exons)
         fout_exons.close()        
         job_sh_exons = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_exons.write(job_sh_exons+"\n")
 
         # edgeR junctions
-        job_junctions = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_junctions = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_junctions.write(job_junctions)
         fout_junctions.close()
         job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_junctions.write(job_sh_junctions+"\n")
 
         # edgeR donor anchors
-        job_donor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_donor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_donor_anchors.write(job_donor_anchors)
         fout_donor_anchors.close()
         job_sh_donor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_donor_anchors.write(job_sh_donor_anchors+"\n")
 
         # edgeR acceptor anchors
-        job_acceptor_anchors = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_acceptor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_acceptor_anchors.write(job_acceptor_anchors)
         fout_acceptor_anchors.close()
         job_sh_acceptor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_acceptor_anchors.write(job_sh_acceptor_anchors+"\n")
 
         # edgeR genes
-        job_genes = job_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
+        job_genes = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fout_genes.write(job_genes)
         fout_genes.close()
         job_sh_genes = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
@@ -276,6 +330,65 @@ ml R
     fsh_junctions.close()
     fsh_donor_anchors.close()
     fsh_acceptor_anchors.close()
+
+def write_mds_job():
+    if config.platform == 'SLURM':
+            job_mds="""
+#!/bin/bash
+#SBATCH --job-name=edgeR_mds                                      # Job name
+#SBATCH --ntasks=1                                                # Number of tasks
+#SBATCH --nodes=1                                                 # All tasks on one node
+#SBATCH --mem=8G                                                  # Allocate memory
+#SBATCH --partition=short                                         # Select queue
+#SBATCH --output=logs/edgeR/mds/mds.out         # Output file
+#SBATCH --error=logs/edgeR/mds/mds.err          # Error file
+
+module load R
+{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R
+    """
+        
+    else:
+
+        job_mds="""
+#!/bin/bash
+#BSUB -J mds                    # job name
+#BSUB -n 1                      # number of tasks
+#BSUB -R "span[hosts=1]"        # allocate hosts
+#BSUB -M {memory}               # allocate memory
+#BSUB -q {queue}                # select queue
+#BSUB -o logs/edgeR/mds/mds.out # output file
+#BSUB -e logs/edgeR/mds/mds.err # error file
+
+ml R
+{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R
+    """
+
+    job_sh_mds="""{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R"""
+    fsh_mds = open(f"jobs/edgeR/mds/process.sh", "wt")
+    fout_mds = open(f"jobs/edgeR/mds/mds.job", "wt")
+    sample_membership = {}
+    for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
+        for (sample_id, _, _, _) in control_set:
+            # in some rare cases, the same sample can be part of diverse control groups
+            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
+            sample_membership[sample_id] = control_group_id
+        for (sample_id, _, _, _) in test_set:
+            # in some rare cases, the same sample can be part of diverse test groups
+            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
+            sample_membership[sample_id] = test_group_id
+    sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
+    try:
+        filter_low = splicekit.config.filter_low
+    except:
+        filter_low = "filter_low"
+
+    # mds
+    job = job_mds.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    fout_mds.write(job)
+    fout_mds.close()        
+    job = job_sh_mds.format(filter_low=filter_low, container=splicekit.config.container, input_folder=os.getcwd(), sample_membership=",".join(str(el) for el in sample_membership))
+    fsh_mds.write(job+"\n")
+    fsh_mds.close()
 
 def make_design_contrast():
     # write design matrix

@@ -75,30 +75,53 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     jobs_dir = f"jobs/count_genes"
     logs_dir = f"logs/count_genes"
 
-    job_genes="""
-    #!/bin/bash
-    #BSUB -J count_genes_{sample_id}            # Job name
-    #BSUB -n 12                                 # number of tasks
-    #BSUB -R "span[hosts=1]"                    # Allocate all tasks in 1 host
-    #BSUB -q short                              # Select queue
-    #BSUB -o {logs_dir}/genes_{sample_id}.out   # Output file
-    #BSUB -e {logs_dir}/genes_{sample_id}.err   # Error file    
-        
-    ml .testing
-    ml Subread/2.0.3-GCC-9.3.0
-    {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
-    # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
-    # next, we are only interested in the 1st and 7th column (gene_id and count)
-    cp {out_fname} {out_fname}_temp
-    # make header line of file and overwrite out_fname as new file
-    echo "{header_line}" >| {out_fname}
-    # sum exon counts to gene counts with awk
-    tail -n +3 {out_fname}_temp| cut -f1,7 | awk '{{sum[$1]+=$2}} END {{OFS="\\t"; for (i in sum) print i, sum[i]}}' | sort -n >> {out_fname}
-    rm {out_fname}_temp
-    # move summary from featureCount to logs
-    mv {out_fname}.summary {logs_dir}/
-    gzip -f {out_fname}
-    """
+    if config.platform == 'SLURM':
+        job_genes="""
+#!/bin/bash
+#SBATCH --job-name=count_genes_{sample_id}            # Job name
+#SBATCH --ntasks=12                                   # Number of tasks
+#SBATCH --nodes=1                                     # All tasks on one node
+#SBATCH --partition=short                             # Select queue
+#SBATCH --output={logs_dir}/genes_{sample_id}.out     # Output file
+#SBATCH --error={logs_dir}/genes_{sample_id}.err      # Error file    
+            
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+# featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
+# next, we are only interested in the 1st and 7th column (gene_id and count)
+cp {out_fname} {out_fname}_temp
+# make header line of file and overwrite out_fname as new file
+echo "{header_line}" >| {out_fname}
+# sum exon counts to gene counts with awk
+tail -n +3 {out_fname}_temp| cut -f1,7 | awk '{{sum[$1]+=$2}} END {{OFS="\\t"; for (i in sum) print i, sum[i]}}' | sort -n >> {out_fname}
+rm {out_fname}_temp
+# move summary from featureCount to logs
+mv {out_fname}.summary {logs_dir}/
+gzip -f {out_fname}
+        """
+
+    else:
+        job_genes="""
+#!/bin/bash
+#BSUB -J count_genes_{sample_id}            # Job name
+#BSUB -n 12                                 # number of tasks
+#BSUB -R "span[hosts=1]"                    # Allocate all tasks in 1 host
+#BSUB -q short                              # Select queue
+#BSUB -o {logs_dir}/genes_{sample_id}.out   # Output file
+#BSUB -e {logs_dir}/genes_{sample_id}.err   # Error file    
+    
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+# featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
+# next, we are only interested in the 1st and 7th column (gene_id and count)
+cp {out_fname} {out_fname}_temp
+# make header line of file and overwrite out_fname as new file
+echo "{header_line}" >| {out_fname}
+# sum exon counts to gene counts with awk
+tail -n +3 {out_fname}_temp| cut -f1,7 | awk '{{sum[$1]+=$2}} END {{OFS="\\t"; for (i in sum) print i, sum[i]}}' | sort -n >> {out_fname}
+rm {out_fname}_temp
+# move summary from featureCount to logs
+mv {out_fname}.summary {logs_dir}/
+gzip -f {out_fname}
+        """
 
     job_sh_genes="""
     {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g gene_id -a {gtf_fname} -o {out_fname} {sam_fname} 
