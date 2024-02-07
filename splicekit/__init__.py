@@ -43,6 +43,8 @@ print("splicekit | loading splicekit.core.delta_dar")
 import splicekit.core.delta_dar
 print("splicekit | loading splicekit.clusterlogfc")
 import splicekit.clusterlogfc
+print("splicekit | loading splicekit.report")
+import splicekit.report
 
 # initialization (triggered once on "import splicekit")
 splicekit.core.annotation.compounds = {}
@@ -137,7 +139,6 @@ def genes():
     splicekit.core.features.load_genes()
     splicekit.core.features.read_genes()
     os.system("rm -f data/comparison_genes_data/*.tab.gz > /dev/null 2>&1")
-    #splicekit.core.features.save_comps_feature_data("genes")
     splicekit.core.features.make_counts_table("genes")
 
 def features():
@@ -187,7 +188,7 @@ def edgeR(run=None):
         if splicekit.config.platform=="SLURM":
             os.system('jobs=( $(ls jobs/edgeR/junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[edgeR.junctions] submitted $job_fname"; job_id=$(sbatch --mem=' + config.edgeR_memory + ' --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[edgeR.junctions] processing next 10"; done; echo "[edgeR.junctions] processing complete"')
         splicekit.core.report.edgeR_feature('junctions')
-        splicekit.core.patterns.process() # adds donor patterns
+        splicekit.core.patterns.process() # adds patterns
 
     if run=="exons" or run==None:
         os.system(f"rm -f results/edgeR/exons/*.tab.gz > /dev/null 2>&1")
