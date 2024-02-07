@@ -81,7 +81,6 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
 #SBATCH --output={logs_dir}/{anchor_type}_anchors_{sample_id}.out # Output file
 #SBATCH --error={logs_dir}/{anchor_type}_anchors_{sample_id}.err  # Error file
 
-module load Subread/2.0.3-GCC-9.3.0
 {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t anchor -g {anchor_type}_anchor_id -a {gtf_fname} -o {out_fname} {sam_fname} 
 # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
 # next, we are only interested in the 1st and 7th column (anchor_id and count)
@@ -105,8 +104,6 @@ gzip -f {out_fname}
 #BSUB -o {logs_dir}/{anchor_type}_anchors_{sample_id}.out # Output file
 #BSUB -e {logs_dir}/{anchor_type}_anchors_{sample_id}.err # Error file    
     
-ml .testing
-ml Subread/2.0.3-GCC-9.3.0
 {container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t anchor -g {anchor_type}_anchor_id -a {gtf_fname} -o {out_fname} {sam_fname} 
 # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
 # next, we are only interested in the 1st and 7th column (anchor_id and count)
