@@ -1,1 +1,1 @@
-python -m twine upload dist/*
+python -m twine upload dist/* --username __token__
