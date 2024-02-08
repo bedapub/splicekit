@@ -276,4 +276,5 @@ def process(force=False):
     motifs()
     promisc()
     clusterlogfc_process()
+    splicekit.report.process()
     jbrowse2_process(force_samples=force, force_annotation=force)

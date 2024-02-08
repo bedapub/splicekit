@@ -19,13 +19,7 @@ Another suggestion is to install inside a virtual environment (using `virtualenv
 <summary>Installing splicekit directly from the GitHub repository</summary>
 
 ```
-# move to HOME folder (for example)
-cd ~
-# clone the repository
-git clone git@github.com:bedapub/splicekit.git
-# adjust PYTHONPATH and PATH
-export PYTHONPATH=$PYTHONPATH:~/splicekit
-export PATH=$PATH:~/splicekit/splicekit
+pip install git+https://github.com/bedapub/splicekit.git@main
 ```
 </details>
 
