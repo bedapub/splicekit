@@ -104,10 +104,10 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Citing and Contact<a name="citation"></a>
 
-If you find splicekit useful in your work and research, please cite:
+If you find <font color=blue>splicekit</font> useful in your work and research, please cite:
 
 Gregor Rot, Arne Wehling, Roland Schmucki, Nikolaos Berntenis, Jitao David Zhang, Martin Ebeling<br>
-<a href='https://www.biorxiv.org/content/10.1101/2023.05.25.542256v1'>splicekit: a comprehensive toolkit for splicing analysis from short-read RNA-seq</a><br>
+<a href='https://www.biorxiv.org/content/10.1101/2023.05.25.542256v1' target='_biorxiv'>splicekit: a comprehensive toolkit for splicing analysis from short-read RNA-seq</a><br>
 bioRxiv, 2023.05. 25.542256
 
 In case of questions, issues and other ideas, please use the <a href='https://github.com/bedapub/splicekit/issues'>GitHub Issues</a> or write directly to <a href='mailto:gregor.rot@gmail.com'>Gregor Rot</a>.
