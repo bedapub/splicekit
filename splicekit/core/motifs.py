@@ -311,27 +311,34 @@ def plot_scanRBP():
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
                 matrix_downcontrol, vector_downcontrol, rows_downcontrol = read_matrix_vector(downcontrol_fasta, dtype=dtype)
 
-                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=100000)
-                value_up = bootup[0]
+                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=10000)
+                logfc_value_up = bootup[0]
                 bootup.sort(reverse=True)
-                index_up = bootup.index(value_up)
-                print(f"{module_name} plot_scanRBP up logFC=", value_up)
-                print(f"{module_name} plot_scanRBP] p-value up = ", index_up/float(len(bootup)))
+                index_up = bootup.index(logfc_value_up)
+                print(f"{module_name} plot_scanRBP | up logFC = ", logfc_value_up)
+                print(f"{module_name} plot_scanRBP | p-value up = ", index_up/float(len(bootup)))
                 up_file = open(f"results/motifs/scanRBP/{comparison}_{signal_up}_bootstrap.tab", "wt")
-                up_file.write(f"logFC\t{value_up}\np_value\t{index_up/float(len(bootup))}")
+                up_file.write(f"logFC\t{logfc_value_up}\np_value\t{index_up/float(len(bootup))}")
                 up_file.close()
+                p_value_up = index_up/float(len(bootup))
+                if p_value_up == 0:
+                    p_value_up = "<1e-5"
 
-                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=100000)
-                value_down = bootdown[0]
+                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=10000)
+                logfc_value_down = bootdown[0]
                 bootdown.sort(reverse=True)
-                index_down = bootdown.index(value_down)
-                print(f"{module_name} plot_scanRBP | down logFC=", value_down)
+                index_down = bootdown.index(logfc_value_down)
+                print(f"{module_name} plot_scanRBP | down logFC = ", logfc_value_down)
                 print(f"{module_name} plot_scanRBP | p-value down = ", index_down/float(len(bootdown)))
+                print()
                 down_file = open(f"results/motifs/scanRBP/{comparison}_{signal_down}_bootstrap.tab", "wt")
-                down_file.write(f"logFC\t{value_down}\np_value\t{index_down/float(len(bootdown))}")
+                down_file.write(f"logFC\t{logfc_value_down}\np_value\t{index_down/float(len(bootdown))}")
                 down_file.close()
+                p_value_down = index_down/float(len(bootdown))
+                if p_value_down == 0:
+                    p_value_down = "<1e-5"
 
-                # heatmap
+                # heatmap (disc)
                 """
                 for htype, matrix_data, rows_data in [("up", matrix_up, rows_up), ("down", matrix_down, rows_down)]:
                     data = pd.DataFrame(matrix_data, index=rows_data)
@@ -411,21 +418,10 @@ def plot_scanRBP():
                 plt.plot([0, 0], [-max_val, max_val], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
                 fig.set(ylim=(-max_val, max_val))
                 fig.set(xlim=(-80, 80))
-                plt.title(f"{dtype} {protein_label}, FDR<0.05, up={len(matrix_up)}, down={len(matrix_down)}, up_control={len(matrix_upcontrol)}, down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
+                plt.title(f"{dtype} {protein_label}, FDR<0.05, up=(#{len(matrix_up)}, logfc={logfc_value_up:.3}, pval={p_value_up:.3}), down=(#{len(matrix_down)}, logfc={logfc_value_down:.3}, pval={p_value_down:.3})), #up_control={len(matrix_upcontrol)}, #down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
                 plt.tight_layout() 
                 plt.savefig(f"results/motifs/scanRBP/{protein_label}_{comparison}_{dtype}_{cname}.png", dpi=300)
                 plt.close()
-
-                """
-                logfc = float(sum(vector_up))/sum(vector_upcontrol)
-                logfc = math.log(logfc, 2)
-                print(logfc)
-
-                logfc = float(sum(vector_down))/sum(vector_downcontrol)
-                logfc = math.log(logfc, 2)
-                print(logfc)
-                """
-
 
 feature_added = {} # do not add sequences for the same donor/acceptor site multiple times (e.g. several junctions can represent the same donor site)
 treatment_seq_bytype = {}
@@ -740,7 +736,7 @@ def process():
     if config.scanRBP:
         make_scanRBP()
         plot_scanRBP()
-    make_logos()
-    dreme()
-    make_distance()
-    cluster()
+    #make_logos()
+    #dreme()
+    #make_distance()
+    #cluster()

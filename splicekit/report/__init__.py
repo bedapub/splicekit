@@ -2,6 +2,7 @@ import os
 import gzip
 from datetime import datetime
 import splicekit
+import glob
 
 module_desc = "splicekit | report |"
 
@@ -176,6 +177,21 @@ html_report = """
         </center>
     </div>
 
+    <br><br>
+
+    <div id="div_D" style="width:1000px; text-align:left">
+    <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>juDGE plots</div>
+    scanRBP plots. The signal is the predicted binding for a protein of interest around regulated features (donor/accpetor junction sites, 5splice/3splice sites etc.), the plot singal is normalized with the number of regulated features. Additionally, 1M bootstraping is used to report significance (controls with FDR>0.5).
+    <br><br>
+    
+        <center>
+        <table border=0>
+            {tbody_D}
+        </table>
+        </center>
+    </div>
+
+
     <div class="menu_div">
         <img src='https://raw.githubusercontent.com/bedapub/splicekit/main/media/splicekit_logo.png' width=90>
         <br>
@@ -202,7 +218,11 @@ html_report = """
         <a href="#div_C">juDGE plots</a>
         <br>
         <br>
-        
+
+        <a href="#div_D">scanRBP</a>
+        <br>
+        <br>
+
         </div>
     
     <script>
@@ -219,16 +239,28 @@ def copy_files():
     os.makedirs("report/results/edgeR", exist_ok=True)
     os.makedirs("report/results/edgeR/dispersion", exist_ok=True)
     os.makedirs("report/results/judge/plots", exist_ok=True)
+    os.makedirs("report/results/motifs/scanRBP", exist_ok=True)
 
     files = []
     files.append(("results/edgeR/dispersion/*.png", "report/results/edgeR/dispersion"))
     files.append(("results/edgeR/*fdr005*.gz", "report/results/edgeR"))
     files.append(("results/judge/plots/*.html", "report/results/judge/plots"))
+    files.append(("results/motifs/scanRBP/*.png", "report/results/motifs/scanRBP"))
 
     for files_from, files_to in files:
         os.system(f"cp {files_from} {files_to} > /dev/null 2>&1")
 
 def process():
+
+    def add_every_n_items(lst, item, n):
+        num_insertions = len(lst) // n
+        offset = 0
+        for i in range(1, num_insertions + 1):
+            index = i * n + offset
+            lst.insert(index, item)
+            offset += 1
+        return lst    
+
     print(f"{module_desc} generating report")
     copy_files()
 
@@ -312,19 +344,16 @@ def process():
     for comp_name, _, _, _, _ in splicekit.core.annotation.comparisons:
         if os.path.exists(f"results/judge/plots/{comp_name}.html"):
             tbody_C.append(f'<td><object type="text/html" data="results/judge/plots/{comp_name}.html?version={unique_timestamp_str}" width="350" height="400"></object></td>')
-
-    def add_every_n_items(lst, item, n):
-        num_insertions = len(lst) // n
-        offset = 0
-        for i in range(1, num_insertions + 1):
-            index = i * n + offset
-            lst.insert(index, item)
-            offset += 1
-        return lst    
-    
     tbody_C = add_every_n_items(tbody_C, "</tr><tr>", 3)
     tbody_C = ["<tr>"] + tbody_C
     tbody_C.append("</tr>")
+
+    tbody_D = []
+    for fname in glob.glob("results/motifs/scanRBP/*.png"):
+        tbody_D.append(f'<td><a href="{fname}" target=_new><img src="{fname}?version={unique_timestamp_str}" width="450"></a></td>')
+    tbody_D = add_every_n_items(tbody_D, "</tr><tr>", 2)
+    tbody_D = ["<tr>"] + tbody_D
+    tbody_D.append("</tr>")
 
     thead_A1 = "\n".join(thead_A1)
     tbody_A1 = "\n".join(tbody_A1)
@@ -333,6 +362,7 @@ def process():
     thead_A3 = "\n".join(thead_A3)
     tbody_A3 = "\n".join(tbody_A3)
     tbody_C = "\n".join(tbody_C)
+    tbody_D = "\n".join(tbody_D)
 
     project_descrption = "To display project information, provide a project.description file in the splicekit folder."
     if os.path.exists("project.description"):
@@ -340,5 +370,5 @@ def process():
         project_descrption = "".join(project_descrption)
 
     f = open("report/index.html", "wt")
-    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
+    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_D=tbody_D, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
     f.close()
