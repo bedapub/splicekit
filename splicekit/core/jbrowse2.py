@@ -56,7 +56,7 @@ def write_sample_jobs(force_samples):
     os.system("rm -r jobs/jobs_jbrowse/* >/dev/null 2>&1") # clean up previous jobs
 
     # create bigwig and then cram files
-    if config.platform == 'SLURM':
+    if splicekit.config.platform == 'SLURM':
         job_bw="""
 #!/bin/bash
 #SBATCH --job-name={sample}_jbrowse               # Job name

@@ -142,7 +142,7 @@ def make_comparisons():
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
-    if config.platform == 'SLURM':
+    if splicekit.config.platform == 'SLURM':
         job_rmats="""
 #!/bin/bash
 #SBATCH --job-name={job_name}                        # Job name
@@ -214,7 +214,7 @@ def write_comparisons():
     write_mds_job()
 
 def write_edgeR_jobs():
-    if config.platform == 'SLURM':
+    if splicekit.config.platform == 'SLURM':
             job_edgeR="""
 #!/bin/bash
 #SBATCH --job-name={job_name}                                     # Job name
@@ -331,7 +331,7 @@ ml R
     fsh_acceptor_anchors.close()
 
 def write_mds_job():
-    if config.platform == 'SLURM':
+    if splicekit.config.platform == 'SLURM':
             job_mds="""
 #!/bin/bash
 #SBATCH --job-name=edgeR_mds                                      # Job name
