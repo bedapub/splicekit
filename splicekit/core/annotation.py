@@ -231,7 +231,6 @@ module load R
         
 
     else:
-
         job_edgeR="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
