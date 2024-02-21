@@ -132,21 +132,24 @@ python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{s
     job_sh_junctions = """python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"""
 
     fsh = open("jobs/count_junctions/process.sh", "wt")
+
     for sample_id in splicekit.core.annotation.samples:
-        core_path=os.path.dirname(splicekit.core.__file__)
+        core_path = os.path.dirname(splicekit.core.__file__)
         bam_fname = f"{splicekit.config.bam_path}/{sample_id}.bam"
         f = open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
         f.write(job_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname, job_name="count_junctions_{sample_id}".format(sample_id=sample_id)))
         f.close()
         fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname)+"\n")
-        fsh.close()
-    for sample_id in splicekit.core.annotation.samples:
-        with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "r") as file:
-            content = file.read()
-    
-    
-        with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "w") as file:
-            file.write(content.replace("\n", "", 1))
+
+    fsh.close()
+
+for sample_id in splicekit.core.annotation.samples:
+    with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "r") as file:
+        content = file.read()
+
+    with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "w") as file:
+        file.write(content.replace("\n", "", 1))
+
 
     
 
