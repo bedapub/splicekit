@@ -103,26 +103,26 @@ def find_genes(chr, strand, start, stop):
 
 def make_jobs():
     if splicekit.config.platform == 'SLURM':
-        job_junctions = "#!/bin/bash\n" + \
-                        "#SBATCH --job-name={job_name}\n" + \
-                        "#SBATCH --ntasks=1\n" + \
-                        "#SBATCH --nodes=1\n" + \
-                        "#SBATCH --mem=4GB\n" + \
-                        "#SBATCH --partition=short\n" + \
-                        "#SBATCH --output=logs/count_junctions/{sample_id}.out\n" + \
-                        "#SBATCH --error=logs/count_junctions/{sample_id}.err\n" + \
-                        "\n" + \
+        job_junctions = "#!/bin/bash\n" \
+                        "#SBATCH --job-name={job_name}\n" \
+                        "#SBATCH --ntasks=1\n" \
+                        "#SBATCH --nodes=1\n" \
+                        "#SBATCH --mem=4GB\n" \
+                        "#SBATCH --partition=short\n" \
+                        "#SBATCH --output=logs/count_junctions/{sample_id}.out\n" \
+                        "#SBATCH --error=logs/count_junctions/{sample_id}.err\n" \
+                        "\n" \
                         "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
     else:
-        job_junctions = "#!/bin/bash\n" + \
-                        "#BSUB -J {job_name}\n" + \
-                        "#BSUB -n 1\n" + \
-                        "#BSUB -R \"span[hosts=1]\"\n" + \
-                        "#BSUB -M 4GB\n" + \
-                        "#BSUB -q short\n" + \
-                        "#BSUB -o logs/count_junctions/{sample_id}.out\n" + \
-                        "#BSUB -e logs/count_junctions/{sample_id}.err\n" + \
-                        "\n" + \
+        job_junctions = "#!/bin/bash\n" \
+                        "#BSUB -J {job_name}\n" \
+                        "#BSUB -n 1\n" \
+                        "#BSUB -R \"span[hosts=1]\"\n" \
+                        "#BSUB -M 4GB\n" \
+                        "#BSUB -q short\n" \
+                        "#BSUB -o logs/count_junctions/{sample_id}.out\n" \
+                        "#BSUB -e logs/count_junctions/{sample_id}.err\n" \
+                        "\n" \
                         "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
 
     job_sh_junctions = "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
@@ -137,6 +137,7 @@ def make_jobs():
         f.close()
         fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname) + "\n")
     fsh.close()
+
 
     
 def detect_junctions(database, positions, cigar, read, pair=None, stats=False):
