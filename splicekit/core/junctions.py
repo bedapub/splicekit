@@ -143,12 +143,12 @@ python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{s
 
     fsh.close()
 
-for sample_id in splicekit.core.annotation.samples:
-    with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "r") as file:
-        content = file.read()
+    for sample_id in splicekit.core.annotation.samples:
+        with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "r") as file:
+            content = file.read()
 
-    with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "w") as file:
-        file.write(content.replace("\n", "", 1))
+        with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "w") as file:
+            file.write(content.replace("\n", "", 1))
 
 
     
