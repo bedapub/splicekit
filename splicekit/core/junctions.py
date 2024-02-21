@@ -103,39 +103,51 @@ def find_genes(chr, strand, start, stop):
 
 def make_jobs():
     if splicekit.config.platform == 'SLURM':
-        job_junctions = "#!/bin/bash\n" \
-                        "#SBATCH --job-name={job_name}\n" \
-                        "#SBATCH --ntasks=1\n" \
-                        "#SBATCH --nodes=1\n" \
-                        "#SBATCH --mem=4GB\n" \
-                        "#SBATCH --partition=short\n" \
-                        "#SBATCH --output=logs/count_junctions/{sample_id}.out\n" \
-                        "#SBATCH --error=logs/count_junctions/{sample_id}.err\n" \
-                        "\n" \
-                        "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
-    else:
-        job_junctions = "#!/bin/bash\n" \
-                        "#BSUB -J {job_name}\n" \
-                        "#BSUB -n 1\n" \
-                        "#BSUB -R \"span[hosts=1]\"\n" \
-                        "#BSUB -M 4GB\n" \
-                        "#BSUB -q short\n" \
-                        "#BSUB -o logs/count_junctions/{sample_id}.out\n" \
-                        "#BSUB -e logs/count_junctions/{sample_id}.err\n" \
-                        "\n" \
-                        "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
+        job_junctions = """#!/bin/bash
+#SBATCH --job-name={job_name}                     # Job name
+#SBATCH --ntasks=1                                 # number of tasks
+#SBATCH --nodes=1                                  # Allocate all tasks in 1 node
+#SBATCH --mem=4GB                                  # Memory
+#SBATCH --partition=short                          # Select partition/queue
+#SBATCH --output=logs/count_junctions/{sample_id}.out     # Output file
+#SBATCH --error=logs/count_junctions/{sample_id}.err      # Error file
 
-    job_sh_junctions = "python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"
+python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
+"""
+    else:
+        job_junctions = """#!/bin/bash
+#BSUB -J {job_name}                               # Job name
+#BSUB -n 1                                        # number of tasks
+#BSUB -R "span[hosts=1]"                          # Allocate all tasks in 1 host
+#BSUB -M 4GB                                      # Memory
+#BSUB -q short                                    # Select queue
+#BSUB -o logs/count_junctions/{sample_id}.out     # Output file
+#BSUB -e logs/count_junctions/{sample_id}.err     # Error file
+
+python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
+"""
+
+    job_sh_junctions = """python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"""
 
     fsh = open("jobs/count_junctions/process.sh", "wt")
+
     for sample_id in splicekit.core.annotation.samples:
         core_path = os.path.dirname(splicekit.core.__file__)
         bam_fname = f"{splicekit.config.bam_path}/{sample_id}.bam"
-        f = open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
-        f.write(job_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname,
-                                      job_name="count_junctions_{sample_id}".format(sample_id=sample_id)))
+        
+        job_junctions_formatted = job_junctions.format(
+            sample_id=sample_id,
+            core_path=core_path,
+            bam_fname=bam_fname,
+            job_name=f"count_junctions_{sample_id}"
+        )
+
+        f = open(f"jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "wt")
+        f.write(job_junctions_formatted)
         f.close()
+
         fsh.write(job_sh_junctions.format(sample_id=sample_id, core_path=core_path, bam_fname=bam_fname) + "\n")
+
     fsh.close()
 
 
