@@ -13,6 +13,7 @@ if not os.path.exists("splicekit.config"):
 
 print("splicekit | loading splicekit.config")
 import splicekit.config as config
+print("splicekit | ", config.platform, " detected")
 print("splicekit | loading splicekit.core")
 import splicekit.core as core
 print("splicekit | loading splicekit.core.annotation")
