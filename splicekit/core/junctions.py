@@ -113,7 +113,7 @@ def make_jobs():
 #SBATCH --error=logs/count_junctions/{sample_id}.err      # Error file
 
 python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
-"""
+""".strip()
     else:
         job_junctions="""
 #!/bin/bash
@@ -126,7 +126,7 @@ python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{s
 #BSUB -e logs/count_junctions/{sample_id}.err     # Error file
 
 python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
-"""
+""".strip()
 
     job_sh_junctions="""python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}"""
 
