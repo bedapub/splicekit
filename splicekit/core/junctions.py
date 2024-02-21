@@ -150,10 +150,6 @@ python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{s
         with open("jobs/count_junctions/sample_{sample_id}.job".format(sample_id=sample_id), "w") as file:
             file.write(content.replace("\n", "", 1))
 
-
-    
-
-
     
 def detect_junctions(database, positions, cigar, read, pair=None, stats=False):
     junctions_stats = []
