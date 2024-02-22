@@ -102,7 +102,21 @@ def find_genes(chr, strand, start, stop):
     return detected_genes
 
 def make_jobs():
-    job_junctions="""
+    if config.platform =='SLURM':
+        job_junctions="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                     # Job name
+#SBATCH --ntasks=1                                 # number of tasks
+#SBATCH --nodes=1                                  # Allocate all tasks in 1 node
+#SBATCH --mem=4GB                                  # Memory
+#SBATCH --partition=short                          # Select partition/queue
+#SBATCH --output=logs/count_junctions/{sample_id}.out     # Output file
+#SBATCH --error=logs/count_junctions/{sample_id}.err      # Error file
+
+python {core_path}/junctions.py {bam_fname} data/sample_junctions_data/sample_{sample_id}
+"""
+    else:
+        job_junctions="""
 #!/bin/bash
 #BSUB -J {job_name}                               # Job name
 #BSUB -n 1                                        # number of tasks
