@@ -240,12 +240,12 @@ def dreme():
 
 def motifs():
     import splicekit.core.motifs
-    os.system("rm -f results/motifs/* > /dev/null 2>&1")
-    os.system("rm -rf results/motifs/dreme/* > /dev/null 2>&1")
-    os.system("rm -rf results/motifs/fasta/* > /dev/null 2>&1")
-    os.system("rm -f results/motifs/scanRBP/* > /dev/null 2>&1")
-    os.system("rm -f results/motifs/scanRBP/data/* > /dev/null 2>&1")
-    os.system("rm -f results/motifs/scanRBP/fasta/* > /dev/null 2>&1")
+    #os.system("rm -f results/motifs/* > /dev/null 2>&1")
+    #os.system("rm -rf results/motifs/dreme/* > /dev/null 2>&1")
+    #os.system("rm -rf results/motifs/fasta/* > /dev/null 2>&1")
+    #os.system("rm -f results/motifs/scanRBP/* > /dev/null 2>&1")
+    #os.system("rm -f results/motifs/scanRBP/data/* > /dev/null 2>&1")
+    #os.system("rm -f results/motifs/scanRBP/fasta/* > /dev/null 2>&1")
     splicekit.core.motifs.process()
 
 def judge_process():

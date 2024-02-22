@@ -32,6 +32,9 @@ motif_FDR = 0.05 # we use this threshold for motifs
 scanRBP_area = 100 # feature_site-scanRBP_area ... feature_site+scanRBP_area
 splice_sites_area = (-2, 6) # take -2 ... 6 around splice site (donor or acceptor)
 
+# data types
+dtypes = ["PWM"] # also CLIP
+
 # criteria is split by feature type, data read-in from "results/results_edgeR_{feature_type}_all.tab"
 motif_criteria = {}
 
@@ -227,6 +230,23 @@ def make_scanRBP():
             f.close()
             os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
 
+def scanRBP_dreme():
+    for cdata in splicekit.core.annotation.comparisons:
+        comparison = cdata[0]
+        for dtype in dtypes:
+            for (cname, signal_up, signal_down, control_up, control_down) in scanRBP_pairs:
+                up_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_up}_scanRBP.fasta"
+                down_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_down}_scanRBP.fasta"
+                upcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_up}_scanRBP.fasta"
+                downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
+
+                command = f"dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
+                os.system(command)
+
+                command = f"dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
+                os.system(command)
+    return True
+
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
@@ -296,8 +316,7 @@ def plot_scanRBP():
 
     for cdata in splicekit.core.annotation.comparisons:
         comparison = cdata[0]
-        #for dtype in ["CLIP", "PWM"]:
-        for dtype in ["PWM"]:
+        for dtype in dtypes:
             for (cname, signal_up, signal_down, control_up, control_down) in scanRBP_pairs:
                 up_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_up}_scanRBP.fasta"
                 down_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_down}_scanRBP.fasta"
@@ -311,7 +330,7 @@ def plot_scanRBP():
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
                 matrix_downcontrol, vector_downcontrol, rows_downcontrol = read_matrix_vector(downcontrol_fasta, dtype=dtype)
 
-                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=10000)
+                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=100000)
                 logfc_value_up = bootup[0]
                 bootup.sort(reverse=True)
                 index_up = bootup.index(logfc_value_up)
@@ -321,10 +340,8 @@ def plot_scanRBP():
                 up_file.write(f"logFC\t{logfc_value_up}\np_value\t{index_up/float(len(bootup))}")
                 up_file.close()
                 p_value_up = index_up/float(len(bootup))
-                if p_value_up == 0:
-                    p_value_up = "<1e-5"
 
-                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=10000)
+                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=100000)
                 logfc_value_down = bootdown[0]
                 bootdown.sort(reverse=True)
                 index_down = bootdown.index(logfc_value_down)
@@ -335,38 +352,6 @@ def plot_scanRBP():
                 down_file.write(f"logFC\t{logfc_value_down}\np_value\t{index_down/float(len(bootdown))}")
                 down_file.close()
                 p_value_down = index_down/float(len(bootdown))
-                if p_value_down == 0:
-                    p_value_down = "<1e-5"
-
-                # heatmap (disc)
-                """
-                for htype, matrix_data, rows_data in [("up", matrix_up, rows_up), ("down", matrix_down, rows_down)]:
-                    data = pd.DataFrame(matrix_data, index=rows_data)
-                    plt.figure()
-                    sns.set(font="Arial")
-                    sns.set(font_scale=0.4)
-                    sns.set_style("dark")
-                    sns.set_style("ticks")
-                    if htype=="up":
-                        rdgn = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
-                    if htype=="down":
-                        rdgn = sns.diverging_palette(h_neg=250, h_pos=250, s=99, l=55, sep=3, as_cmap=True)
-                    optional_params = {"linewidths":0.0}
-                    optional_params["col_cluster"] = False
-                    optional_params["annot"] = False
-                    optional_params["center"] = 0
-                    optional_params["fmt"] = ".0f"
-                    optional_params["figsize"] = (10,3)
-                    optional_params["yticklabels"] = True
-                    optional_params["xticklabels"] = False
-                    optional_params["cmap"] = rdgn
-                    optional_params["cbar_pos"] = None
-                    fig = sns.clustermap(data, **optional_params)
-                    fig.ax_col_dendrogram.set_visible(False)
-                    plt.tight_layout() 
-                    plt.savefig(f"results/motifs/scanRBP/heatmap_{protein_label}_{comparison}_{dtype}_{htype}_{cname}.png", dpi=300)
-                    plt.close()
-                """
 
                 plt.figure(figsize=(10,3))
                 sns.set(font="Arial")
@@ -418,7 +403,17 @@ def plot_scanRBP():
                 plt.plot([0, 0], [-max_val, max_val], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
                 fig.set(ylim=(-max_val, max_val))
                 fig.set(xlim=(-80, 80))
-                plt.title(f"{dtype} {protein_label}, FDR<0.05, up=(#{len(matrix_up)}, logfc={logfc_value_up:.3}, pval={p_value_up:.3}), down=(#{len(matrix_down)}, logfc={logfc_value_down:.3}, pval={p_value_down:.3})), #up_control={len(matrix_upcontrol)}, #down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
+
+                # make pvalue label
+                if p_value_up==0:
+                    p_value_up = "<1e-5"
+                else:
+                    p_value_up = f"{p_value_up:.3}"
+                if p_value_down==0:
+                    p_value_down = "<1e-5"
+                else:
+                    p_value_down = f"{p_value_down:.3}"
+                plt.title(f"{protein_label} {comparison} {dtype} {cname}, FDR<0.05, up=(#{len(matrix_up)}, logfc={logfc_value_up:.3}, pval={p_value_up}), down=(#{len(matrix_down)}, logfc={logfc_value_down:.3}, pval={p_value_down}), #up_control={len(matrix_upcontrol)}, #down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
                 plt.tight_layout() 
                 plt.savefig(f"results/motifs/scanRBP/{protein_label}_{comparison}_{dtype}_{cname}.png", dpi=300)
                 plt.close()
@@ -736,7 +731,8 @@ def process():
     if config.scanRBP:
         make_scanRBP()
         plot_scanRBP()
-    #make_logos()
-    #dreme()
-    #make_distance()
-    #cluster()
+        scanRBP_dreme()
+    make_logos()
+    dreme()
+    make_distance()
+    cluster()

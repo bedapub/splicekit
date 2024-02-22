@@ -2,6 +2,7 @@ import os
 import gzip
 from datetime import datetime
 import splicekit
+import splicekit.core.motifs
 import glob
 
 module_desc = "splicekit | report |"
@@ -180,8 +181,8 @@ html_report = """
     <br><br>
 
     <div id="div_D" style="width:1000px; text-align:left">
-    <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>juDGE plots</div>
-    scanRBP plots. The signal is the predicted binding for a protein of interest around regulated features (donor/accpetor junction sites, 5splice/3splice sites etc.), the plot singal is normalized with the number of regulated features. Additionally, 1M bootstraping is used to report significance (controls with FDR>0.5).
+    <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>scanRBP plots</div>
+    The signal is the predicted binding for a protein of interest around regulated features (5'-splice/3'-splice sites etc.), the plot singal is normalized with the number of regulated features. Additionally, 100K bootstraping is used to report significance (controls are FDR>0.5).
     <br><br>
     
         <center>
@@ -190,6 +191,20 @@ html_report = """
         </table>
         </center>
     </div>
+
+    <div id="div_E" style="width:1000px; text-align:left">
+    <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>scanRBP.dreme analysis</div>
+    Same donor/acceptor sites selected as in the previous scanRBP step (significant sites and controls), however instead of plotting protein binding data (predicted or CLIP), perform DREME de-novo motif discovery.
+    <br><br>
+    
+        <center>
+        <table border=0>
+            {tbody_E}
+        </table>
+        </center>
+    </div>
+
+    <br><br>
 
 
     <div class="menu_div">
@@ -223,6 +238,10 @@ html_report = """
         <br>
         <br>
 
+        <a href="#div_E">scanRBP.dreme</a>
+        <br>
+        <br>
+
         </div>
     
     <script>
@@ -249,6 +268,8 @@ def copy_files():
 
     for files_from, files_to in files:
         os.system(f"cp {files_from} {files_to} > /dev/null 2>&1")
+
+    os.system("rsync -av --exclude='data' --exclude='fasta' results/motifs/scanRBP/ report/results/motifs/scanRBP/")
 
 def process():
 
@@ -349,11 +370,40 @@ def process():
     tbody_C.append("</tr>")
 
     tbody_D = []
-    for fname in glob.glob("results/motifs/scanRBP/*.png"):
-        tbody_D.append(f'<td><a href="{fname}" target=_new><img src="{fname}?version={unique_timestamp_str}" width="450"></a></td>')
+    for cdata in splicekit.core.annotation.comparisons:
+        comparison = cdata[0]
+        for dtype in splicekit.core.motifs.dtypes:
+            for (cname, signal_up, signal_down, control_up, control_down) in splicekit.core.motifs.scanRBP_pairs:
+                fname = f"results/motifs/scanRBP/{splicekit.config.protein_label}_{comparison}_{dtype}_{cname}.png"
+                if os.path.exists(fname):
+                    tbody_D.append(f'<td>{splicekit.config.protein_label}_{comparison}_{dtype}_{cname}<br><a href="{fname}" target=_new><img src="{fname}?version={unique_timestamp_str}" width="450"></a></td>')
     tbody_D = add_every_n_items(tbody_D, "</tr><tr>", 2)
     tbody_D = ["<tr>"] + tbody_D
     tbody_D.append("</tr>")
+
+    tbody_E = []
+    for cdata in splicekit.core.annotation.comparisons:
+        comparison = cdata[0]
+        for dtype in splicekit.core.motifs.dtypes:
+            for (cname, signal_up, signal_down, control_up, control_down) in splicekit.core.motifs.scanRBP_pairs:
+                fname_image = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_up}/m01*.png")
+                if len(fname_image)>0:
+                    fname_image = fname_image[0]
+                    fname = f"results/motifs/scanRBP/{comparison}_{signal_up}/dreme.html"
+                    tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_up}<br><a href="{fname}" target=_new><img src="{fname_image}?version={unique_timestamp_str}" height="70"></a></td>')
+                else:
+                    tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_up}<br>no significant motifs found</td>')
+                fname_image = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_down}/m01*.png")
+                if len(fname_image)>0:
+                    fname_image = fname_image[0]
+                    fname = f"results/motifs/scanRBP/{comparison}_{signal_down}/dreme.html"
+                    tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_down}<br><a href="{fname}" target=_new><img src="{fname_image}?version={unique_timestamp_str}" height="70"></a></td>')
+                else:
+                    tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_down}<br>no significant motifs found</td>')
+
+    tbody_E = add_every_n_items(tbody_E, "</tr><tr>", 2)
+    tbody_E = ["<tr>"] + tbody_E
+    tbody_E.append("</tr>")
 
     thead_A1 = "\n".join(thead_A1)
     tbody_A1 = "\n".join(tbody_A1)
@@ -363,6 +413,7 @@ def process():
     tbody_A3 = "\n".join(tbody_A3)
     tbody_C = "\n".join(tbody_C)
     tbody_D = "\n".join(tbody_D)
+    tbody_E = "\n".join(tbody_E)
 
     project_descrption = "To display project information, provide a project.description file in the splicekit folder."
     if os.path.exists("project.description"):
@@ -370,5 +421,5 @@ def process():
         project_descrption = "".join(project_descrption)
 
     f = open("report/index.html", "wt")
-    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_D=tbody_D, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
+    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_E=tbody_E, tbody_D=tbody_D, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
     f.close()
