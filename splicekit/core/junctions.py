@@ -102,7 +102,7 @@ def find_genes(chr, strand, start, stop):
     return detected_genes
 
 def make_jobs():
-    if config.platform =='SLURM':
+    if splicekit.config.platform =='SLURM':
         job_junctions="""
 #!/bin/bash
 #SBATCH --job-name={job_name}                     # Job name

@@ -9,6 +9,7 @@ import gzip
 import pybio
 import glob
 import splicekit.config as config
+from splicekit.core import smart_number_format
 import splicekit.core.annotation as annotation
 import splicekit.core.features as features
 import numpy as np
@@ -150,11 +151,11 @@ def edgeR_feature(feature_name, version=""):
                 row.append(data["delta_PSI"])
             """
             if feature_name=="genes":
-                row += [float(data["logFC"]), data["F"], float(data["PValue"]), float(data["FDR"])]
-                row += [float(data["logFC"])* -np.log10(float(data["PValue"]))] # add pi value
+                row += [smart_number_format(float(data["logFC"])), smart_number_format(float(data["F"])), smart_number_format(float(data["PValue"])), smart_number_format(float(data["FDR"]))]
+                row += [smart_number_format(float(data["logFC"])* -np.log10(float(data["PValue"])))] # add pi value
             else:
-                row += [float(data["logFC"]), data["exon.F"], float(data["P.Value"]), float(data["FDR"])]
-                row += [float(data["logFC"])* -np.log10(float(data["P.Value"]))] # add pi value
+                row += [smart_number_format(float(data["logFC"])), smart_number_format(float(data["exon.F"])), smart_number_format(float(data["P.Value"])), smart_number_format(float(data["FDR"]))]
+                row += [smart_number_format(float(data["logFC"])* -np.log10(float(data["P.Value"])))] # add pi value
             results_all.append(row)
             if float(data["FDR"])<=config.edgeR_FDR_thr:
                 results.append(row)
