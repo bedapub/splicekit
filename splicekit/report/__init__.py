@@ -386,16 +386,18 @@ def process():
         comparison = cdata[0]
         for dtype in splicekit.core.motifs.dtypes:
             for (cname, signal_up, signal_down, control_up, control_down) in splicekit.core.motifs.scanRBP_pairs:
-                fname_image = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_up}/m01*.png")
-                if len(fname_image)>0:
-                    fname_image = fname_image[0]
+                fname_image_left = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_up}/m01*.png")
+                fname_image_right = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_down}/m01*.png")
+                if len(fname_image_left)==0 and len(fname_image_right)==0:
+                    continue
+                if len(fname_image_left)>0:
+                    fname_image = fname_image_left[0]
                     fname = f"results/motifs/scanRBP/{comparison}_{signal_up}/dreme.html"
                     tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_up}<br><a href="{fname}" target=_new><img src="{fname_image}?version={unique_timestamp_str}" height="70"></a></td>')
                 else:
                     tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_up}<br>no significant motifs found</td>')
-                fname_image = glob.glob(f"results/motifs/scanRBP/{comparison}_{signal_down}/m01*.png")
-                if len(fname_image)>0:
-                    fname_image = fname_image[0]
+                if len(fname_image_right)>0:
+                    fname_image = fname_image_right[0]
                     fname = f"results/motifs/scanRBP/{comparison}_{signal_down}/dreme.html"
                     tbody_E.append(f'<td valign=top style="border-bottom: 1px dashed #d1d1d1;">{comparison}_{signal_down}<br><a href="{fname}" target=_new><img src="{fname_image}?version={unique_timestamp_str}" height="70"></a></td>')
                 else:
