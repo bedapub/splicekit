@@ -129,7 +129,7 @@ def edgeR_feature(feature_name, version=""):
             if feature_name=="junctions":
                 row.append(junction_first_exon)
             row += [data["gene_id"], data["gene_name"], "{chr}:{f_from}..{f_to}".format(chr=data["chr"], f_from=data["feature_start"], f_to=data["feature_stop"])]
-            row.append("{jbrowse_url}&assembly={assembly}&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(assembly=assembly, jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
+            row.append("{jbrowse_url}&assembly={assembly}&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}&highlight={chr}:{hloc_from}..{hloc_to}".format(assembly=assembly, jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks, hloc_from=f_from, hloc_to=f_to))
             if feature_name=="junctions":
                 row.append(database[data["feature_id"]]["annotated"]) 
                 row.append(database[data["feature_id"]]["donor_anchor_id"])
