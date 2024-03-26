@@ -74,7 +74,24 @@ html_report = """
     {project_description}
     </div>
 
-    <br>
+    <br><br>
+
+    <div id="div_splicekit" style="width:1000px; text-align:left; padding-bottom: 20px; margin-left: -30px;">
+    <div id="menu1_tab1" style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu1", 1, 4);'>Junction level</a>
+    </div>
+    <div id="menu1_tab2" style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu1", 2, 4);'>Exon level</a>
+    </div>
+    <div id="menu1_tab3"  style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu1", 3, 4);'>Gene level</a>
+    </div>
+    <div id="menu1_tab4" style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu1", 4, 4);'>JUNE (junction-events)</a>
+    </div>
+    </div>
+
+    <div id="menu1_div1">
 
     <div id="div_A1" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>Junction level analysis (top {edgeR_results_max})</div>
@@ -96,8 +113,9 @@ html_report = """
     </table>
     </div>
 
-    <br>
-    <br>
+    </div>
+
+    <div id="menu1_div2">
 
     <div id="div_A2" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>Exon level analysis (top {edgeR_results_max})</div>
@@ -119,8 +137,9 @@ html_report = """
     </table>
     </div>
 
-    <br>
-    <br>
+    </div>
+
+    <div id="menu1_div3">
 
     <div id="div_A3" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>Gene level analysis (top {edgeR_results_max})</div>
@@ -142,7 +161,9 @@ html_report = """
     </table>
     </div>
 
-    <br><br>
+    </div>
+
+    <div id="menu1_div4">
 
     <div id="div_JUNE" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>JUNE (JUNction-Event) analysis (top {edgeR_results_max})</div>
@@ -162,6 +183,7 @@ html_report = """
         {tfoot_JUNE}
         </tfoot>
     </table>
+    </div>
     </div>
 
     <br><br>
@@ -203,6 +225,16 @@ html_report = """
 
     <br><br>
 
+    <div id="div_splicekit2" style="width:1000px; text-align:left; padding-bottom: 20px; margin-left: -30px;">
+    <div id="menu2_tab1" style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu2", 1, 2);'>scanRBP protein binding</a>
+    </div>
+    <div id="menu2_tab2" style='cursor: pointer; display: inline; border-radius: 5px; text-align: left; margin-right: 10px; justify-content: center; vertical-align: middle; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-color: #cccccc;'>
+        <a onclick='tab_select("#menu2", 2, 2);'>scanRBP motifs with DREME</a>
+    </div>
+    </div>
+
+    <div id="menu2_div1">
     <div id="div_D" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>scanRBP plots</div>
     The signal is the predicted binding for a protein of interest around regulated features (5'-splice/3'-splice sites etc.), the plot singal is normalized with the number of regulated features. Additionally, 100K bootstraping is used to report significance (controls are FDR>0.5).
@@ -214,7 +246,9 @@ html_report = """
         </table>
         </center>
     </div>
+    </div>
 
+    <div id="menu2_div2">
     <div id="div_E" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>scanRBP.dreme analysis</div>
     Same donor/acceptor sites selected as in the previous scanRBP step (significant sites and controls), however instead of plotting protein binding data (predicted or CLIP), perform DREME de-novo motif discovery.
@@ -226,9 +260,9 @@ html_report = """
         </table>
         </center>
     </div>
+    </div>
 
     <br><br>
-
 
     <div class="menu_div">
         <img src='https://raw.githubusercontent.com/bedapub/splicekit/main/media/splicekit_logo.png' width=90>
@@ -241,33 +275,17 @@ html_report = """
         <a href="#div_splicekit">Project Information</a>
         <br><br>
 
-        <a href="#div_A1">Junctions</a>
-        <br>
-        <a href="#div_A2">Exons</a>
-        <br>
-        <a href="#div_A3">Genes</a>
-        <br>
-        <br>
-
-        <a href="#div_JUNE">JUNE</a>
-        <br>
-        <br>
+        <a href="#menu1_tab1">Splicing analysis</a>
+        <br><br>
 
         <a href="#div_B">Dispersions</a>
-        <br>
-        <br>
+        <br><br>
 
         <a href="#div_C">juDGE plots</a>
-        <br>
-        <br>
+        <br><br>
 
-        <a href="#div_D">scanRBP</a>
-        <br>
-        <br>
-
-        <a href="#div_E">scanRBP.dreme</a>
-        <br>
-        <br>
+        <a href="#menu2_tab1">scanRBP</a>
+        <br><br>
 
         </div>
     
@@ -277,7 +295,30 @@ html_report = """
         new DataTable('#table_A3');
         new DataTable('#table_JUNE');
     </script>
-    
+
+    <script>
+        function tab_select(name, to_select, num_all) {{
+            for (let i = 1; i <= num_all; i++) {{
+                if (i==to_select)
+                {{
+                    $(name+"_tab"+i).css("background-color", "#ffaaaa");
+                    $(name+"_div"+i).css("display", "block");
+                }}
+            else
+                {{
+                    $(name+"_tab"+i).css("background-color", "#eeeeee");
+                    $(name+"_div"+i).css("display", "none");
+                }}
+            }}
+        }}
+
+        document.addEventListener("DOMContentLoaded", function(event){{
+            tab_select("#menu1", 1, 4);
+            tab_select("#menu2", 1, 2);
+        }});
+
+    </script>
+
 </body>
 </html>
 """
