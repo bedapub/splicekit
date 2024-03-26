@@ -10,6 +10,7 @@ module_desc = "splicekit | report |"
 edgeR_columns_junctions = ["result_id", "comparison", "feature_id", "gene_id", "gene_name", "jbrowse_url", "annotated", "logFC", "fdr", "donor_pattern"]
 edgeR_columns_exons = ["result_id", "comparison", "feature_id", "gene_id", "gene_name", "jbrowse_url", "logFC", "fdr"]
 edgeR_columns_genes = ["result_id", "comparison", "feature_id", "gene_id", "gene_name", "jbrowse_url", "logFC", "fdr"]
+JUNE_columns = ["comparison", "june_type", "exon_id", "delta_logFC", "gene_id", "j1", "exon_annotation", "jbrowse_url"]
 
 edgeR_results_max = 3000
 
@@ -143,6 +144,28 @@ html_report = """
 
     <br><br>
 
+    <div id="div_JUNE" style="width:1000px; text-align:left">
+    <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>JUNE (JUNction-Event) analysis (top {edgeR_results_max})</div>
+    From significantly changed junctions, splicekit extrapolates cryptic exon events. Results are provided in the table.
+    <br><br>
+    
+    <a href='results/edgeR/june.tab.gz'>Download JUNE results: june.tab.gz</a>
+    <br><br>
+    <table id="table_JUNE" class="display compact" style="width:100%">
+        <thead>
+        {thead_JUNE}
+        </thead>
+        <tbody>
+        {tbody_JUNE}
+        </tbody>
+        <tfoot>
+        {tfoot_JUNE}
+        </tfoot>
+    </table>
+    </div>
+
+    <br><br>
+
     <div id="div_B" style="width:1000px; text-align:left">
     <div style='font-size: 13px; color: #8B0000; background-color: #eaeaea; margin-left: -15px; padding-right: 5px; margin-bottom: 15px;'>Dispersions</div>
     Dispersion plots (from edgeR analysis) on the level of junction counts, exon counts and gene counts. For details, check the <a target=_new href='https://github.com/bedapub/splicekit/blob/main/splicekit/core/comps_edgeR.R'>R code of the analysis</a>. 
@@ -226,6 +249,10 @@ html_report = """
         <br>
         <br>
 
+        <a href="#div_JUNE">JUNE</a>
+        <br>
+        <br>
+
         <a href="#div_B">Dispersions</a>
         <br>
         <br>
@@ -248,6 +275,7 @@ html_report = """
         new DataTable('#table_A1');
         new DataTable('#table_A2');
         new DataTable('#table_A3');
+        new DataTable('#table_JUNE');
     </script>
     
 </body>
@@ -294,6 +322,8 @@ def process():
     tbody_A2 = []
     thead_A3 = []
     tbody_A3 = []
+    thead_JUNE = []
+    tbody_JUNE = []
     thead_A1.append("<tr>")
     thead_A1.append("\n".join([f"<th>{el}</th>" for el in edgeR_columns_junctions]))
     thead_A1.append("</tr>")
@@ -303,6 +333,9 @@ def process():
     thead_A3.append("<tr>")
     thead_A3.append("\n".join([f"<th>{el}</th>" for el in edgeR_columns_genes]))
     thead_A3.append("</tr>")
+    thead_JUNE.append("<tr>")
+    thead_JUNE.append("\n".join([f"<th>{el}</th>" for el in JUNE_columns]))
+    thead_JUNE.append("</tr>")
 
     count = 0
     f = gzip.open("results/edgeR/junctions_results_fdr005.tab.gz", "rt")
@@ -361,6 +394,24 @@ def process():
         r = f.readline()
     f.close()
 
+    count = 0
+    f = gzip.open("results/edgeR/june.tab.gz", "rt")
+    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r:
+        r = r.replace("\r", "").replace("\n", "").split("\t")
+        data = dict(zip(header, r))
+        tbody_JUNE.append("<tr>")
+        data["jbrowse_url"] = f"<a target=_new href={data['exon_jbrowse']}>JBrowse2</a>"
+        data["delta_logFC"] = format(float(data["delta_logFC"]), ".2e")
+        tbody_JUNE.append("\n".join([f"<td nowrap>{data[el]}</td>" for el in JUNE_columns]))
+        tbody_JUNE.append("</tr>")
+        count = count + 1
+        if count>=edgeR_results_max:
+            break
+        r = f.readline()
+    f.close()
+
     tbody_C = []
     for comp_name, _, _, _, _ in splicekit.core.annotation.comparisons:
         if os.path.exists(f"results/judge/plots/{comp_name}.html"):
@@ -413,6 +464,8 @@ def process():
     tbody_A2 = "\n".join(tbody_A2)
     thead_A3 = "\n".join(thead_A3)
     tbody_A3 = "\n".join(tbody_A3)
+    thead_JUNE = "\n".join(thead_JUNE)
+    tbody_JUNE = "\n".join(tbody_JUNE)
     tbody_C = "\n".join(tbody_C)
     tbody_D = "\n".join(tbody_D)
     tbody_E = "\n".join(tbody_E)
@@ -423,5 +476,5 @@ def process():
         project_descrption = "".join(project_descrption)
 
     f = open("report/index.html", "wt")
-    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_E=tbody_E, tbody_D=tbody_D, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
+    f.write(html_report.format(version=splicekit.version, edgeR_results_max=edgeR_results_max, project_description=project_descrption, tbody_JUNE=tbody_JUNE, thead_JUNE=thead_JUNE, tbody_E=tbody_E, tbody_D=tbody_D, tbody_C=tbody_C, thead_A1=thead_A1, tbody_A1=tbody_A1, tfoot_JUNE=thead_JUNE, tfoot_A1=thead_A1, thead_A2=thead_A2, tbody_A2=tbody_A2, tfoot_A2=thead_A2, thead_A3=thead_A3, tbody_A3=tbody_A3, tfoot_A3=thead_A3))
     f.close()
