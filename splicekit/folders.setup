@@ -48,6 +48,7 @@ results/motifs
 results/motifs/scanRBP
 results/motifs/scanRBP/data
 results/motifs/scanRBP/fasta
+results/motifs/scanRBP/dreme
 results/dge
 results/judge
 results/judge/plots

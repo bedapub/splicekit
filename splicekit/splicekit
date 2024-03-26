@@ -21,6 +21,7 @@ Commands:
      promisc           promiscuity analysis: genes and their junctions changes across conditions
      clusterlogfc      log fold-change clusters of significant changes (FDR<0.05) on junction, exon, gene level
      rmats             process data with rMATS
+     june              junction-event (junE) analysis
 
   -- scanRBP, motif and sequence analyses
      motifs            run motif and scanRBP analysis
@@ -149,6 +150,8 @@ elif args.command[0]=="judge":
     splicekit.judge_process()
 elif args.command[0]=="juan":
     splicekit.juan()
+elif args.command[0]=="june":
+    splicekit.june_process()
 elif args.command[0]=="rmats":
     splicekit.rmats()
 elif args.command[0] in ["jbrowse2", "jbrowse"]:
