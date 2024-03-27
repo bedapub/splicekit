@@ -140,6 +140,26 @@ def compute_results():
         fout.write(f"{exon_data['comp_id']}\t{exon_data['june_type']}\t{exon_data['exon_id']}\t{exon_data['delta_logFC']}\t{exon_data['gene_id']}\t{exon_data['j1']}\t{exon_data['annotation']}\t{exon_data['jbrowse']}\n")
     fout.close()
 
+    # GPT ready results
+    template_description = "This file contains splicing events across genes for diverse comparisons. Each block of lines describes a splicing events with its parameters and values. Each block starts with [splicing_event]."
+    template="""
+[splicing_event]
+comparison={comp_id}
+gene_id={gene_id}
+exon_id={exon_id}
+exon_annotation={exon_annotation}
+event_type={june_type}
+logFC={delta_logFC}
+jbrowse={exon_jbrowse}
+description=The comparison {comp_id} has a splicing event in the gene {gene_id} of type {june_type}, with logFC of {delta_logFC}. The affected exon(s) are {exon_id}. The annotation of the exon is {exon_annotation}.
+    """
+    fout = open("results/edgeR/june.gpt.txt", "wt")
+    fout.write(template_description+"\n")
+    for exon_id, exon_data in results:
+        text = template.format(gene_id=exon_data['gene_id'], comp_id=exon_data['comp_id'], june_type=exon_data['june_type'], exon_id=exon_data['exon_id'], delta_logFC=exon_data['delta_logFC'], exon_annotation=exon_data['annotation'], exon_jbrowse=exon_data['jbrowse'])
+        fout.write(text)
+    fout.close()
+
 def process():
     load_junctions()
     compute_results()

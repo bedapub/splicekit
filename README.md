@@ -3,6 +3,10 @@
 
 <b>splicekit</b> is a modular platform for splicing analysis from short-read RNA-seq datasets. The platform also integrates an JBrowse2 instance, [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained (one single folder) and the platform is written in Python, in a modular way.
 
+Check a short video presentation about splicekit (poster) at ECCB 2023 on Youtube:
+
+[<img src="media/splicekit_youtube.jpg" width=300>](https://youtu.be/P1m73usZ3lc?si=HBJxWOkUajObFpu1)
+
 ## Quick start
 
 The easiest way to install splicekit is to simply run:
