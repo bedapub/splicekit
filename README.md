@@ -5,7 +5,7 @@
 
 Check a short video presentation about splicekit on Youtube:
 
-[![youtube video screenshot](media/splicekit_youtube.jpg | width=300)](https://youtu.be/P1m73usZ3lc?si=HBJxWOkUajObFpu1)
+[![youtube video screenshot](media/splicekit_youtube.jpg | width=300)](https://youtu.be/P1m73usZ3lc?si=HBJxWOkUajObFpu1)]
 
 ## Quick start
 
