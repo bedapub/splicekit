@@ -74,7 +74,10 @@ def make_comparisons():
     annotation.treatments = {}
     samples = set()
     f = open("samples.tab")
-    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r.startswith("#"):
+        r = f.readline()
+    header = r.replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     separates = set()
     while r:

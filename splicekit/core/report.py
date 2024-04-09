@@ -45,7 +45,10 @@ def edgeR_feature(feature_name, version=""):
 
     samples = []
     f = open("samples.tab", "rt")
-    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r.startswith("#"):
+        r = f.readline()
+    header = r.replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
