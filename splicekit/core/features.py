@@ -90,12 +90,10 @@ def load_genes():
                 if store_data:
                     annotation_data[chr, strand, exon_stop] = (transcript_id, gene_id, exon_start, exon_stop)
 
-    # save last nucleotide of first/second exon of each transcript)
+    # save last nucleotide of first exon of each transcript
     print(f"{module_name} saving last nucleotide of first/second exon of each transcript")
     annotation.first_exons = {}
     identify_exons(transcript_exons, annotation.first_exons, 0)
-    #annotation.second_exons = {}
-    #identify_exons(transcript_exons, annotation.second_exons, 1)
     
     print(f"{module_name} reading junctions and anchors annotation from: reference/junctions.tab.gz")
     f = gzip.open("reference/junctions.tab.gz", "rt")
@@ -106,8 +104,7 @@ def load_genes():
         data = dict(zip(header, r))
         gene_id = data["gene_id"]
         gene = annotation.genes.get(gene_id, {})
-        gene["chr"] = data["chr"]
-        gene["strand"] = data["strand"]
+        gene["chr"], gene["strand"] = data["chr"], data["strand"]
         # junctions
         annotation.junctions_genes[data["junction_id"]] = gene_id
         junctions = gene.get("junctions", {})
@@ -140,10 +137,8 @@ def read_junctions():
             r = r.replace("\r", "").replace("\n", "").split("\t")
             junction_id = r[0]
             coords = junction_id.split('_')
-            start = int(coords[-2])
-            stop = int(coords[-1])
-            strand = coords[-3][-1]
-            chr = '_'.join(coords[:-2])[:-1]            
+            start, stop = int(coords[-2]), int(coords[-1])
+            chr, strand = '_'.join(coords[:-2])[:-1], coords[-3][-1]
             raw_count = int(r[-1])
             gene_id = annotation.junctions_genes[junction_id]
             gene = annotation.genes.get(gene_id, {})
@@ -158,10 +153,10 @@ def read_junctions():
 
 def read_anchors(anchor_type):
     """
-    # Description
-    Read anchors sample raw counts and populate the annotation.genes ["anchors"] field.
-    The input is read from the output of juan scripts (data/sample_anchors_data) producing anchor read counts.
+    * read anchors sample raw counts and populate the annotation.genes ["anchors"] field
+    * input is read from the output of juan scripts (data/sample_anchors_data) producing anchor read counts
     """
+
     count = 0
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
@@ -172,10 +167,8 @@ def read_anchors(anchor_type):
             r = r.replace("\r", "").replace("\n", "").split("\t")
             anchor_id = r[0]
             coords = anchor_id.split('_')
-            start = int(coords[-2]) - 1 # reports by featureCounts are on 1-indexed gtf regions, convert back
-            stop = int(coords[-1]) - 1 # reports by featureCounts are on 1-indexed gtf regions, convert back
-            strand = coords[-3][-1]
-            chr = '_'.join(coords[:-2])[:-1]
+            start, stop = int(coords[-2])-1, int(coords[-1])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
+            chr, strand = '_'.join(coords[:-2])[:-1], coords[-3][-1]
             anchor_id = f"{chr}{strand}_{start}_{stop}" # reconstruct anchor_id with 0-indexed coords
             raw_count = int(r[-1])
             if anchor_type=="donor":
@@ -194,9 +187,8 @@ def read_anchors(anchor_type):
 
 def read_exons():
     """
-    # Description
-    Read exons sample raw counts and populate the annotation.genes ["exons"] field.
-    The input is read from data/sample_exons_data
+    * read exons sample raw counts and populate the annotation.genes ["exons"] field
+    * input is read from data/sample_exons_data
     """
     count = 0
     count_all = len(annotation.samples)
@@ -208,10 +200,8 @@ def read_exons():
             r = r.replace("\r", "").replace("\n", "").split("\t")
             exon_id = r[0]
             coords = exon_id.split('_')
-            start = int(coords[-2])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
-            stop = int(coords[-1])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
-            strand = coords[-3][-1]
-            chr = '_'.join(coords[:-2])[:-1]      
+            start, stop = int(coords[-2])-1, int(coords[-1])-1 # reports by featureCounts are on 1-indexed gtf regions, convert back
+            chr, strand = '_'.join(coords[:-2])[:-1], coords[-3][-1]
             exon_id = f"{chr}{strand}_{start}_{stop}" # reconstruct exon_id with 0-indexed coords
             raw_count = int(r[-1])
             gene_id = annotation.exons_genes[exon_id]
@@ -227,9 +217,8 @@ def read_exons():
 
 def read_genes():
     """
-    # Description
-    Read gene sample raw counts and populate the annotation.genes ["genes"] field.
-    The input is read from data/sample_genes_data
+    * read gene sample raw counts and populate the annotation.genes ["genes"] field
+    * input is read from data/sample_genes_data
     """
     count = 0
     count_all = len(annotation.samples)
@@ -254,17 +243,11 @@ def read_genes():
 
 def save_comps_feature_data(feature_type):
     """
-    # Description
-    Take files from data/samples_{feature_type}_data/*.tab and read in the counts
-    Write the data/comparison_{feature_type}_data files
-
-    # Parameters
-    feature_type = exons, junctions, donor_anchors, acceptor_anchors
-
-    # Structure and debug
-    comp1 = [(36, 'DMSO', 'DMSO_rep1'), (48, 'DMSO', 'DMSO_rep1'), (60, 'DMSO', 'DMSO_rep1'), (72, 'DMSO', 'DMSO_rep1'), (84, 'DMSO', 'DMSO_rep1'), (96, 'DMSO', 'DMSO_rep1'), (132, 'DMSO', 'DMSO_rep1'), (144, 'DMSO', 'DMSO_rep1'), (156, 'DMSO', 'DMSO_rep1'), (168, 'DMSO', 'DMSO_rep1'), (180, 'DMSO', 'DMSO_rep1'), (192, 'DMSO', 'DMSO_rep1'), (228, 'DMSO', 'DMSO_rep2'), (240, 'DMSO', 'DMSO_rep2'), (252, 'DMSO', 'DMSO_rep2'), (264, 'DMSO', 'DMSO_rep2'), (276, 'DMSO', 'DMSO_rep2'), (288, 'DMSO', 'DMSO_rep2'), (324, 'DMSO', 'DMSO_rep2'), (336, 'DMSO', 'DMSO_rep2'), (348, 'DMSO', 'DMSO_rep2'), (360, 'DMSO', 'DMSO_rep2'), (372, 'DMSO', 'DMSO_rep2'), (384, 'DMSO', 'DMSO_rep2'), (420, 'DMSO', 'DMSO_rep3'), (432, 'DMSO', 'DMSO_rep3'), (444, 'DMSO', 'DMSO_rep3'), (456, 'DMSO', 'DMSO_rep3'), (468, 'DMSO', 'DMSO_rep3'), (480, 'DMSO', 'DMSO_rep3'), (516, 'DMSO', 'DMSO_rep3'), (528, 'DMSO', 'DMSO_rep3'), (540, 'DMSO', 'DMSO_rep3'), (552, 'DMSO', 'DMSO_rep3'), (564, 'DMSO', 'DMSO_rep3'), (576, 'DMSO', 'DMSO_rep3')]
-    comp2 = [(1, 'RO7282701', 'RO7282701-000-001_rep1'), (193, 'RO7282701', 'RO7282701-000-001_rep2'), (385, 'RO7282701', 'RO7282701-000-001_rep3')]
+    * take files from data/samples_{feature_type}_data/*.tab and read in the counts
+    * write the data/comparison_{feature_type}_data files
+    * feature_type = exons, junctions, donor_anchors, acceptor_anchors
     """
+
     count = 0
     count_all = len(annotation.comparisons)
     for (comp_name, comp1, comp2, _, _) in annotation.comparisons:
@@ -357,7 +340,8 @@ def make_counts_table(feature_type):
             if feature_type=="genes":
                 feature_data["start"] = gene_data["genes"]["start"]
                 feature_data["stop"] = gene_data["genes"]["stop"]
-            row = [gene_id, "{symbol}\t{chr}\t{strand}\t{feature_start}\t{feature_stop}\t{length}".format(chr=gene_data["chr"], strand=gene_data["strand"], symbol=gene_data["gene_name"], feature_start=feature_data["start"], feature_stop=feature_data["stop"], length=feature_data["stop"]-feature_data["start"]+1)]
+            feature_len = feature_data["stop"]-feature_data["start"]+1
+            row = [gene_id, f"{gene_data['gene_name']}\t{gene_data['chr']}\t{gene_data['strand']}\t{feature_data['start']}\t{feature_data['stop']}\t{feature_len}"]
             row.append(feature_id)
             for sample_id in annotation.samples:
                 row.append(feature_data.get(sample_id, 0))
@@ -380,9 +364,8 @@ def add_psi_cluster():
 def add_psi(comp_name):
     read_length = 150
     """
-    # Description
-    Adds delta_PSI to exon results tables
-    Reference: https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/0471142905.hg1116s87
+    * adds delta_PSI to exon results tables
+    * reference: https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/0471142905.hg1116s87
 
     IR = IR_exon / (exon_length + read_length - 1) # reads covering the exon
     ER = ER_exon / (read_length - 1) # reads skipping the exon
@@ -469,12 +452,10 @@ def add_psi(comp_name):
 
 def add_dai():
     """
-    Description
-    -----------
-    Adds delta_DAI to junction results tables
-    donor_DAI = control_donor / (control_donor + test_donor)
-    acceptor_DAI = control_acceptor / (control_acceptor + test_acceptor)
-    delta_DAI = (donor_DAI - acceptor_DAI) * 100
+    * adds delta_DAI to junction results tables
+    * donor_DAI = control_donor / (control_donor + test_donor)
+    * acceptor_DAI = control_acceptor / (control_acceptor + test_acceptor)
+    * delta_DAI = (donor_DAI - acceptor_DAI) * 100
     """
 
     count = 0
@@ -585,25 +566,4 @@ def add_dai():
         count += 1
         os.system(f"mv data/comparison_junctions_data/{comp_name}.tab.gz.temp data/comparison_junctions_data/{comp_name}.tab.gz")
         print(f"{module_name} Added DAI for comparison_junctions_data/{comp_name}.tab.gz ({count}/{count_all}")
-    return True    
-
-def save_feature_data(feature_type, filter=None):
-    count = 0
-    count_all = len(annotation.samples)
-    for sample_id in annotation.samples:
-        if filter==None:
-            fname = f"data/sample_{feature_type}_data/sample_{sample_id}.tab.gz"
-        else:
-            fname = f"data/sample_{feature_type}_data/sample_{sample_id}.tab.gz.filtered"
-        fout = gzip.open(fname, "wt")
-        for gene_id, gene_data in annotation.genes.items():
-            if gene_data.get(feature_type, None)==None:
-                continue
-            for (feature_start, feature_stop), feature_data in gene_data[feature_type].items():
-                row = ["{gene_id}_{gene_name}:{feature_start}-{feature_stop}".format(gene_id=gene_id, gene_name=gene_data["gene_name"], feature_start=feature_start, feature_stop=feature_stop), feature_data.get(sample_id, 0)]
-                filter_key = "{chr}:{feature_start}-{feature_stop}".format(chr=gene_data["chr"], feature_start=feature_start, feature_stop=feature_stop)
-                if filter==None or filter_key not in filter:
-                    fout.write("\t".join(str(el) for el in row)+"\n")
-        fout.close()
-        count += 1
-        print(f"{module_name} saved {feature_type} data, sample={sample_id}, file={fname} ({count}/{count_all}")
+    return True

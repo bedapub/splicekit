@@ -1,6 +1,5 @@
 # splicekit exons module
-# generate exon count data
-# use featureCounts and provided gtf file + bam files
+# generate exon count data using featureCounts and the provided bams+gtf
 
 import os
 import sys
@@ -10,33 +9,27 @@ import gzip
 def write_exons_gtf():
 
     def make_row(r):
-        chr = r[0]
-        start = int(r[3]) # ! GTF file to GTF file, no change of coordinates here
-        stop = int(r[4]) # ! GTF file to GTF file, no change of coordinates here
-        strand = r[6]
+        chr, strand = r[0], r[6]
+        start, stop = int(r[3]), int(r[4]) # ! GTF file to GTF file, no change of coordinates here
         attributes = r[-1].split(";")
         new_attributes = []
         for att in attributes:
-            att = att.lstrip(" ")
-            att = att.split(" ")
+            att = att.lstrip(" ").split(" ")
             name, val = att[0], " ".join(att[1:])
-            name = name.lstrip(" ")
-            name = name.rstrip(" ")
+            name = name.lstrip(" ").rstrip(" ")
             if name in ["gene_id", "gene_name", "transcript_id"]:
-                val = val.lstrip(" ")
-                val = val.rstrip(" ")
-                val = val[1:-1] # remove quotes
+                val = val.lstrip(" ").rstrip(" ")[1:-1] # remove quotes
                 new_attributes.append(f"{name}={val}")
         exon_id = f"{chr}{strand}_{start}_{stop}"
-        new_attributes.append("exon_id="+exon_id)
+        new_attributes.append(f"exon_id={exon_id}")
         attributes_str = '; '.join(new_attributes)
         row = '\t'.join([chr, 'splicekit', "exon", str(start), str(stop), '.', strand, '0', attributes_str])+'\n'
         return row
 
     """
-    create exons.gtf to parse to featureCount jobs
-    we need 9 columns https://www.ensembl.org/info/website/upload/gff.html/
-    <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [attributes]
+    * create exons.gtf as input to featureCount
+    * 9 columns https://www.ensembl.org/info/website/upload/gff.html/
+    * <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [attributes]
     """
     # iterate over original gtf file
     gtf_file = gzip.open(config.gtf_path, 'rt')
@@ -58,14 +51,11 @@ def write_exons_gtf():
 
 def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     """
-    This function write a featureCounts job per comparison for every bamfile it can find
-    It takes in two parameters:
-        library_type: str
-        library_strand: str
-    Both are needed to call featureCounts correctly (see string formating with library_type_insert and library_strand_insert variables)
+    * write a featureCounts job per comparison for every bam file
+    * input parameters: library_type:str and library_strand:str
+    * both needed to call featureCounts correctly (see string formating with library_type_insert and library_strand_insert variables)
     """
 
-    #translate to be used in featureCoutns command
     library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type]
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     

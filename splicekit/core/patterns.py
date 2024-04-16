@@ -29,10 +29,7 @@ def process():
             stop = int(coords[-1])
             strand = coords[-3][-1]
             chr = '_'.join(coords[:-2])[:-1]
-            if strand=="+":
-                donor_site, acceptor_site = start, stop
-            else:
-                donor_site, acceptor_site = stop, start
+            donor_site, acceptor_site = (start, stop) if strand=="+" else (stop, start)
             donor_seq = pybio.core.genomes.seq(config.species, chr, strand, donor_site, pattern_area[0], pattern_area[1], genome_version=config.genome_version)
             acceptor_seq = pybio.core.genomes.seq(config.species, chr, strand, acceptor_site, pattern_area[0], pattern_area[1], genome_version=config.genome_version)
             data_new["donor_pattern"] = donor_seq
@@ -42,5 +39,6 @@ def process():
         fout.close()
         fin.close()
         os.system(f"mv results/edgeR/{fname}.tab.gz.temp results/edgeR/{fname}.tab.gz")
+        
     process_file(f"junctions_results_fdr005")
     process_file(f"junctions_results_complete")
