@@ -15,7 +15,8 @@ module_name = "splicekit | report |"
 
 def edgeR_feature(feature_name, version=""):
     # feature_name = "genes", "exons", "junctions", "donor_anchors", "acceptor_anchors"
-    print(f"{module_name} generating edgeR results file={fname}, considering all results with FDR<={edgeR_FDR_thr}".format(fname=f"results/results_edgeR{version}_{feature_name}.tab.gz", edgeR_FDR_thr=config.edgeR_FDR_thr))
+    fname = f"results/results_edgeR{version}_{feature_name}.tab.gz"
+    print(f"{module_name} generating edgeR results file={fname}, considering all results with FDR<={config.edgeR_FDR_thr}")
     print()
     comparisons = {}
 
