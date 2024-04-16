@@ -4,6 +4,8 @@ import splicekit.core.annotation as annotation
 import splicekit.config as config
 import gzip
 
+module_name = "splicekit | promisc |"
+
 def toint(temp):
     try:
         temp = str(int(temp))
@@ -34,7 +36,7 @@ def process():
     count = 1
     for id, data in results.items():
         if count%100==0:
-            print("[promisc] processed {a}/{b} ({c}% done)".format(a=count, b=len(results), c="%.2f" % (count/len(results)*100)))
+            print(f"{module_name} processed {a}/{b} ({c}% done)".format(a=count, b=len(results), c="%.2f" % (count/len(results)*100)))
         count += 1
         for rid, rdata in results.items():
             if same_junction(data, rdata):
@@ -59,7 +61,6 @@ def process():
         if reported_junction.get(tuple(row_junction[:6]), None)==None:
             temp_junction.append((row_sum_junction, row_junction))
             reported_junction[tuple(row_junction[:6])] = 1
-    # junction level
     temp_junction.sort(reverse=True)
     for row_sum, row in temp_junction:
         fout_junction.write("\t".join([str(el) for el in row]) + "\n")

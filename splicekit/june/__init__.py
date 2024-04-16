@@ -25,7 +25,6 @@ mutual_criteria.append('j2["feature_stop"]==j4["feature_stop"]')
 mutual_criteria.append('j3["feature_stop"]>j2["feature_start"]')
 mutual_criteria.append('(float(j1["logFC"])>0 and float(j2["logFC"])>0 and float(j3["logFC"])<0 and float(j4["logFC"])<0) or (float(j1["logFC"])<0 and float(j2["logFC"])<0 and float(j3["logFC"])>0 and float(j4["logFC"])>0)')
 
-
 def load_junctions():
     print(f"{module_desc} loading junctions")
     f = gzip.open("results/edgeR/junctions_results_fdr005.tab.gz", "rt")
@@ -34,12 +33,8 @@ def load_junctions():
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
         data = dict(zip(header, r))
-        #if data["comparison"] not in ["control_KD12A"]:
-        #    r = f.readline()
-        #    continue
         junctions = comparisons.get(data["comparison"], {})
         temp = junctions.get(data["gene_id"], [])
-
         temp2 = data["feature_id"].split("_")
         chr, start, stop = "_".join(temp2[:-2]), temp2[-2], temp2[-1]
         chr, strand = chr[:-1], chr[-1]
@@ -59,7 +54,8 @@ def compute_results():
     cryptic_exons = {}
     for comp_id, junctions in comparisons.items():
         for gene_id, data in junctions.items():
-            # skipping
+
+            # exon skipping
             if len(data)>=3:
                 combs = list(itertools.permutations(data, 3))
                 for j1, j2, j3 in combs:
@@ -94,7 +90,7 @@ def compute_results():
                         exon_data["delta_logFC"] = delta_logFC
                         cryptic_exons[record_id] = exon_data
 
-            # mutually exclusive
+            # mutually exclusive exons
             if len(data)>=4:
                 combs = list(itertools.permutations(data, 4))
                 for j1, j2, j3, j4 in combs:
