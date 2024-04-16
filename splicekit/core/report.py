@@ -143,12 +143,12 @@ def edgeR_feature(feature_name, version=""):
         print(f"{module_name} {fname} {count}/{len(rfiles)}")
 
     headers = {}
-    default_header = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url"]
-    headers["genes"] = default_header + ["logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["junctions"] = default_header + ["annotated", "donor_anchor_id", "acceptor_anchor_id", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["exons"] = default_header + ["logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["donor_anchors"] = default_header + ["logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["acceptor_anchors"] = default_header + ["logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    default_header = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len"]
+    headers["genes"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["junctions"] = default_header + ["junction_first_exon", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "annotated", "donor_anchor_id", "acceptor_anchor_id", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["exons"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["donor_anchors"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["acceptor_anchors"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
 
     # sort by FDR
     FDR_index = headers[feature_name].index("fdr")-1 # -1 because of result_id
@@ -163,11 +163,11 @@ def edgeR_feature(feature_name, version=""):
         assert(len(headers[feature_name])==len(results_all[0])+1) # header and data columns must match, +1 for result_id
     result_id = 1
     for row in results:
-        f.write("\t".join(["r{result_id}".format(result_id=result_id)] + [str(el) for el in row]) + "\n")
+        f.write("\t".join([f"r{result_id}"] + [str(el) for el in row]) + "\n")
         result_id += 1
     f.close()
     result_id = 1
     for row in results_all:
-        f_all.write("\t".join(["ra{result_id}".format(result_id=result_id)] + [str(el) for el in row]) + "\n")
+        f_all.write("\t".join([f"ra{result_id}"] + [str(el) for el in row]) + "\n")
         result_id += 1
     f_all.close()
