@@ -36,7 +36,7 @@ def process():
     count = 1
     for id, data in results.items():
         if count%100==0:
-            print(f"{module_name} processed {a}/{b} ({c}% done)".format(a=count, b=len(results), c="%.2f" % (count/len(results)*100)))
+            print("{module_name} processed {a}/{b} ({c}% done)".format(module_name=module_name, a=count, b=len(results), c="%.2f" % (count/len(results)*100)))
         count += 1
         for rid, rdata in results.items():
             if same_junction(data, rdata):
