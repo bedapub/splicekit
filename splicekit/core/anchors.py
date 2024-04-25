@@ -70,10 +70,10 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         jobs_dir = f'jobs/count_{anchor_type}_anchors'
         logs_dir = f'logs/count_{anchor_type}_anchors'
 
-        if config.platform == 'SLURM':
+        if splicekit.config.platform == 'SLURM':
 
             job_anchors="""
- #!/bin/bash
+#!/bin/bash
 #SBATCH --job-name={anchor_type}_anchors_{sample_id}  # Job name
 #SBATCH --ntasks=12                                   # Number of tasks
 #SBATCH --nodes=1                                     # All tasks on one node
