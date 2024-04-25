@@ -1,7 +1,4 @@
-"""
-# Description
-Reads edgeR results files and generates tab reports.
-"""
+# reads edgeR results files and generates TAB reports
 
 import os
 import sys
@@ -9,22 +6,17 @@ import gzip
 import pybio
 import glob
 import splicekit.config as config
+from splicekit.core import smart_number_format
 import splicekit.core.annotation as annotation
 import splicekit.core.features as features
 import numpy as np
 
 module_name = "splicekit | report |"
 
-def toint(temp):
-    try:
-        temp = str(int(temp))
-        return temp
-    except:
-        return temp
-
 def edgeR_feature(feature_name, version=""):
     # feature_name = "genes", "exons", "junctions", "donor_anchors", "acceptor_anchors"
-    print("Generating edgeR results file={fname}, considering all results with FDR<={edgeR_FDR_thr}".format(fname=f"results/results_edgeR{version}_{feature_name}.tab.gz", edgeR_FDR_thr=config.edgeR_FDR_thr))
+    fname = f"results/results_edgeR{version}_{feature_name}.tab.gz"
+    print(f"{module_name} generating edgeR results file={fname}, considering all results with FDR<={config.edgeR_FDR_thr}")
     print()
     comparisons = {}
 
@@ -44,7 +36,10 @@ def edgeR_feature(feature_name, version=""):
 
     samples = []
     f = open("samples.tab", "rt")
-    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r.startswith("#"):
+        r = f.readline()
+    header = r.replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
@@ -128,33 +123,17 @@ def edgeR_feature(feature_name, version=""):
             if feature_name=="junctions":
                 row.append(junction_first_exon)
             row += [data["gene_id"], data["gene_name"], "{chr}:{f_from}..{f_to}".format(chr=data["chr"], f_from=data["feature_start"], f_to=data["feature_stop"])]
-            row.append("{jbrowse_url}&assembly={assembly}&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}".format(assembly=assembly, jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks))
+            row.append("{jbrowse_url}&assembly={assembly}&loc={chr}:{loc_from}..{loc_to}&tracks={tracks}&highlight={chr}:{hloc_from}..{hloc_to}".format(assembly=assembly, jbrowse_url=config.jbrowse2_url.format(treatment=treatment), treatment=treatment, chr=data["chr"], loc_from=loc_from, loc_to=loc_to, tracks=tracks, hloc_from=f_from, hloc_to=f_to))
             if feature_name=="junctions":
                 row.append(database[data["feature_id"]]["annotated"]) 
                 row.append(database[data["feature_id"]]["donor_anchor_id"])
                 row.append(database[data["feature_id"]]["acceptor_anchor_id"])
-            """
-            row += [data["sum_feature_test"], data["sum_feature_control"]]
-            row += [data["test_pfi"], data["control_pfi"], data["delta_pfi"]]
-            if feature_name=="junctions":
-                row.append(database[data["feature_id"]]["annotated"]) 
-                row.append(database[data["feature_id"]]["donor_anchor_id"])
-                row.append(database[data["feature_id"]]["acceptor_anchor_id"])
-                row.append(data["donor_DAI"])
-                row.append(data["acceptor_DAI"])
-                row.append(data["delta_DAI"])
-                row.append(data["delta_DAI_pvalue"])
-            if feature_name=="exons":
-                row.append(data["test_PSI"])
-                row.append(data["control_PSI"])
-                row.append(data["delta_PSI"])
-            """
             if feature_name=="genes":
-                row += [float(data["logFC"]), data["F"], float(data["PValue"]), float(data["FDR"])]
-                row += [float(data["logFC"])* -np.log10(float(data["PValue"]))] # add pi value
+                row += [smart_number_format(float(data["logFC"])), smart_number_format(float(data["F"])), smart_number_format(float(data["PValue"])), smart_number_format(float(data["FDR"]))]
+                row += [smart_number_format(float(data["logFC"])* -np.log10(float(data["PValue"])))] # add pi value
             else:
-                row += [float(data["logFC"]), data["exon.F"], float(data["P.Value"]), float(data["FDR"])]
-                row += [float(data["logFC"])* -np.log10(float(data["P.Value"]))] # add pi value
+                row += [smart_number_format(float(data["logFC"])), smart_number_format(float(data["exon.F"])), smart_number_format(float(data["P.Value"])), smart_number_format(float(data["FDR"]))]
+                row += [smart_number_format(float(data["logFC"])* -np.log10(float(data["P.Value"])))] # add pi value
             results_all.append(row)
             if float(data["FDR"])<=config.edgeR_FDR_thr:
                 results.append(row)
@@ -163,21 +142,13 @@ def edgeR_feature(feature_name, version=""):
         count += 1
         print(f"{module_name} {fname} {count}/{len(rfiles)}")
 
-    # old
     headers = {}
-    headers["genes"] = ["result_id", "comparison", "treatment", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
-    headers["junctions"] = ["result_id", "comparison", "treatment", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "UTR", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "annotated", "donor_anchor_id", "acceptor_anchor_id", "donor_DAI", "acceptor_DAI", "delta_DAI", "delta_DAI_pvalue", "logFC", "exon.F", "p_value", "fdr","pi_value"]
-    headers["exons"] = ["result_id", "comparison", "treatment", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "test_PSI", "control_PSI", "delta_PSI", "logFC", "exon.F", "p_value", "fdr","pi_value"]
-    headers["donor_anchors"] = ["result_id", "comparison", "treatment", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
-    headers["acceptor_anchors"] = ["result_id", "comparison", "treatment", "rank", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "sum_feature_test", "sum_feature_control", "test_pfi", "control_pfi", "delta_pfi", "logFC", "exon.F", "p_value", "fdr","pi_value"]
-
-    # new
-    headers = {}
-    headers["genes"] = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["junctions"] = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "UTR", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "annotated", "donor_anchor_id", "acceptor_anchor_id", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["exons"] = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["donor_anchors"] = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
-    headers["acceptor_anchors"] = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    default_header = ["result_id", "comparison", "treatment", "feature_id", "chr", "strand", "feature_start", "feature_stop", "feature_len"]
+    headers["genes"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["junctions"] = default_header + ["junction_first_exon", "gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "annotated", "donor_anchor_id", "acceptor_anchor_id", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["exons"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["donor_anchors"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
+    headers["acceptor_anchors"] = default_header + ["gene_id", "gene_name", "jbrowse_loc", "jbrowse_url", "logFC", "exon.F", "p_value", "fdr", "pi_value"]
 
     # sort by FDR
     FDR_index = headers[feature_name].index("fdr")-1 # -1 because of result_id
@@ -192,11 +163,11 @@ def edgeR_feature(feature_name, version=""):
         assert(len(headers[feature_name])==len(results_all[0])+1) # header and data columns must match, +1 for result_id
     result_id = 1
     for row in results:
-        f.write("\t".join(["r{result_id}".format(result_id=result_id)] + [str(el) for el in row]) + "\n")
+        f.write("\t".join([f"r{result_id}"] + [str(el) for el in row]) + "\n")
         result_id += 1
     f.close()
     result_id = 1
     for row in results_all:
-        f_all.write("\t".join(["ra{result_id}".format(result_id=result_id)] + [str(el) for el in row]) + "\n")
+        f_all.write("\t".join([f"ra{result_id}"] + [str(el) for el in row]) + "\n")
         result_id += 1
     f_all.close()

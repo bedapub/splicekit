@@ -41,3 +41,8 @@ def mprocess(fname):
     q.join()
     print("splicekit | done multicore ({num_worker_threads}) processing: {fname}")
 
+def smart_number_format(number):
+    if abs(number) < 0.0001 or abs(number) >= 1e4:
+        return f"{number:.4e}"
+    else:
+        return f"{number:.4f}"

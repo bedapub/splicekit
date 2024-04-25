@@ -1,7 +1,4 @@
 # splicekit motifs module
-# retrieve sequence patterns and construct sequence logos
-# prepare FASTA for scanRBP and DREME
-# html reports
 
 import pybio
 import math
@@ -31,6 +28,9 @@ motif_FDR = 0.05 # we use this threshold for motifs
 # scan / motif areas
 scanRBP_area = 100 # feature_site-scanRBP_area ... feature_site+scanRBP_area
 splice_sites_area = (-2, 6) # take -2 ... 6 around splice site (donor or acceptor)
+
+# data types
+dtypes = ["PWM"] # also CLIP
 
 # criteria is split by feature type, data read-in from "results/results_edgeR_{feature_type}_all.tab"
 motif_criteria = {}
@@ -62,10 +62,9 @@ motif_criteria["exons"].append(("exons_down", "donor", f"float(data['fdr'])<{mot
 motif_criteria["exons"].append(("exons_up_controls", "donor", f"float(data['fdr'])>0.5 and float(data['logFC'])>0"))
 motif_criteria["exons"].append(("exons_down_controls", "donor", f"float(data['fdr'])>0.5 and float(data['logFC'])<0"))
 
+# format (name is used for output folder name): (name, criteria_name1, criteria_name2)
 # dreme positive sequences = criteria_name1
 # dreme negative sequences = criteria_name2
-# format of tuples (name is used for output folder name):
-# (name, criteria_name1, criteria_name2)
 dreme_criteria = []
 dreme_criteria.append(("junctions_up_donor", "junctions_up_donor", "junctions_up_donor_controls"))
 dreme_criteria.append(("junctions_down_donor", "junctions_down_donor", "junctions_down_donor_controls"))
@@ -187,30 +186,16 @@ def make_scanRBP():
                     chr = '_'.join(coords[:-2])[:-1]
                     if comparison_counts.get((criteria_name, data["comparison"]), 0)<1000: # no more than 1000 sequences per criteria per comparison
                         comparison_counts[(criteria_name, data["comparison"])] = comparison_counts.setdefault((criteria_name, data["comparison"]), 0) + 1
-                        if seq_field=="donor":
-                            donor_site = start if strand=="+" and feature_type=="junctions" else stop
-                            start_pos = donor_site - scanRBP_area
-                            stop_pos = donor_site + scanRBP_area
-                            donor_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
-                            #fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
-                            fasta_id = f"{chr}{strand}_{donor_site}"
-                            result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
-                            result_data.setdefault(fasta_id, {})
-                            result_data[fasta_id]["seq"] = donor_seq
-                            result_data[fasta_id].setdefault("result_list", set()).add(data["result_id"])
-                            scanRBP_data[(criteria_name, data["comparison"])] = result_data
-                        if seq_field=="acceptor":
-                            acceptor_site = stop if strand=="+" and feature_type=="junctions" else start
-                            start_pos = acceptor_site - scanRBP_area
-                            stop_pos = acceptor_site + scanRBP_area
-                            acceptor_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
-                            #fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
-                            fasta_id = f"{chr}{strand}_{acceptor_site}"
-                            result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
-                            result_data[fasta_id] = {}
-                            result_data[fasta_id]["seq"] = acceptor_seq
-                            result_data[fasta_id].setdefault("result_list", set()).add(data["result_id"])
-                            scanRBP_data[(criteria_name, data["comparison"])] = result_data
+                        splice_site = start if strand=="+" and feature_type=="junctions" else stop
+                        start_pos = splice_site - scanRBP_area
+                        stop_pos = splice_site + scanRBP_area
+                        splice_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
+                        fasta_id = f"{chr}{strand}_{splice_site}"
+                        result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
+                        result_data.setdefault(fasta_id, {})
+                        result_data[fasta_id]["seq"] = splice_seq
+                        result_data[fasta_id].setdefault("result_list", set()).add(data["result_id"])
+                        scanRBP_data[(criteria_name, data["comparison"])] = result_data
             r = f.readline()
         f.close()
 
@@ -226,6 +211,23 @@ def make_scanRBP():
                 f.write(f">{fasta_id} {result_list}\n{seq}\n")
             f.close()
             os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
+
+def scanRBP_dreme():
+    for cdata in splicekit.core.annotation.comparisons:
+        comparison = cdata[0]
+        for dtype in dtypes:
+            for (cname, signal_up, signal_down, control_up, control_down) in scanRBP_pairs:
+                up_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_up}_scanRBP.fasta"
+                down_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_down}_scanRBP.fasta"
+                upcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_up}_scanRBP.fasta"
+                downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
+
+                command = f"dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
+                os.system(command)
+
+                command = f"dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
+                os.system(command)
+    return True
 
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
@@ -284,8 +286,7 @@ def plot_scanRBP():
                 scanRBP_fname = f"results/motifs/scanRBP/data/{id}_CLIP.tab"
             df = pd.read_csv(scanRBP_fname, sep='\t', header=0, index_col=0)
             data = list(df.loc[protein])
-            #data = [x if x>=0 else 0 for x in data]
-            data = [1 if x>0 else 0 for x in data]
+            data = [1 if x>0 else 0 for x in data] # data = [x if x>=0 else 0 for x in data]
             rows.append(id_original)
             matrix.append(data)
             if vector==[]:
@@ -296,8 +297,7 @@ def plot_scanRBP():
 
     for cdata in splicekit.core.annotation.comparisons:
         comparison = cdata[0]
-        #for dtype in ["CLIP", "PWM"]:
-        for dtype in ["PWM"]:
+        for dtype in dtypes:
             for (cname, signal_up, signal_down, control_up, control_down) in scanRBP_pairs:
                 up_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_up}_scanRBP.fasta"
                 down_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{signal_down}_scanRBP.fasta"
@@ -311,7 +311,7 @@ def plot_scanRBP():
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
                 matrix_downcontrol, vector_downcontrol, rows_downcontrol = read_matrix_vector(downcontrol_fasta, dtype=dtype)
 
-                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=10000)
+                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=100000)
                 logfc_value_up = bootup[0]
                 bootup.sort(reverse=True)
                 index_up = bootup.index(logfc_value_up)
@@ -321,10 +321,8 @@ def plot_scanRBP():
                 up_file.write(f"logFC\t{logfc_value_up}\np_value\t{index_up/float(len(bootup))}")
                 up_file.close()
                 p_value_up = index_up/float(len(bootup))
-                if p_value_up == 0:
-                    p_value_up = "<1e-5"
 
-                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=10000)
+                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=100000)
                 logfc_value_down = bootdown[0]
                 bootdown.sort(reverse=True)
                 index_down = bootdown.index(logfc_value_down)
@@ -335,44 +333,9 @@ def plot_scanRBP():
                 down_file.write(f"logFC\t{logfc_value_down}\np_value\t{index_down/float(len(bootdown))}")
                 down_file.close()
                 p_value_down = index_down/float(len(bootdown))
-                if p_value_down == 0:
-                    p_value_down = "<1e-5"
-
-                # heatmap (disc)
-                """
-                for htype, matrix_data, rows_data in [("up", matrix_up, rows_up), ("down", matrix_down, rows_down)]:
-                    data = pd.DataFrame(matrix_data, index=rows_data)
-                    plt.figure()
-                    sns.set(font="Arial")
-                    sns.set(font_scale=0.4)
-                    sns.set_style("dark")
-                    sns.set_style("ticks")
-                    if htype=="up":
-                        rdgn = sns.diverging_palette(h_neg=130, h_pos=10, s=99, l=55, sep=3, as_cmap=True)
-                    if htype=="down":
-                        rdgn = sns.diverging_palette(h_neg=250, h_pos=250, s=99, l=55, sep=3, as_cmap=True)
-                    optional_params = {"linewidths":0.0}
-                    optional_params["col_cluster"] = False
-                    optional_params["annot"] = False
-                    optional_params["center"] = 0
-                    optional_params["fmt"] = ".0f"
-                    optional_params["figsize"] = (10,3)
-                    optional_params["yticklabels"] = True
-                    optional_params["xticklabels"] = False
-                    optional_params["cmap"] = rdgn
-                    optional_params["cbar_pos"] = None
-                    fig = sns.clustermap(data, **optional_params)
-                    fig.ax_col_dendrogram.set_visible(False)
-                    plt.tight_layout() 
-                    plt.savefig(f"results/motifs/scanRBP/heatmap_{protein_label}_{comparison}_{dtype}_{htype}_{cname}.png", dpi=300)
-                    plt.close()
-                """
 
                 plt.figure(figsize=(10,3))
-                sns.set(font="Arial")
-                sns.set(font_scale=0.6)
-                sns.set_style("dark")
-                sns.set_style("ticks")
+                sns.set(font="Arial"); sns.set(font_scale=0.6); sns.set_style("dark"); sns.set_style("ticks")
 
                 vector_up = [e1/len(matrix_up) for e1 in vector_up] # normalize
                 vector_up = smooth(vector_up, smoothing)[25:-25]
@@ -381,6 +344,7 @@ def plot_scanRBP():
                 x = [el-middle for el in x]
                 fig = sns.lineplot(data={"x":x, "y":vector_up}, x="x", y="y", linewidth=2, color='r')
                 fig.fill_between(x, vector_up, color='#fb6767')
+
                 fig.set(xlabel=f"distance from site [nt]", ylabel='fraction of sites (RBP binding)')
                 fig.spines['left'].set_linewidth(0.5)
                 fig.spines['left'].set_color('#333333')
@@ -406,19 +370,22 @@ def plot_scanRBP():
                 vector_upcontrol = [e1/len(matrix_upcontrol) for e1 in vector_upcontrol] # normalize
                 vector_upcontrol = smooth(vector_upcontrol, smoothing)[25:-25]
                 fig = sns.lineplot(data={"x":x, "y":vector_upcontrol}, x="x", y="y", linewidth=2, color='#ffab40')
-                #fig.fill_between(x, vector_upcontrol, color='#fb6767')
 
                 vector_downcontrol = [e1/len(matrix_downcontrol) for e1 in vector_downcontrol] # normalize
                 vector_downcontrol = smooth(vector_downcontrol, smoothing)[25:-25]
                 vector_downcontrol = [-e1 for e1 in vector_downcontrol]
                 fig = sns.lineplot(data={"x":x, "y":vector_downcontrol}, x="x", y="y", linewidth=2, color='#ffab40')
-                #fig.fill_between(x, vector_downcontrol, color='#6767fb')
 
                 plt.plot([-80, 80], [0, 0], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
                 plt.plot([0, 0], [-max_val, max_val], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
                 fig.set(ylim=(-max_val, max_val))
                 fig.set(xlim=(-80, 80))
-                plt.title(f"{dtype} {protein_label}, FDR<0.05, up=(#{len(matrix_up)}, logfc={logfc_value_up:.3}, pval={p_value_up:.3}), down=(#{len(matrix_down)}, logfc={logfc_value_down:.3}, pval={p_value_down:.3})), #up_control={len(matrix_upcontrol)}, #down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
+
+                # make pvalue label
+                p_value_up = "<1e-5" if p_value_up==0 else f"{p_value_up:.3}"
+                p_value_down = "<1e-5" if p_value_down==0 else f"{p_value_down:.3}"
+
+                plt.title(f"{protein_label} {comparison} {dtype} {cname}, FDR<0.05, up=(#{len(matrix_up)}, logfc={logfc_value_up:.3}, pval={p_value_up}), down=(#{len(matrix_down)}, logfc={logfc_value_down:.3}, pval={p_value_down}), #up_control={len(matrix_upcontrol)}, #down_control={len(matrix_downcontrol)}, smoothing={smoothing}")
                 plt.tight_layout() 
                 plt.savefig(f"results/motifs/scanRBP/{protein_label}_{comparison}_{dtype}_{cname}.png", dpi=300)
                 plt.close()
@@ -433,7 +400,7 @@ def make_logos():
     # produces report in images and html
 
     for feature_type, mcriteria in motif_criteria.items():
-        h_donors = {} # handle to fasta donor sequence files
+        h_donors = {} # handle for fasta donor sequence files
         f = gzip.open(f"results/edgeR/{feature_type}_results_complete.tab.gz", "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         r = f.readline()
@@ -457,7 +424,7 @@ def make_logos():
                 else:
                     donor_site, acceptor_site = start, stop
             donor_seq = pybio.core.genomes.seq(config.species, chr, strand, donor_site, splice_sites_area[0], splice_sites_area[1], genome_version=config.genome_version)
-            if donor_seq.find("N")!=-1: # ignore sequences containing N
+            if donor_seq.find("N")!=-1: # ignore sequences with N
                 r = f.readline()
                 continue
             acceptor_seq = pybio.core.genomes.seq(config.species, chr, strand, acceptor_site, splice_sites_area[0], splice_sites_area[1], genome_version=config.genome_version)
@@ -483,7 +450,6 @@ def make_logos():
                 except:
                     criteria_met = False
 
-                #if criteria_met:
                 if criteria_met and donor_id not in feature_added.get((cryteria_name, seq_field, data["comparison"]), set()):
                     temp = treatment_seq_bytype.get(cryteria_name, {})
                     if seq_field=="donor":
@@ -504,7 +470,6 @@ def make_logos():
                     if seq_field=="acceptor":
                         feature_set.add(acceptor_id)
                     feature_added[(cryteria_name, seq_field, data["comparison"])] = feature_set
-
 
             temp = treatment_seq_bytype.get(f"{feature_type}_all", {})
             temp.setdefault(treatment, []).append(donor_seq)
@@ -587,15 +552,6 @@ def dreme():
         for dreme_name, dreme_positive, dreme_negative in dreme_criteria:
             command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{dreme_positive}.fasta -n results/motifs/fasta/{comp_id}_{dreme_negative}.fasta -oc results/motifs/dreme/{comp_id}_{dreme_name}"
             os.system(command)
-
-        # for feature_type, mcriteria in motif_criteria.items():
-        #     for (criteria_name, _, _) in mcriteria:
-        #         if criteria_name.endswith("_controls"):
-        #             continue
-        #         if os.path.exists(f"results/motifs/fasta/{feature_type}_donor_controls.fasta"):
-        #             if os.path.exists(f"results/motifs/fasta/{comp_id}_{criteria_name}.fasta"):
-        #                 command = f"{splicekit.config.container} dreme -png -k 7 -norc -m 5 -p results/motifs/fasta/{comp_id}_{criteria_name}.fasta -n results/motifs/fasta/{feature_type}_donor_controls.fasta -oc results/motifs/dreme/{comp_id}_{criteria_name}"
-        #                 os.system(command)
 
 def make_distance():
     print(f"{module_name} make_distance | start")
@@ -736,7 +692,8 @@ def process():
     if config.scanRBP:
         make_scanRBP()
         plot_scanRBP()
-    #make_logos()
-    #dreme()
-    #make_distance()
-    #cluster()
+        scanRBP_dreme()
+    make_logos()
+    dreme()
+    make_distance()
+    cluster()

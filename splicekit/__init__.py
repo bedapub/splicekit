@@ -44,6 +44,8 @@ print("splicekit | loading splicekit.core.delta_dar")
 import splicekit.core.delta_dar
 print("splicekit | loading splicekit.clusterlogfc")
 import splicekit.clusterlogfc
+print("splicekit | loading splicekit.june")
+import splicekit.june
 print("splicekit | loading splicekit.report")
 import splicekit.report
 
@@ -265,7 +267,9 @@ def rmats():
         splicekit.core.mprocess("jobs/rmats/process.sh")
     if splicekit.config.platform=="SLURM":
         os.system('jobs=( $(ls jobs/rmats/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[splicekit.rmats] submitted $job_fname"; job_id=$(sbatch --mem=8G --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[splicekit.rmats] processing next 10"; done; echo "[splicekit.rmats] processing complete"')
-    
+
+def june_process():
+    splicekit.june.process()
 
 def process(force=False):
     setup()
@@ -277,5 +281,6 @@ def process(force=False):
     motifs()
     promisc()
     clusterlogfc_process()
+    june_process()
     splicekit.report.process()
     jbrowse2_process(force_samples=force, force_annotation=force)

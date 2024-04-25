@@ -9,11 +9,6 @@ import splicekit.core.annotation as annotation
 import splicekit.core as core
 import splicekit
 
-# dictionary of last nucleotide of first exon of transcripts
-# used to annotate junctions hitting 5'UTR / alternative 5'UTR
-# -> promoter changes
-# annotation.first_exons[(chr, strand, pos)] = (transcript_id, gene_id)
-
 def short_names(text):
     result = text
     if getattr(config, "short_names", None) == None:
@@ -35,7 +30,7 @@ def break_readout_id(item):
     for splitter in [" ", "_", "-"]:
         item_temp = item_process.split(splitter)
         # separates the string by splitter
-        # find the first element that could be casted to integer and return (integer, string_without_element)
+        # find first element that casts to int and return (int, str_without_element)
         if len(item_temp)>1:
             for item_index_test in range(0, len(item_temp)):
                 if item_temp[item_index_test].isdigit():
@@ -47,12 +42,6 @@ def break_readout_id(item):
 
 def sort_readout_id(data):
     return sorted(data, key=break_readout_id)
-
-def to_int(el):
-    try:
-        return int(el)
-    except:
-        return el
 
 class Cmd():
     # Interface for running commands from Python.
@@ -74,7 +63,10 @@ def make_comparisons():
     annotation.treatments = {}
     samples = set()
     f = open("samples.tab")
-    header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+    r = f.readline()
+    while r.startswith("#"):
+        r = f.readline()
+    header = r.replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
     separates = set()
     while r:
@@ -90,8 +82,7 @@ def make_comparisons():
         annotation.treatments.setdefault(treatment_id, []).append((sample_id, treatment_id, data.get(config.separate_column, ""), data.get(config.group_column, "")))
         r = f.readline()
     f.close()
-    # sort by sample ID
-    for treatment, data in annotation.treatments.items():
+    for treatment, data in annotation.treatments.items(): # sort by sample ID
         try:
             annotation.treatments[treatment] = sort_readout_id(data)
         except:
@@ -228,7 +219,6 @@ def write_edgeR_jobs():
 module load R
 {container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
     """
-        
 
     else:
         job_edgeR="""
@@ -255,11 +245,9 @@ ml R
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         for (sample_id, _, _, _) in control_set:
             # in some rare cases, the same sample can be part of diverse control groups
-            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
             sample_membership[sample_id] = control_group_id
         for (sample_id, _, _, _) in test_set:
             # in some rare cases, the same sample can be part of diverse test groups
-            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
             sample_membership[sample_id] = test_group_id
     sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
@@ -369,11 +357,9 @@ ml R
     for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
         for (sample_id, _, _, _) in control_set:
             # in some rare cases, the same sample can be part of diverse control groups
-            #assert(sample_membership.get(sample_id, None) in [None, control_group_id])
             sample_membership[sample_id] = control_group_id
         for (sample_id, _, _, _) in test_set:
             # in some rare cases, the same sample can be part of diverse test groups
-            #assert(sample_membership.get(sample_id, None) in [None, test_group_id])
             sample_membership[sample_id] = test_group_id
     sample_membership = [sample_membership[sample_id] for sample_id in annotation.samples]
     try:
@@ -451,9 +437,9 @@ def make_design_contrast():
     f.close()
 
 def bam_count():
-    return
-    fout = open("annotation/bam_counts.tab", "wt")
-    fout.write("\t".join([config.sample_column, "bam_count"]) + "\n")
+    if os.path.exists("annotation/bam_counts.tab"):
+        return
+    counts = []
     f = open("samples.tab")
     header = f.readline().replace("\r", "").replace("\n", "").split("\t")
     r = f.readline()
@@ -463,9 +449,13 @@ def bam_count():
         bam_fname = os.path.join(config.bam_path, data[config.sample_column]+".bam")
         output = subprocess.check_output(f"samtools view -@ 4 -c {bam_fname}", shell=True)
         count = int(output.decode().split("\n")[0])
-        print(f"splicekit | bam read counts: {data['readout_id']}, bam file {bam_fname}, counts = {count}")
+        print(f"splicekit | bam read counts: {data[splicekit.config.sample_column]}, bam file {bam_fname}, counts = {count}")
         row = [data[config.sample_column], count]
-        fout.write("\t".join([str(x) for x in row]) + "\n")
+        counts.append(row)
         r = f.readline()
     f.close()
+    fout = open("annotation/bam_counts.tab", "wt")
+    fout.write("\t".join([config.sample_column, "bam_count"]) + "\n")
+    for row in counts:
+        fout.write("\t".join([str(x) for x in row]) + "\n")
     fout.close()

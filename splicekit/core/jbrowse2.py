@@ -27,9 +27,9 @@ def setup():
     if not os.path.exists("jbrowse2"):
         os.makedirs("jbrowse2")
     if not os.path.exists("jbrowse2/version.txt"):
-        os.system("wget https://github.com/GMOD/jbrowse-components/releases/download/v2.4.2/jbrowse-web-v2.4.2.zip -O jbrowse2/jbrowse-web-v2.4.2.zip")
-        os.system("unzip -qq -d jbrowse2 -o jbrowse2/jbrowse-web-v2.4.2.zip")
-        os.system("rm jbrowse2/jbrowse-web-v2.4.2.zip")
+        os.system("wget https://github.com/GMOD/jbrowse-components/releases/download/v2.10.3/jbrowse-web-v2.10.3.zip -O jbrowse2/jbrowse-web-v2.10.3.zip")
+        os.system("unzip -qq -d jbrowse2 -o jbrowse2/jbrowse-web-v2.10.3.zip")
+        os.system("rm jbrowse2/jbrowse-web-v2.10.3.zip")
 
 # JBrowse2 part
 
