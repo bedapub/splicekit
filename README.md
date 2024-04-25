@@ -46,21 +46,22 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Changelog<a name="changelog"></a>
 
-**v0.5.1**: released in February 2024
-* reports
-* other small fixes
+**v0.6**: released in April 2024
+
+* updated reports
+* JUNE analysis (junction-events to classify skipped and mutually exclusive exons)
 
 <details>
-<summary><b>v0.4.9</b>: released in November 2023</summary>
+<summary>Past changenotes (click to view)</summary>
+
+<b>v0.4.9</b>: released in November 2023
 
 * added rMATS analysis for splicing events
 * added Docker container that can be directly imported to singularity via ghcr.io
 * fixed dependencies
 * other small fixes
-</details>
 
-<details>
-<summary><b>v0.4</b>: released in May 2023 (click to show details)</summary>
+<b>v0.4</b>: released in May 2023
 
 * added singularity container with all dependencies
 * added local integrated JBrowse2
@@ -68,10 +69,8 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 * scanRBP and bootstrap analysis of RNA-protein binding
 * further development and integration with pybio
 * extended documentation of concepts, analysis and results
-</details>
 
-<details>
-<summary><b>v0.3</b>: released in January 2023 (click to show details)</summary>
+<b>v0.3</b>: released in January 2023 (click to show details)
 
 * re-coded junction analysis
   * independent junctions parsing from provided bam files
@@ -79,25 +78,22 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 * clustering by logFC of pairwise-comparisons with dendrogram: junction, exon and gene levels (clusterlogfc module)
 * added *first_exon* annotation for junctions touching annotated first exons of transcripts
 * extended documentation of concepts, analysis and results
-</details>
 
-<details>
-<summary><b>v0.2</b>: released in October 2022 (click to show details)</summary>
+<b>v0.2</b>: released in October 2022
 
 * software architecture restructure with python modules
 * filtering of lowly expressed features by edgeR
 * DonJuan analysis (junction-anchor analysis)
 * more advanced motif analysis with DREME
 * filtering regulated junctions with regulated donors
-</details>
 
-<details>
-<summary><b>v0.1</b>: released in July 2022 (click to show details)</summary>
+<b>v0.1</b>: released in July 2022
 
 * initial version of splicekit
 * parsing of junction and exon counts
 * computing edgeR analysis from count tables and producing a results file with direct links to JBrowse2
 * basic motif analysis
+
 </details>
 
 ## Citing and Contact<a name="citation"></a>
