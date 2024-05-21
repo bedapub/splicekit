@@ -70,7 +70,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
         jobs_dir = f'jobs/count_{anchor_type}_anchors'
         logs_dir = f'logs/count_{anchor_type}_anchors'
 
-        if splicekit.config.platform == 'SLURM':
+        if config.platform == 'SLURM':
 
             job_anchors="""
 #!/bin/bash
