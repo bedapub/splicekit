@@ -75,7 +75,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     jobs_dir = f"jobs/count_genes"
     logs_dir = f"logs/count_genes"
 
-    if splicekit.config.platform == 'SLURM':
+    if config.platform == 'SLURM':
         job_genes="""
 #!/bin/bash
 #SBATCH --job-name=count_genes_{sample_id}            # Job name

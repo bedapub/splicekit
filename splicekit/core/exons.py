@@ -65,7 +65,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     jobs_dir = f'jobs/count_exons'
     logs_dir = f'logs/count_exons'
 
-    if splicekit.config.platform == 'SLURM':
+    if config.platform == 'SLURM':
         job_exons="""
 #!/bin/bash
 #SBATCH --job-name=count_exons_{sample_id}            # Job name
