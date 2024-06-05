@@ -24,12 +24,13 @@ RUN apt-get install -y autoconf automake build-essential ca-certificates cmake c
 RUN pip3 install deeptools cython==0.29.36
 RUN npm install -g @jbrowse/cli
 
-# R with edgeR
+# R with edgeR and other packages
 RUN R -e "install.packages('BiocManager')"
 RUN R -e "BiocManager::install('edgeR')"
 RUN R -e "install.packages('data.table')"
 RUN R -e "install.packages('statmod')"
 RUN R -e "install.packages('R.utils')"
+RUN R -e "install.packages('DEXSeq')"
 
 # Perl modules
 RUN cpanm XML::Compile::Transport::SOAPHTTP XML::Compile::WSDL11 XML::Compile::SOAP11 XML::Compile XML::LibXML::Simple XML::LibXML Log::Log4perl Math::CDF CGI File::Which Data::Dumper File::Copy File::Spec::Functions HTML::PullParser HTML::Template HTML::TreeBuilder JSON Pod::Usage XML::Simple XML::Parser::Expat
