@@ -59,7 +59,7 @@ def make_distance(fdr_thr=0.05):
         for index2, comparison_id2 in enumerate(comparisons):
             if not (index1<index2<m):
                 continue
-            print("[clusterlogfc] distance for:", comparison_id1, comparison_id2)
+            print("clusterlogfc | distance for:", comparison_id1, comparison_id2)
             if os.path.exists(f"data/{comparison_id1}_{comparison_id2}_junctions.tab"):
                 continue
             # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html#scipy.spatial.distance.pdist
@@ -97,7 +97,11 @@ def make_cluster(fdr_thr=0.05):
             r = f.readline()
         f.close()
 
-        Z = linkage(cdm, 'ward')
+        try:
+            Z = linkage(cdm, 'ward')
+        except:
+            print("clusterlogfc | problem computing linkage on distance matrix, empty distance matrix?")
+            return False
         cutree = cut_tree(Z)
         clusters = {}
         for compound_index, cluster_nr in enumerate(cutree):
