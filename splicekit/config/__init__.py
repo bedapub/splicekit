@@ -55,3 +55,8 @@ try:
     cluster_queue
 except:
     cluster_queue = "short"
+
+try:
+    clip
+except:
+    clip = None

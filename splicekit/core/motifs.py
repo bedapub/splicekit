@@ -24,6 +24,8 @@ import copy
 module_name = "splicekit | motifs |"
 logFC_thresh = 1 # threshold for events to be considered by effect size
 motif_FDR = 0.05 # we use this threshold for motifs
+biterations = 100000
+biterations = 100
 
 # scan / motif areas
 scanRBP_area = 100 # feature_site-scanRBP_area ... feature_site+scanRBP_area
@@ -186,11 +188,25 @@ def make_scanRBP():
                     chr = '_'.join(coords[:-2])[:-1]
                     if comparison_counts.get((criteria_name, data["comparison"]), 0)<1000: # no more than 1000 sequences per criteria per comparison
                         comparison_counts[(criteria_name, data["comparison"])] = comparison_counts.setdefault((criteria_name, data["comparison"]), 0) + 1
-                        splice_site = start if strand=="+" and feature_type=="junctions" else stop
+
+                        # 20240624
+                        if feature_type=="junctions":
+                            if seq_field=="donor":
+                                splice_site = start if strand=="+" else stop
+                            if seq_field=="acceptor":
+                                splice_site = stop if strand=="+" else start
+                        if feature_type=="exons":
+                            if seq_field=="donor":
+                                splice_site = stop if strand=="+" else start
+                            if seq_field=="acceptor":
+                                splice_site = start if strand=="+" else stop
+
                         start_pos = splice_site - scanRBP_area
                         stop_pos = splice_site + scanRBP_area
+
                         splice_seq = pybio.core.genomes.seq_direct(config.species, chr, strand, start_pos, stop_pos, genome_version=config.genome_version)
-                        fasta_id = f"{chr}{strand}_{splice_site}"
+                        #fasta_id = f"{chr}{strand}_{splice_site}"
+                        fasta_id = f"{chr}{strand}_{start_pos}_{stop_pos}"
                         result_data = scanRBP_data.get((criteria_name, data["comparison"]), {})
                         result_data.setdefault(fasta_id, {})
                         result_data[fasta_id]["seq"] = splice_seq
@@ -210,7 +226,14 @@ def make_scanRBP():
                 seq = data["seq"]
                 f.write(f">{fasta_id} {result_list}\n{seq}\n")
             f.close()
-            os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
+            if config.clip not in [None, ""]:
+                # user provided bedGraph with CLIP peaks?
+                print(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein} -clip {config.clip}")
+                os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein} -clip {config.clip}")
+            else:
+                # scan sequences using PWM
+                print(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
+                os.system(f"scanRBP {fasta_fname} --output_folder results/motifs/scanRBP/data -nonzero -protein {config.protein}")
 
 def scanRBP_dreme():
     for cdata in splicekit.core.annotation.comparisons:
@@ -252,7 +275,7 @@ def bootstrap_logfc(matrix_signal, matrix_control, smoothing=6, iterations=1000)
         vector_signal = matrix_vector(matrix_signal)
         vector_control = matrix_vector(matrix_control)
         if sum(vector_control)==0 or sum(vector_signal)==0:
-            logfc = 0
+            logfc = float(0)
         else:
             logfc = float(sum(vector_signal))/sum(vector_control)
             logfc = math.log(logfc, 2)
@@ -311,7 +334,7 @@ def plot_scanRBP():
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
                 matrix_downcontrol, vector_downcontrol, rows_downcontrol = read_matrix_vector(downcontrol_fasta, dtype=dtype)
 
-                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=100000)
+                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_up = bootup[0]
                 bootup.sort(reverse=True)
                 index_up = bootup.index(logfc_value_up)
@@ -322,7 +345,7 @@ def plot_scanRBP():
                 up_file.close()
                 p_value_up = index_up/float(len(bootup))
 
-                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=100000)
+                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_down = bootdown[0]
                 bootdown.sort(reverse=True)
                 index_down = bootdown.index(logfc_value_down)
