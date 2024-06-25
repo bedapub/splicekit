@@ -24,8 +24,8 @@ import copy
 module_name = "splicekit | motifs |"
 logFC_thresh = 1 # threshold for events to be considered by effect size
 motif_FDR = 0.05 # we use this threshold for motifs
-biterations = 100000
 biterations = 100
+biterations = 100000
 
 # scan / motif areas
 scanRBP_area = 100 # feature_site-scanRBP_area ... feature_site+scanRBP_area
@@ -245,10 +245,10 @@ def scanRBP_dreme():
                 upcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_up}_scanRBP.fasta"
                 downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
 
-                command = f"dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
+                command = f"{splicekit.config.container} dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
                 os.system(command)
 
-                command = f"dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
+                command = f"{splicekit.config.container} dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
                 os.system(command)
     return True
 
@@ -336,8 +336,11 @@ def plot_scanRBP():
 
                 bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_up = bootup[0]
-                bootup.sort(reverse=True)
-                index_up = bootup.index(logfc_value_up)
+                if logfc_value_up!=0:
+                    bootup.sort(reverse=True)
+                    index_up = bootup.index(logfc_value_up)
+                else:
+                    index_up = float(len(bootup))
                 print(f"{module_name} plot_scanRBP | up logFC = ", logfc_value_up)
                 print(f"{module_name} plot_scanRBP | p-value up = ", index_up/float(len(bootup)))
                 up_file = open(f"results/motifs/scanRBP/{comparison}_{signal_up}_bootstrap.tab", "wt")
@@ -347,8 +350,11 @@ def plot_scanRBP():
 
                 bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_down = bootdown[0]
-                bootdown.sort(reverse=True)
-                index_down = bootdown.index(logfc_value_down)
+                if logfc_value_down!=0:
+                    bootdown.sort(reverse=True)
+                    index_down = bootdown.index(logfc_value_down)
+                else:
+                    index_down = float(len(bootdown))
                 print(f"{module_name} plot_scanRBP | down logFC = ", logfc_value_down)
                 print(f"{module_name} plot_scanRBP | p-value down = ", index_down/float(len(bootdown)))
                 print()
