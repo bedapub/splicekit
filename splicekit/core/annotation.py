@@ -202,6 +202,7 @@ def write_comparisons():
         comps_table.write("\t".join(row) + "\n") 
     comps_table.close()
     write_edgeR_jobs()
+    write_dexseq_jobs()
     write_mds_job()
 
 def write_edgeR_jobs():
@@ -317,6 +318,66 @@ ml R
     fsh_junctions.close()
     fsh_donor_anchors.close()
     fsh_acceptor_anchors.close()
+
+def write_dexseq_jobs():
+    if splicekit.config.platform == 'SLURM':
+            job_dexseq="""
+#!/bin/bash
+#SBATCH --job-name={job_name}                                     # Job name
+#SBATCH --ntasks=1                                                # Number of tasks
+#SBATCH --nodes=1                                                 # All tasks on one node
+#SBATCH --mem=8G                                                  # Allocate memory
+#SBATCH --partition=short                                         # Select queue
+#SBATCH --output=logs/dexseq/{atype}/{comparison_name}.out         # Output file
+#SBATCH --error=logs/dexseq/{atype}/{comparison_name}.err          # Error file
+
+module load R
+{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {samples} < {core_path}/comps_dexseq.R
+    """
+
+    else:
+        job_dexseq="""
+#!/bin/bash
+#BSUB -J {job_name}                                     # job name
+#BSUB -n 1                                              # number of tasks
+#BSUB -R "span[hosts=1]"                                # allocate hosts
+#BSUB -M {memory}                                       # allocate memory
+#BSUB -q {queue}                                        # select queue
+#BSUB -o logs/dexseq/{atype}/{comparison_name}.out # output file
+#BSUB -e logs/dexseq/{atype}/{comparison_name}.err # error file
+
+ml R
+{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {samples} < {core_path}/comps_dexseq.R
+    """
+
+    job_sh_dexseq="""{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {samples} < {core_path}/comps_dexseq.R"""
+    fsh_exons = open(f"jobs/dexseq/exons/process.sh", "wt")
+    for (comparison_name, control_set, test_set, control_group_id, test_group_id) in annotation.comparisons:
+        control_name = control_group_id
+        test_name = test_group_id
+        fout_exons = open(f"jobs/dexseq/exons/{comparison_name}.job", "wt")
+        control_ids = []
+        test_ids = []
+        for (sample_id, compound, rep, _) in control_set:
+            control_ids.append(sample_id)
+        for (sample_id, compound, rep, _) in test_set:
+            test_ids.append(sample_id)
+        try:
+            control_ids = sort_readout_id(control_ids)
+        except:
+            pass
+        try:
+            test_ids = sort_readout_id(test_ids)
+        except:
+            pass
+        sample_membership = ["control"] * len(control_ids) + ["test"] * len(test_ids)
+        # dexseq exons
+        job_exons = job_dexseq.format(queue=config.cluster_queue, memory=config.dexseq_memory, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", job_name="dexseq_exons_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership), samples=",".join(str(el) for el in control_ids+test_ids))
+        fout_exons.write(job_exons)
+        fout_exons.close()        
+        job_sh_exons = job_sh_dexseq.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership), samples=",".join(str(el) for el in control_ids+test_ids))
+        fsh_exons.write(job_sh_exons+"\n")
+    fsh_exons.close()
 
 def write_mds_job():
     if splicekit.config.platform == 'SLURM':
