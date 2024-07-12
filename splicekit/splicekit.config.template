@@ -5,6 +5,9 @@ library_strand = "NONE" # ["SECOND_READ_TRANSCRIPTION_STRAND", "FIRST_READ_TRANS
 # edgeR results filtering
 edgeR_FDR_thr = 0.05
 
+# dexseq (path to scripts)
+dexseq_scripts = ""
+
 # sample annotation (read from samples.tab)
 sample_column = "sample_id" # where are sample ids stored; we expect bam names: sample_id1.bam, sample_id2.bam, ...
 treatment_column = "treatment_id"

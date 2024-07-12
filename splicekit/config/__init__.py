@@ -52,6 +52,26 @@ except:
     edgeR_memory = "8GB"
 
 try:
+    dexseq_memory
+except:
+    dexseq_memory = "8GB"
+
+try:
+    dexseq_scripts
+except:
+    dexseq_scripts = ""
+
+try:
+    dexseq_FDR_thr
+except:
+    dexseq_FDR_thr = 0.05
+
+try:
     cluster_queue
 except:
     cluster_queue = "short"
+
+try:
+    clip
+except:
+    clip = None

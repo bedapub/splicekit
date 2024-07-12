@@ -21,7 +21,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825
 # update and install
 RUN apt-get update
 RUN apt-get install -y autoconf automake build-essential ca-certificates cmake cpanminus curl curl fort77 gcc gfortran ghostscript git gnupg gnupg2 gzip libblas-dev libbz2-dev libcurl4-openssl-dev libexpat1-dev libgd-dev libgmp3-dev libgs-dev libgsl-dev libhtml-template-compiled-perl liblapack-dev liblzma-dev libmpc-dev libmpfr-dev libncurses5-dev libopenmpi-dev libssl-dev libtool libxml-libxml-debugging-perl libxml-opml-simplegen-perl libxml2 libxml2-dev libxslt1-dev libxslt1.1 nodejs openmpi-bin python-is-python3 python3 python3-dev python3-pip r-base wget zlib1g-dev
-RUN pip3 install deeptools cython==0.29.36
+RUN pip3 install deeptools cython==0.29.36 htseq
 RUN npm install -g @jbrowse/cli
 
 # R with edgeR and other packages

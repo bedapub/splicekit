@@ -231,6 +231,58 @@ def edgeR(run=None):
             os.system('jobs=( $(ls jobs/edgeR/acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[edgeR.acceptor_anchors] submitted $job_fname"; job_id=$(sbatch --mem=${config.edgeR_memory} --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[edgeR] processing next 10"; done; echo "[edgeR.acceptor_anchors] processing complete"')
         splicekit.core.report.edgeR_feature('acceptor_anchors')
 
+def dexseq(run=None):
+
+    if run=="junctions" or run==None:
+        splicekit.core.annotation.make_comparisons()
+        os.system(f"rm -f results/dexseq/junctions/*.tab.gz > /dev/null 2>&1")
+        if splicekit.config.platform=="cluster":
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/dexseq/junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[dexseq.junctions] submitted $job_fname"; bsub -M ' + config.dexseq_memory + ' -K < ${job_fname} & done; wait; echo "[dexseq.junctions] processing next 10"; done; echo "[dexseq.junctions] processing complete"')
+        if splicekit.config.platform=="desktop":
+            os.system(f". jobs/dexseq/junctions/process.sh")
+        if splicekit.config.platform=="SLURM":
+            os.system('jobs=( $(ls jobs/dexseq/junctions/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[dexseq.junctions] submitted $job_fname"; job_id=$(sbatch --mem=' + config.dexseq_memory + ' --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[dexseq.junctions] processing next 10"; done; echo "[dexseq.junctions] processing complete"')
+        splicekit.core.report.dexseq_feature('junctions')
+        splicekit.core.patterns.process() # adds patterns
+
+    if run=="exons" or run==None:
+        os.system(f"rm -f results/dexseq/exons/*.tab.gz > /dev/null 2>&1")
+        if splicekit.config.platform=="cluster":
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/dexseq/exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[dexseq.exons] submitted $job_fname"; bsub -M ' + config.dexseq_memory + ' -K < ${job_fname} & done; wait; echo "[dexseq.exons] processing next 10"; done; echo "[dexseq.exons] processing complete"')
+        if splicekit.config.platform=="desktop":
+            os.system(f". jobs/dexseq/exons/process.sh")
+        if splicekit.config.platform=="SLURM":
+            os.system('jobs=( $(ls jobs/dexseq/exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[dexseq.exons] submitted $job_fname"; job_id=$(sbatch --mem=' + config.dexseq_memory + ' --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[dexseq.exons] processing next 10"; done; echo "[dexseq.exons] processing complete"')
+        splicekit.core.report.dexseq_feature('exons')
+
+    if run=="genes" or run==None:
+        os.system(f"rm -f results/dexseq/genes/*.tab.gz > /dev/null 2>&1")
+        if splicekit.config.platform=="cluster":
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/dexseq/genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[dexseq.genes] submitted $job_fname"; bsub -M ' + config.dexseq_memory + ' -K < ${job_fname} & done; wait; echo "[dexseq.genes] processing next 10"; done; echo "[dexseq.exons] processing complete"')
+        if splicekit.config.platform=="desktop":
+            os.system(f". jobs/dexseq/genes/process.sh")
+        if splicekit.config.platform=="SLURM":
+            os.system('jobs=( $(ls jobs/dexseq/genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[dexseq.genes] submitted $job_fname"; job_id=$(sbatch --mem=${config.dexseq_memory} --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[dexseq.genes] processing next 10"; done; echo "[dexseq.genes] processing complete"')
+        splicekit.core.report.dexseq_feature('genes')
+
+    if run=="anchors" or run==None:
+        os.system(f"rm -f results/dexseq/donor_anchors/*.tab.gz > /dev/null 2>&1")
+        if splicekit.config.platform=="cluster":
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/dexseq/donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[dexseq.donor_anchors] submitted $job_fname"; bsub -M ' + config.dexseq_memory + ' -K < ${job_fname} & done; wait; echo "[dexseq] processing next 10"; done; echo "[dexseq.donor_anchors] processing complete"')
+        if splicekit.config.platform=="desktop":
+            os.system(f". jobs/dexseq/donor_anchors/process.sh")
+        if splicekit.config.platform=="SLURM":
+            os.system('jobs=( $(ls jobs/dexseq/donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[dexseq.donor_anchors] submitted $job_fname"; job_id=$(sbatch --mem=${config.dexseq_memory} --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[dexseq] processing next 10"; done; echo "[dexseq.donor_anchors] processing complete"')
+        splicekit.core.report.dexseq_feature('donor_anchors')
+        os.system(f"rm -f results/dexseq/acceptor_anchors/*.tab.gz > /dev/null 2>&1")
+        if splicekit.config.platform=="cluster":
+            os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/dexseq/acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[dexseq.acceptor_anchors] submitted $job_fname"; bsub -M ' + config.dexseq_memory + ' -K < ${job_fname} & done; wait; echo "[dexseq] processing next 10"; done; echo "[dexseq.acceptor_anchors] processing complete"')
+        if splicekit.config.platform=="desktop":
+            os.system(f". jobs/dexseq/acceptor_anchors/process.sh")
+        if splicekit.config.platform=="SLURM":
+            os.system('jobs=( $(ls jobs/dexseq/acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); job_ids=(); for job_fname in "${part[@]}"; do echo "[dexseq.acceptor_anchors] submitted $job_fname"; job_id=$(sbatch --mem=${config.dexseq_memory} --parsable ${job_fname}); job_ids+=($job_id); done; for job_id in "${job_ids[@]}"; do scontrol show job $job_id | grep -q "JobState=COMPLETED" || scontrol wait job $job_id; done; echo "[dexseq] processing next 10"; done; echo "[dexseq.acceptor_anchors] processing complete"')
+        splicekit.core.report.dexseq_feature('acceptor_anchors')
+
 def juan():
     splicekit.core.juan.append_results() # reads in results_edgeR_junctions.tab and appends anchor info from results/results_edgeR_anchors/{comparison}_altsplice.tab
 

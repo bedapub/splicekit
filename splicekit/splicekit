@@ -48,6 +48,18 @@ Sub-commands:
 If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
 """
 
+help_dexseq = """
+Usage: splicekit dexseq [sub-command]
+
+Sub-commands:
+     junctions      run DEXSeq on junctions table data
+     exons          run DEXSeq on exons table data
+     anchors        run DEXSeq on anchors table data
+     genes          run DEXSeq on genes table data
+
+If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
+"""
+
 help_motifs = """
 Usage: splicekit motifs [sub-command]
 
@@ -127,6 +139,18 @@ elif args.command[0]=="edgeR":
         splicekit.edgeR()
     else:
         print(help_edgeR)
+        sys.exit(0)
+elif args.command[0]=="dexseq":
+    if args.help:
+        print(help_dexseq)
+        sys.exit(0)
+    if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
+        splicekit.core.features.load_genes()
+        splicekit.dexseq(run=args.command[1])
+    elif len(args.command)==1:
+        splicekit.dexseq()
+    else:
+        print(help_dexseq)
         sys.exit(0)
 elif args.command[0]=="motifs":
     if args.help:
