@@ -100,8 +100,8 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 If you find **splicekit** useful in your work and research, please cite:
 
-Gregor Rot, Arne Wehling, Roland Schmucki, Nikolaos Berntenis, Jitao David Zhang, Martin Ebeling<br>
-<a href='https://www.biorxiv.org/content/10.1101/2023.05.25.542256v1' target='_biorxiv'>splicekit: a comprehensive toolkit for splicing analysis from short-read RNA-seq</a><br>
-bioRxiv, 2023.05. 25.542256
+Rot, G., Wehling, A., Schmucki, R., Berntenis, N., Zhang, J. D., & Ebeling, M. (2024)<br>
+[splicekit : an integrative toolkit for splicing analysis from short-read RNA-seq](https://academic.oup.com/bioinformaticsadvances/article/4/1/vbae121/7735317)<br>
+Bioinformatics Advances, 4(1). https://doi.org/10.1093/bioadv/vbae121
 
 In case of questions, issues and other ideas, please use the <a href='https://github.com/bedapub/splicekit/issues'>GitHub Issues</a> or write directly to <a href='mailto:gregor.rot@gmail.com'>Gregor Rot</a>.
