@@ -24,7 +24,7 @@ RUN apt-get install -y autoconf automake build-essential ca-certificates cmake c
 RUN pip3 install deeptools cython==0.29.36 htseq
 RUN npm install -g @jbrowse/cli
 
-# R with edgeR
+# R with edgeR and other packages
 RUN R -e "install.packages('BiocManager')"
 RUN R -e "BiocManager::install('edgeR')"
 RUN R -e "install.packages('data.table')"
