@@ -43,7 +43,7 @@ RUN ./configure --prefix=/meme --with-url=http://meme-suite.org --enable-build-l
 RUN make
 RUN make install
 
-# rmats-turbo
+# rmats-turbo (check)
 RUN apt-get update
 RUN apt-get install -y subread bedtools samtools tabix
 WORKDIR /
