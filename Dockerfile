@@ -58,9 +58,6 @@ ENV PATH="$PATH:/rmats-turbo:/meme/bin:/usr/local/bin"
 WORKDIR /usr/splicekit
 COPY . /usr/splicekit
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Install the package from the current repository
 RUN pip install .
 
