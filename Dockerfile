@@ -43,7 +43,7 @@ RUN ./configure --prefix=/meme --with-url=http://meme-suite.org --enable-build-l
 RUN make
 RUN make install
 
-# rmats-turbo
+# rmats-turbo (check)
 RUN apt-get update
 RUN apt-get install -y subread bedtools samtools tabix
 WORKDIR /
@@ -53,3 +53,13 @@ RUN ./build_rmats
 
 # environment variables
 ENV PATH="$PATH:/rmats-turbo:/meme/bin:/usr/local/bin"
+
+# Install the splicekit package
+WORKDIR /usr/splicekit
+COPY . /usr/splicekit
+
+# Install the package from the current repository
+RUN pip install .
+
+# Run the application
+CMD ["splicekit"]
