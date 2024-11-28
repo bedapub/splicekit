@@ -51,15 +51,20 @@ RUN git clone https://github.com/Xinglab/rmats-turbo.git
 WORKDIR rmats-turbo
 RUN ./build_rmats
 
-# environment variables
-ENV PATH="$PATH:/rmats-turbo:/meme/bin:/usr/local/bin"
-
 # Install the splicekit package
 WORKDIR /usr/splicekit
 COPY . /usr/splicekit
 
 # Install the package from the current repository
 RUN pip install .
+
+# Install STAR read aligner
+WORKDIR /
+RUN wget https://github.com/alexdobin/STAR/archive/2.7.11b.tar.gz
+RUN tar -xzf 2.7.11b.tar.gz
+
+# environment variables
+ENV PATH="$PATH:/rmats-turbo:/meme/bin:/usr/local/bin:/STAR-2.7.11b/bin/Linux_x86_64"
 
 # Run the application
 CMD ["splicekit"]
