@@ -124,6 +124,7 @@ def make_comparisons():
                     control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
                     comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}"
                 annotation.comparisons.append((short_names(comparison_name), temp_control, temp_test, short_names(control_group_id), short_names(test_group_id)))
+
     # sort and cast sample_ids to string
     annotation.samples = list(samples)
     try:
@@ -199,7 +200,12 @@ def write_comparisons():
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
         row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
-        comps_table.write("\t".join(row) + "\n") 
+        comps_table.write("\t".join(row) + "\n")
+        comps_single =  open(f"annotation/comparison_{comparison_name}.tab", "wt")
+        comps_single.write("\t".join(header) + "\n")
+        comps_single.write("\t".join(row) + "\n")
+        comps_single.close()
+                
     comps_table.close()
     write_edgeR_jobs()
     write_dexseq_jobs()
