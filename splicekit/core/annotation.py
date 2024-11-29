@@ -199,6 +199,7 @@ def write_comparisons():
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, job_name="rmats_"+comparison_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
+        
         row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
         comps_table.write("\t".join(row) + "\n")
         comps_single =  open(f"annotation/comparison_{comparison_name}.tab", "wt")
