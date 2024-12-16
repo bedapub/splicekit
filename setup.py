@@ -19,7 +19,9 @@ setup(
     ],
     zip_safe=False,
     author='Roche, PMDA Spliceosome team',
-    scripts=["splicekit/splicekit", "splicekit/splicecompare"],
+    entry_points={
+        'console_scripts': ['splicekit=splicekit:main', 'splicecompare=splicekit:splicecompare']
+    },    
     author_email='gregor.rot@gmail.com',
     url='https://github.com/bedapub/splicekit',
     keywords=['splicekit', 'splicing', 'transcriptomics', 'bioinformatics'],

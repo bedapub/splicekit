@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 import splicekit.core as core
 
 # load version
@@ -336,3 +337,301 @@ def process(force=False):
     june_process()
     splicekit.report.process()
     jbrowse2_process(force_samples=force, force_annotation=force)
+
+def main():
+    help_0 = """
+    Usage: splicekit <command> [options]
+
+    Commands:
+    -- Processing
+        process           run all available analyses
+
+    -- Initialization
+        setup             initialize folder structure
+        annotation        download sample annotation from Moose
+        features          create junction/exon/anchor count tables from .bam files
+    
+    -- Splicing analyses
+        edgeR             run edgeR analyses on junctions, exons and anchors
+        judge             run juDGE plot analysis
+        promisc           promiscuity analysis: genes and their junctions changes across conditions
+        clusterlogfc      log fold-change clusters of significant changes (FDR<0.05) on junction, exon, gene level
+        rmats             process data with rMATS
+        june              junction-event (junE) analysis
+
+    -- scanRBP, motif and sequence analyses
+        motifs            run motif and scanRBP analysis
+
+    -- JBrowse2 genomic browser
+        jbrowse2 [process | start] processes (creates) all required JBrowse2 files and/or starts JBrowse2 web server
+
+    Options
+
+    -- hostname
+        If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.
+
+    """
+
+    help_edgeR = """
+    Usage: splicekit edgeR [sub-command]
+
+    Sub-commands:
+        junctions      run edgeR on junctions table data
+        exons          run edgeR on exons table data
+        anchors        run edgeR on anchors table data
+        genes          run edgeR on genes table data
+
+    If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
+    """
+
+    help_dexseq = """
+    Usage: splicekit dexseq [sub-command]
+
+    Sub-commands:
+        junctions      run DEXSeq on junctions table data
+        exons          run DEXSeq on exons table data
+        anchors        run DEXSeq on anchors table data
+        genes          run DEXSeq on genes table data
+
+    If no sub-command is given, all analyses will be run (junctions, exons, anchors, genes).
+    """
+
+    help_motifs = """
+    Usage: splicekit motifs [sub-command]
+
+    Sub-commands:
+        dreme          run DREME on produced FASTA files
+
+    If no sub-command is given, all analyses will be run (DREME, scanRBP).
+    """
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+    parser.add_argument('command', help="command(s) to run", nargs='*')
+    parser.add_argument("-help", "-h", "--help", action="store_true")
+    parser.add_argument("-version", "--version", help="Print version", action="store_true")
+    parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true", default=False)
+    parser.add_argument("-hostname", "--hostname", help="If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.", default=None)
+    args = parser.parse_args()
+
+    # lookup version without loading splicekit
+    import importlib.util
+    splicekit_init = importlib.util.find_spec("splicekit")
+    splicekit_path = splicekit_init.origin
+    splicekit_folder = os.path.dirname(splicekit_path)
+    version = open(os.path.join(splicekit_folder, "version"), "rt").readlines()[0].replace("\n", "").replace("\r", "")
+
+    print(f"splicekit | v{version}, https://github.com/bedapub/splicekit")
+    print()
+
+    if args.version:
+        sys.exit(0)
+
+    if len(args.command)==0 and args.help:
+        print(help_0)
+        sys.exit(0)
+
+    if len(args.command)==0 and not args.help:
+        print()
+        print("splicekit | please provide an action to perform or specify --help to get help on available actions; running 'splicekit process' will perform all available analyses")
+        sys.exit(0)
+
+    # loading splicekit modules takes time, only load if the user is not asking to display help
+    if not args.help:
+        import splicekit
+        if args.hostname!=None:
+            splicekit.config.jbrowse2_config(args.hostname)
+        else:
+            splicekit.config.jbrowse2_config(None)
+
+    if args.command[0]=="basic":
+        splicekit.setup()
+        splicekit.annotation()
+        splicekit.features()
+        splicekit.edgeR()
+    elif args.command[0]=="setup":
+        splicekit.setup()
+    elif args.command[0]=="annotation":
+        splicekit.annotation()
+    elif args.command[0]=="junctions":
+        splicekit.junctions()
+    elif args.command[0]=="junctions_master":
+        splicekit.junctions_master()
+    elif args.command[0]=="exons":
+        splicekit.exons()
+    elif args.command[0]=="genes":
+        splicekit.genes()
+    elif args.command[0]=="anchors":
+        splicekit.anchors()
+    elif args.command[0]=="features":
+        splicekit.features()
+    elif args.command[0]=="edgeR":
+        if args.help:
+            print(help_edgeR)
+            sys.exit(0)
+        if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
+            splicekit.core.features.load_genes()
+            splicekit.edgeR(run=args.command[1])
+        elif len(args.command)==1:
+            splicekit.edgeR()
+        else:
+            print(help_edgeR)
+            sys.exit(0)
+    elif args.command[0]=="dexseq":
+        if args.help:
+            print(help_dexseq)
+            sys.exit(0)
+        if len(args.command)>1 and args.command[1] in ["junctions", "exons", "anchors", "genes"]:
+            splicekit.core.features.load_genes()
+            splicekit.dexseq(run=args.command[1])
+        elif len(args.command)==1:
+            splicekit.dexseq()
+        else:
+            print(help_dexseq)
+            sys.exit(0)
+    elif args.command[0]=="motifs":
+        if args.help:
+            print(help_motifs)
+            sys.exit(0)
+        if len(args.command)>1 and args.command[1]=="dreme":
+            splicekit.dreme()
+        else:
+            splicekit.motifs()
+    elif args.command[0]=="promisc":
+        splicekit.promisc()
+    elif args.command[0]=="cassettes":
+        splicekit.cassettes()
+    elif args.command[0]=="patterns":
+        splicekit.patterns()
+    elif args.command[0]=="clusterlogfc":
+        splicekit.clusterlogfc_process()
+    elif args.command[0]=="process":
+        splicekit.process(force=args.force)
+    elif args.command[0]=="judge":
+        splicekit.judge_process()
+    elif args.command[0]=="juan":
+        splicekit.juan()
+    elif args.command[0]=="june":
+        splicekit.june_process()
+    elif args.command[0]=="rmats":
+        splicekit.rmats()
+    elif args.command[0]=="web":
+        splicekit.core.jbrowse2.start()
+    elif args.command[0] in ["jbrowse2", "jbrowse"]:
+        if len(args.command)>1:
+            if args.command[1]=="process":
+                splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
+            if args.command[1]=="start":
+                splicekit.core.jbrowse2.start()
+        else:
+            splicekit.jbrowse2_process(force_samples=args.force, force_annotation=args.force)
+            splicekit.core.jbrowse2.start()
+    elif args.command[0]=="report":
+        splicekit.report.process()
+    else:
+        print(help_0)
+
+def splicecompare():
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import gzip
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('splicekit_run1', help="Main folder with splicekit run 1")
+    parser.add_argument('comparison1', help="Name of comparison to use in splicekit run 1")
+    parser.add_argument('comparison1_fname', help="")
+    parser.add_argument('splicekit_run2', help="Main folder with splicekit run 2")
+    parser.add_argument('comparison2', help="Name of comparison to use in splicekit run 2")
+    parser.add_argument('comparison2_fname', help="")
+    parser.add_argument('fname_out', help="")
+    parser.add_argument("-fdr", "--fdr", help="FDR threshold, default no filter", default=None, type=float)
+    parser.add_argument("-logFC", "--logFC", help="logFC threshold, default=None (do not use as filter)", default=None, type=float)
+    parser.add_argument("-dpfi", "--dpfi", help="delta(percentage feature inclusion) threshold, default=None (do not use as filter)", default=None, type=float)
+    parser.add_argument("-intersect", "--intersect", help="Report only features that are hit in both comparisons", action="store_true")
+    parser.add_argument("-features", "--features", help="Which features to process, comma separated (default: 'exons,junctions,donor_anchors,acceptor_anchors')", default="exons,junctions,donor_anchors,acceptor_anchors")
+    args = parser.parse_args()
+
+    def print_version():
+        print("splicecompare v0.3")
+        print("FDR threshold = ", args.fdr)
+        print("logFC threshold = ", args.logFC)
+        print("dpfi threshold = ", args.dpfi)
+        print("----")
+
+    print_version()
+
+    fdr_key = None
+    data_all = {}
+    for feature_type in args.features.split(","):
+        fout = open(f"{args.fname_out}_{feature_type}.tab", "wt")
+        results = {}
+        for splicekit_run, comparison, comparison_fname in [(args.splicekit_run1, args.comparison1, args.comparison1_fname), (args.splicekit_run2, args.comparison2, args.comparison2_fname)]:
+            f = gzip.open(os.path.join(splicekit_run, "results", "edgeR", feature_type, f"{comparison_fname}.gz"), "rt")
+            header = f.readline().replace("\r", "").replace("\n", "").split("\t")
+            r = f.readline()
+            while r:
+                r = r.replace("\r", "").replace("\n", "").split("\t")
+                data = dict(zip(header, r))
+                # store all the data
+                temp = data_all.get(comparison, {})
+                temp[data["feature_id"]] = data
+                data_all[comparison] = temp
+                if data.get("fdr", None) != None:
+                    fdr_key = "fdr"
+                if data.get("FDR", None) != None:
+                    fdr_key = "FDR"
+                if args.fdr!=None:
+                    if fdr_key!=None:
+                        if float(data[fdr_key])>args.fdr:
+                            r = f.readline()
+                            continue
+                if args.logFC!=None:
+                    if abs(float(data["logFC"]))<args.logFC:
+                        r = f.readline()
+                        continue
+                if args.dpfi!=None:
+                    if abs(float(data["delta_pfi"]))<args.dpfi:
+                        r = f.readline()
+                        continue
+                results_comparison = results.get(comparison, {})
+                results_comparison[data["feature_id"]] = data
+                results[comparison] = results_comparison
+                r = f.readline()
+            f.close()
+        
+        list1 = list(results.get(args.comparison1, {}).keys())
+        list2 = list(results.get(args.comparison2, {}).keys())
+
+        fout.write("# " + str(len(list1)) + f" {feature_type} detected for {args.comparison1}" + "\n")
+        fout.write("# " + str(len(list2)) + f" {feature_type} detected for {args.comparison2}" + "\n")
+        fout.write("# intersect = " + str(len(list(set(list2).intersection(set(list1))))) + "\n")
+
+        feature_keys = list(set(list(results.get(args.comparison1, {}).keys()) + list(results.get(args.comparison2, {}).keys())))
+        header = ["feature_id", "chr", "strand", "gene_name", f"fdr_{args.comparison1}", f"logFC_{args.comparison1}", f"delta_pfi_{args.comparison1}", f"fdr_{args.comparison2}", f"logFC_{args.comparison2}", f"delta_pfi_{args.comparison2}"]
+        fout.write("\t".join(header) + "\n")
+
+        final_results = []
+        feature_intersect = list(set(list2).intersection(set(list1))) # list of features for which both comparison1 and comparison2 satisfy condition (FDR<thr, logFC<thr etc)
+        for feature_id in feature_keys:
+            row = [feature_id]
+            data1 = data_all.get(args.comparison1, {}).get(feature_id, {})
+            data2 = data_all.get(args.comparison2, {}).get(feature_id, {})
+            if args.intersect and feature_id not in feature_intersect:
+                continue
+            if data1=={} or data2=={}:
+                continue
+            data_common = data1 if data1!={} else data2
+            row.append(data_common["chr"])
+            row.append(data_common["strand"])
+            row.append(data_common["gene_name"])
+            
+            for data in [data1, data2]:
+                row.append(data.get(fdr_key, ""))
+                row.append(data.get("logFC", ""))
+                row.append(data.get("delta_pfi", ""))
+
+            combined_logFC = abs(float(data1.get("logFC", 0))) + abs(float(data2.get("logFC", 0)))
+            final_results.append((combined_logFC, row))
+        final_results.sort(reverse=True)
+        for combined_logFC, row in final_results:
+            fout.write("\t".join(row) + "\n")
+        fout.close()    
