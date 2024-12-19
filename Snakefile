@@ -23,6 +23,8 @@ if not os.path.exists("annotation/comparisons.tab"):
 
 comparisons_df = pd.read_csv("annotation/comparisons.tab", sep="\t", comment="#")
 COMPARISONS = comparisons_df["comparison"].tolist()
+comparisons_df.set_index('comparison', inplace=True)
+comps = comparisons_df.to_dict(orient='index')
 
 rule all:
     input:
@@ -285,38 +287,10 @@ rule edgeR:
     output:
         "results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz",
         "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
-    wildcard_constraints:
-        feature_type="junctions"
+#    wildcard_constraints:
+#        feature_type="junctions"
     run:
-        job_sh_edgeR="""R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R"""
-        comparison = comps[wildcards.comparison]
-        comparison_name, control_set, test_set, control_group_id, test_group_id = comps[wildcards.comparison]
-        control_name = control_group_id
-        test_name = test_group_id
-        control_ids = []
-        test_ids = []
-        for (sample_id, compound, rep, _) in control_set:
-            control_ids.append(sample_id)
-        for (sample_id, compound, rep, _) in test_set:
-            test_ids.append(sample_id)
-        try:
-            control_ids = sort_readout_id(control_ids)
-        except:
-            pass
-        try:
-            test_ids = sort_readout_id(test_ids)
-        except:
-            pass
-
-        try:
-            filter_low
-        except:
-            filter_low = "filter_low"
-
-        job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, core_path=os.path.dirname(splicekit.core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype=wildcards.feature_type, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
-        if workflow.use_singularity:
-            job_sh_junctions = f"{container} {job_sh_junctions}"
-        shell(job_sh_junctions)
+        splicekit.edgeR(wildcards.feature_type)
 
 rule edgeR_compile:
     input:
