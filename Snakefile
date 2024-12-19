@@ -2,6 +2,12 @@ import os
 import pandas as pd
 import splicekit
 
+if not os.path.exists("results"):
+    splicekit.setup()
+
+if not os.path.exists("annotation/comparisons.tab"):
+    splicekit.annotation()
+
 container: "docker://ghcr.io/bedapub/splicekit:main"
 available_threads = workflow.cores
 
