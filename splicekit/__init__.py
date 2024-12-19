@@ -12,42 +12,50 @@ if not os.path.exists("splicekit.config"):
     print("splicekit | please run splicekit in a folder with splicekit.config present")
     sys.exit(0)
 
-print("splicekit | loading splicekit.config")
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+parser.add_argument('command', help="command(s) to run", nargs='*')
+parser.add_argument("-help", "-h", "--help", action="store_true")
+parser.add_argument("-version", "--version", help="Print version", action="store_true")
+parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true", default=False)
+parser.add_argument("-hostname", "--hostname", help="If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.", default=None)
+parser.add_argument("-verbose", "--verbose", help="Verbose mode", action="store_true", default=False)
+args, unknown_args = parser.parse_known_args()
+
+verbose = args.verbose
+
 import splicekit.config as config
-print("splicekit | ", config.platform, " detected")
-print("splicekit | loading splicekit.core")
 import splicekit.core as core
-print("splicekit | loading splicekit.core.annotation")
+verbose and print("splicekit | loading splicekit.core.annotation")
 import splicekit.core.annotation
-print("splicekit | loading splicekit.core.features")
+verbose and print("splicekit | loading splicekit.core.features")
 import splicekit.core.features
-print("splicekit | loading splicekit.core.exons")
+verbose and print("splicekit | loading splicekit.core.exons")
 import splicekit.core.exons
-print("splicekit | loading splicekit.core.genes")
+verbose and print("splicekit | loading splicekit.core.genes")
 import splicekit.core.genes
-print("splicekit | loading splicekit.core.report")
+verbose and print("splicekit | loading splicekit.core.report")
 import splicekit.core.report
-print("splicekit | loading splicekit.core.patterns")
+verbose and print("splicekit | loading splicekit.core.patterns")
 import splicekit.core.patterns
-print("splicekit | loading splicekit.core.promisc")
+verbose and print("splicekit | loading splicekit.core.promisc")
 import splicekit.core.promisc
-print("splicekit | loading splicekit.core.anchors ")
+verbose and print("splicekit | loading splicekit.core.anchors ")
 import splicekit.core.anchors 
-print("splicekit | loading splicekit.core.junctions")
+verbose and print("splicekit | loading splicekit.core.junctions")
 import splicekit.core.junctions
-print("splicekit | loading splicekit.core.jbrowse2")
+verbose and print("splicekit | loading splicekit.core.jbrowse2")
 import splicekit.core.jbrowse2
-print("splicekit | loading splicekit.core.juan")
+verbose and print("splicekit | loading splicekit.core.juan")
 import splicekit.core.juan
-print("splicekit | loading splicekit.judge")
+verbose and print("splicekit | loading splicekit.judge")
 import splicekit.judge
-print("splicekit | loading splicekit.core.delta_dar")
+verbose and print("splicekit | loading splicekit.core.delta_dar")
 import splicekit.core.delta_dar
-print("splicekit | loading splicekit.clusterlogfc")
+verbose and print("splicekit | loading splicekit.clusterlogfc")
 import splicekit.clusterlogfc
-print("splicekit | loading splicekit.june")
+verbose and print("splicekit | loading splicekit.june")
 import splicekit.june
-print("splicekit | loading splicekit.report")
+verbose and print("splicekit | loading splicekit.report")
 import splicekit.report
 
 # initialization (triggered once on "import splicekit")
@@ -405,23 +413,15 @@ def main():
     If no sub-command is given, all analyses will be run (DREME, scanRBP).
     """
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-    parser.add_argument('command', help="command(s) to run", nargs='*')
-    parser.add_argument("-help", "-h", "--help", action="store_true")
-    parser.add_argument("-version", "--version", help="Print version", action="store_true")
-    parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true", default=False)
-    parser.add_argument("-hostname", "--hostname", help="If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.", default=None)
-    args = parser.parse_args()
-
     # lookup version without loading splicekit
     import importlib.util
     splicekit_init = importlib.util.find_spec("splicekit")
     splicekit_path = splicekit_init.origin
     splicekit_folder = os.path.dirname(splicekit_path)
     version = open(os.path.join(splicekit_folder, "version"), "rt").readlines()[0].replace("\n", "").replace("\r", "")
+    verbose = args.verbose
 
-    print(f"splicekit | v{version}, https://github.com/bedapub/splicekit")
-    print()
+    print(f"splicekit | v{version} | https://github.com/bedapub/splicekit")
 
     if args.version:
         sys.exit(0)
