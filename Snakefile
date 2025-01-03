@@ -8,6 +8,8 @@ if not os.path.exists("results"):
 if not os.path.exists("annotation/comparisons.tab"):
     splicekit.annotation()
 
+splicekit_folder = os.path.dirname(splicekit.__file__)
+
 container: "docker://ghcr.io/bedapub/splicekit:main"
 available_threads = workflow.cores
 
@@ -106,10 +108,11 @@ rule junctions:
     output:
         fname_comp="data/sample_junctions_data/sample_{sample}_raw.tab.gz",
     params:
-        fname=lambda wildcards: f"data/sample_junctions_data/sample_{wildcards.sample}"
+        fname=lambda wildcards: f"data/sample_junctions_data/sample_{wildcards.sample}",
+        junctions_path = os.path.join(splicekit_folder, "core", "junctions.py")
     shell:
         """
-        python /usr/splicekit/splicekit/core/junctions.py {input} {params.fname}
+        python {params.junctions_path} {input} {params.fname}
         """
 
 rule junctions_per_sample:
