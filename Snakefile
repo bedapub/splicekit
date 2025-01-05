@@ -10,7 +10,7 @@ if not os.path.exists("annotation/comparisons.tab"):
 
 splicekit_folder = os.path.dirname(splicekit.__file__)
 
-container: "docker://ghcr.io/bedapub/splicekit:main"
+#container: "docker://ghcr.io/bedapub/splicekit:main"
 available_threads = workflow.cores
 
 samples_df = pd.read_csv("samples.tab", sep="\t", comment="#")
@@ -72,8 +72,12 @@ rule all:
         "data/samples_genes_counts.tab.gz",
 
         # edgeR
-        expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-        expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"])
+        #expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+        #expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+
+        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
+        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS)
+
 
 rule setup:
     input:
@@ -281,6 +285,7 @@ rule exons_count:
 rule genes_count:
     input:
         expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
+        "reference/junctions.tab.gz"
     output:
         "data/samples_genes_counts.tab.gz"
     run:
@@ -296,10 +301,24 @@ rule edgeR:
     output:
         "results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz",
         "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
-#    wildcard_constraints:
-#        feature_type="junctions"
+    wildcard_constraints:
+        feature_type="junctions|exons|donor_anchors|acceptor_anchors"
     run:
+        splicekit.core.features.load_genes()
         splicekit.edgeR(wildcards.feature_type)
+
+rule edgeR_genes:
+    input:
+        "data/samples_{feature_type}_counts.tab.gz"
+    output:
+        "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
+    wildcard_constraints:
+        feature_type="genes"
+    run:
+        splicekit.core.features.load_genes()
+        splicekit.edgeR(wildcards.feature_type)
+
+"""
 
 rule edgeR_compile:
     input:
@@ -314,7 +333,6 @@ rule edgeR_compile:
         import splicekit
         splicekit.core.report.edgeR_feature(wildcards.feature_type)
 
-"""
 
 # alpha numeric sort
 def break_readout_id(item):
