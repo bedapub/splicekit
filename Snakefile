@@ -14,7 +14,7 @@ if not os.path.exists("annotation/comparisons.tab"):
 
 splicekit_folder = os.path.dirname(splicekit.__file__)
 
-#container: "docker://ghcr.io/bedapub/splicekit:main"
+container: "docker://ghcr.io/bedapub/splicekit:main"
 #available_threads = workflow.cores
 
 samples_df = pd.read_csv("samples.tab", sep="\t", comment="#")
