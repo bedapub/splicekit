@@ -28,7 +28,7 @@ cd fastq
 for rid in $runs
 do
     echo "downloading $rid"
-    fastq-dump --split-3 -A $rid
+    fasterq-dump --split-3 -A $rid
     gzip -f ${rid}_1.fastq
     gzip -f ${rid}_2.fastq
 done
