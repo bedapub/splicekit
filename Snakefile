@@ -71,10 +71,6 @@ rule all:
         expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
         "data/samples_genes_counts.tab.gz",
 
-        # edgeR
-        #expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-        #expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-
         expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
         expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS)
 
@@ -92,6 +88,10 @@ rule setup:
 
 rule map_fastq:
     threads: available_threads
+    resources:
+        mem = 40, # GB
+        time = "02:00:00",
+        cores = 8    
     input:
         fastq1="fastq/{sample}_1.fastq.gz",
         fastq2="fastq/{sample}_2.fastq.gz"
@@ -317,139 +317,3 @@ rule edgeR_genes:
     run:
         splicekit.core.features.load_genes()
         splicekit.edgeR(wildcards.feature_type)
-
-"""
-
-rule edgeR_compile:
-    input:
-        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", comparison=COMPARISONS, feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", comparison=COMPARISONS, feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"])
-    output:
-        "results/edgeR/{feature_type}_results_complete.tab.gz",
-        "results/edgeR/{feature_type}_results_fdr005.tab.gz"
-    wildcard_constraints:
-        feature_type="junctions"
-    run:
-        import splicekit
-        splicekit.core.report.edgeR_feature(wildcards.feature_type)
-
-
-# alpha numeric sort
-def break_readout_id(item):
-    if type(item) is tuple:
-        item_process = item[0]
-    else:
-        item_process = item
-    for splitter in [" ", "_", "-"]:
-        item_temp = item_process.split(splitter)
-        # separates the string by splitter
-        # find first element that casts to int and return (int, str_without_element)
-        if len(item_temp)>1:
-            for item_index_test in range(0, len(item_temp)):
-                if item_temp[item_index_test].isdigit():
-                    return (int(item_temp[item_index_test]), splitter.join(item_temp[:item_index_test]+item_temp[item_index_test+1:]))
-    if item_process.isdigit():
-        return int(item_process)
-    else:
-        return item_process
-
-def sort_readout_id(data):
-    return sorted(data, key=break_readout_id)
-
-def make_short_names(text):
-    result = text
-    try:
-        short_names
-    except:
-        return result
-    for from_text, to_text, replace_type in short_names:
-        if replace_type=="complete":
-            if text==from_text:
-                result = to_text
-        else:
-            result = text.replace(from_text, to_text)
-    return result
-
-def make_comparisons():
-    comparisons = []
-    comps = {}
-    comparisons_ids = []
-    treatments = {}
-    samples = set()
-    f = open("samples.tab")
-    r = f.readline()
-    while r.startswith("#"):
-        r = f.readline()
-    header = r.replace("\r", "").replace("\n", "").split("\t")
-    r = f.readline()
-    separates = set()
-    while r:
-        if r.startswith("#"):
-            r = f.readline()
-            continue
-        r = r.replace("\r", "").replace("\n", "").split("\t")
-        data = dict(zip(header, r))
-        sample_id = data[sample_column]
-        samples.add(sample_id)
-        treatment_id = data[treatment_column]
-        separates.add(data.get(separate_column, ""))
-        treatments.setdefault(treatment_id, []).append((sample_id, treatment_id, data.get(separate_column, ""), data.get(group_column, "")))
-        r = f.readline()
-    f.close()
-    for treatment, data in treatments.items(): # sort by sample ID
-        try:
-            treatments[treatment] = sort_readout_id(data)
-        except:
-            pass
-    dmso_hash = {}
-    dmso_letter = "A"
-    separates = sorted(separates) # sometimes the separates set was reshufled, very difficult to pinpoint/debug this
-    for sep in separates:
-        for test_sample, test_data in treatments.items():
-            if test_sample == control_name:
-                continue
-            temp_test = [(a,b,c,d) for (a,b,c,d) in test_data if c==sep]
-            group_test = set([d for (a,b,c,d) in temp_test])
-            if len(temp_test)==0:
-                continue
-            for control_sample, control_data in treatments.items():
-                if control_sample != control_name:
-                    continue
-                temp_control = [(a,b,c,d) for (a,b,c,d) in control_data if c==sep]
-                if group_column!="":
-                    temp_control = [(a,b,c,d) for (a,b,c,d) in temp_control if d in group_test]
-                if len(temp_control)==0:
-                    continue
-                # add comparison to the list
-                # also add a unique control_group_id name, not only with _sep
-                # this is then useful for the contrast and design matrix for DGE analysis
-                if dmso_hash.get(tuple(temp_control), None)==None:
-                    dmso_hash[tuple(temp_control)] = dmso_letter
-                    dmso_letter = chr(ord(dmso_letter) + 1)
-                sep_temp = sep.replace(" ", "_").lower()
-                if sep_temp!="":
-                    test_group_id = f"{test_sample}_{sep_temp}"
-                    control_group_id = f"{control_sample}_{dmso_hash[tuple(temp_control)]}_{sep_temp}"
-                    comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}_{sep_temp}"
-                else:
-                    test_group_id = f"{test_sample}"
-                    control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
-                    comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}"
-                comparisons.append((make_short_names(comparison_name), temp_control, temp_test, make_short_names(control_group_id), make_short_names(test_group_id)))
-                comps[comparisons[-1][0]] = comparisons[-1]
-                comparisons_ids.append(make_short_names(comparison_name))
-    return comps, comparisons, comparisons_ids
-
-comps, comparisons, comparisons_ids = make_comparisons()
-
-sample_membership = {}
-for (comparison_name, control_set, test_set, control_group_id, test_group_id) in comparisons:
-    for (sample_id, _, _, _) in control_set:
-        # in some rare cases, the same sample can be part of diverse control groups
-        sample_membership[sample_id] = control_group_id
-    for (sample_id, _, _, _) in test_set:
-        # in some rare cases, the same sample can be part of diverse test groups
-        sample_membership[sample_id] = test_group_id
-sample_membership = [sample_membership[sample_id] for sample_id in SAMPLES]
-
-"""
