@@ -15,13 +15,12 @@ if not os.path.exists("annotation/comparisons.tab"):
 splicekit_folder = os.path.dirname(splicekit.__file__)
 
 container: "docker://ghcr.io/bedapub/splicekit:main"
-#available_threads = workflow.cores
 
 samples_df = pd.read_csv("samples.tab", sep="\t", comment="#")
 SAMPLES = samples_df["sample_id"].tolist()
 
-species = "homo_sapiens"
-genome_version = None
+species = splicekit.config.species
+genome_version = splicekit.config.genome_version
 
 if os.path.exists("splicekit.config"):
     with open("splicekit.config") as config_file:
@@ -76,8 +75,13 @@ rule all:
         "data/samples_genes_counts.tab.gz",
 
         expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
-        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS)
+        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
 
+        # juDGE
+        "results/judge/scored.tab.gz",
+
+        # juan
+        "results/edgeR/juan.done"
 
 rule setup:
     input:
@@ -380,3 +384,28 @@ rule edgeR_genes:
     run:
         splicekit.core.features.load_genes()
         splicekit.edgeR(wildcards.feature_type)
+
+rule juDGE:
+    input:
+        "results/edgeR/genes_results_complete.tab.gz",
+        "results/edgeR/junctions_results_complete.tab.gz"
+    output:
+        "results/judge/scored.tab.gz"
+    resources:
+        mem = DEFAULT_MEM,
+        time = DEFAULT_TIME,
+        cores = DEFAULT_CORES
+    shell:
+        "splicekit judge"
+
+rule juan:
+    input:
+        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["donor_anchors", "acceptor_anchors"], comparison = COMPARISONS)
+    output:
+        "results/edgeR/juan.done"
+    resources:
+        mem = DEFAULT_MEM,
+        time = DEFAULT_TIME,
+        cores = DEFAULT_CORES
+    shell:
+        "splicekit juan"

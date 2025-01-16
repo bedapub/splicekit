@@ -8,6 +8,7 @@ module_name = "splicekit | juan |"
 
 # append anchor edgeR results (donor+acceptor) to results_edgeR_junctions
 def append_results():
+    
     def read_database(anchor_type):
         temp = {}
         for comparison in splicekit.core.annotation.comparisons:
@@ -55,3 +56,5 @@ def append_results():
         f.close()
         fout.close()
         os.system(f"mv {fname}.temp {fname}")
+
+    f = open("results/edgeR/juan.done", "wt").close()
