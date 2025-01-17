@@ -74,6 +74,7 @@ rule all:
         expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
         "data/samples_genes_counts.tab.gz",
 
+        # edgeR
         expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
         expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
 
@@ -81,7 +82,10 @@ rule all:
         "results/judge/scored.tab.gz",
 
         # juan
-        "results/edgeR/juan.done"
+        "results/edgeR/juan.done",
+
+        # scabRBP
+        "results/motifs/scanRBP.done"
 
 rule setup:
     input:
@@ -409,3 +413,16 @@ rule juan:
         cores = DEFAULT_CORES
     shell:
         "splicekit juan"
+
+rule scanRBP:
+    input:
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/exons_results_complete.tab.gz"
+    output:
+        "results/motifs/scanRBP.done"
+    resources:
+        mem = DEFAULT_MEM,
+        time = "24:00:00", # 24h
+        cores = DEFAULT_CORES
+    shell:
+        "splicekit motifs scanRBP"

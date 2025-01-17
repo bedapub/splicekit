@@ -324,6 +324,13 @@ def motifs():
     os.system("rm -f results/motifs/scanRBP/fasta/* > /dev/null 2>&1")
     splicekit.core.motifs.process()
 
+def scanRBP():
+    import splicekit.core.motifs
+    os.system("rm -f results/motifs/scanRBP/* > /dev/null 2>&1")
+    os.system("rm -f results/motifs/scanRBP/data/* > /dev/null 2>&1")
+    os.system("rm -f results/motifs/scanRBP/fasta/* > /dev/null 2>&1")
+    splicekit.core.motifs.process_scanRBP()
+
 def judge_process():
     splicekit.judge.process()
 
@@ -504,10 +511,13 @@ def main():
         if args.help:
             print(help_motifs)
             sys.exit(0)
-        if len(args.command)>1 and args.command[1]=="dreme":
-            splicekit.dreme()
-        else:
+        if len(args.command)==1:
             splicekit.motifs()
+        if len(args.command)>1:
+            if args.command[1]=="dreme":
+                splicekit.dreme()
+            elif args.command[1].lower()=="scanrbp":
+                splicekit.scanRBP()
     elif args.command[0]=="promisc":
         splicekit.promisc()
     elif args.command[0]=="cassettes":
