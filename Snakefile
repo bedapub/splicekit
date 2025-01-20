@@ -79,13 +79,13 @@ rule all:
         expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
 
         # juDGE
-        "results/judge/scored.tab.gz",
+        #"results/judge/scored.tab.gz",
 
         # juan
         "results/edgeR/juan.done",
 
         # scabRBP
-        "results/motifs/scanRBP.done"
+        #"results/motifs/scanRBP.done"
 
 rule setup:
     input:
@@ -98,7 +98,7 @@ rule setup:
         splicekit annotation
         """
 
-rule map_fastq:
+rule map_fastq_paired:
     resources:
         mem = 40, # GB
         time = "02:00:00",
@@ -115,6 +115,24 @@ rule map_fastq:
         echo genome_version = {genome_version}
         echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
         pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
+        """
+
+rule map_fastq_single:
+    resources:
+        mem = 40, # GB
+        time = "02:00:00",
+        cores = 8
+    input:
+        fastq="fastq/{sample}.fastq.gz",
+    output:
+        "bam/{sample}.bam",
+    shell:
+        f"""
+        echo mapping {{input.fastq}} {{output}}
+        echo species = {species}
+        echo genome_version = {genome_version}
+        echo pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
+        pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
         """
 
 rule junctions:

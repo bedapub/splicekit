@@ -13,6 +13,7 @@ def write_anchor_gtf():
 
     # field = donor_anchor, acceptor_anchor
     def make_row(data, field):
+        ldata = data.copy()
         att_keys = ["gene_id", "gene_name", "chr", "strand", "annotated", "count", f"{field}_id", "junction_id"]
         temp_id = data[field+"_id"]
         coords = temp_id.split('_')
@@ -21,8 +22,11 @@ def write_anchor_gtf():
         strand = coords[-3][-1]
         chr = '_'.join(coords[:-2])[:-1]
         field_id = f"{chr}{strand}_{start}_{stop}"
-        data[f"{field}_id"] = field_id
-        attributes_str = '; '.join([key + "=" + data[key] for key in att_keys])
+        ldata[f"{field}_id"] = field_id
+        for key, val in ldata.items():
+            if key in ["gene_id", "gene_name"]:
+                ldata[key] = "\"" + ldata[key] + "\""
+        attributes_str = '; '.join([key + "=" + ldata[key] for key in att_keys])
         row = '\t'.join([chr, 'splicekit', "anchor", str(start), str(stop), '.', strand, '0', attributes_str])+'\n'
         return row
 

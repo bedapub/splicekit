@@ -6,15 +6,21 @@ import os
 import sys
 import splicekit.config as config
 import gzip
+import re
+
+def split_ignore_quoted(input_str):
+    # Regular expression to split by semicolons not inside quotes
+    pattern = r'(?:[^";]|"(?:\\.|[^"])*")+'
+    parts = re.findall(pattern, input_str)
+    return [part.strip() for part in parts]
 
 def write_genes_gtf():
 
     def make_row(r):
         chr = r[0]
-        start = int(r[3]) # ! GTF file to GTF file, no change of coordinates here
-        stop = int(r[4]) # ! GTF file to GTF file, no change of coordinates here
+        start, stop = int(r[3]), int(r[4]) # ! GTF file to GTF file, no change of coordinates here
         strand = r[6]
-        attributes = r[-1].split(";")
+        attributes = split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
         new_attributes = []
         for att in attributes:
             att = att.lstrip(" ")
@@ -23,9 +29,7 @@ def write_genes_gtf():
             name = name.lstrip(" ")
             name = name.rstrip(" ")
             if name in ["gene_id", "gene_name", "transcript_id"]:
-                val = val.lstrip(" ")
-                val = val.rstrip(" ")
-                val = val[1:-1] # remove quotes
+                val = val.lstrip(" ").rstrip(" ") # [1:-1] # do not remove quotes
                 new_attributes.append(f"{name}={val}")
         exon_id = f"{chr}{strand}_{start}_{stop}"
         new_attributes.append("exon_id="+exon_id)
