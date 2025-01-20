@@ -4,21 +4,15 @@
 import os
 import sys
 import splicekit.config as config
+import splicekit.core as core
 import gzip
-import re
-
-def split_ignore_quoted(input_str):
-    # Regular expression to split by semicolons not inside quotes
-    pattern = r'(?:[^";]|"(?:\\.|[^"])*")+'
-    parts = re.findall(pattern, input_str)
-    return [part.strip() for part in parts]
 
 def write_exons_gtf():
 
     def make_row(r):
         chr, strand = r[0], r[6]
         start, stop = int(r[3]), int(r[4]) # ! GTF file to GTF file, no change of coordinates here
-        attributes = split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
+        attributes = core.split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
         new_attributes = []
         for att in attributes:
             att = att.lstrip(" ").split(" ")

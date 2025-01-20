@@ -4,6 +4,7 @@
 
 import os
 import sys
+import splicekit.core as core
 import splicekit.config as config
 import gzip
 import re
@@ -20,7 +21,7 @@ def write_genes_gtf():
         chr = r[0]
         start, stop = int(r[3]), int(r[4]) # ! GTF file to GTF file, no change of coordinates here
         strand = r[6]
-        attributes = split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
+        attributes = core.split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
         new_attributes = []
         for att in attributes:
             att = att.lstrip(" ")

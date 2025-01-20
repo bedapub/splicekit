@@ -9,6 +9,13 @@ from queue import *
 from threading import *
 import os
 import multiprocessing
+import re
+
+# split by semicolons not inside quotes
+def split_ignore_quoted(input_str):
+    pattern = r'(?:[^";]|"(?:\\.|[^"])*")+'
+    parts = re.findall(pattern, input_str)
+    return [part.strip() for part in parts]
 
 num_worker_threads = max(1, multiprocessing.cpu_count()-1)
 q = Queue()
