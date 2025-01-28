@@ -103,9 +103,9 @@ rule setup:
 
 rule map_fastq_paired:
     resources:
-        mem = 40, # GB
-        time = "02:00:00",
-        cores = 8
+        mem = config["map_fastq_paired"]["mem"],
+        time = config["map_fastq_paired"]["time"],
+        cores = config["map_fastq_paired"]["cores"]
     input:
         fastq1="fastq/{sample}_1.fastq.gz",
         fastq2="fastq/{sample}_2.fastq.gz"
@@ -122,9 +122,9 @@ rule map_fastq_paired:
 
 rule map_fastq_single:
     resources:
-        mem = 40, # GB
-        time = "02:00:00",
-        cores = 8
+        mem = config["map_fastq_single"]["mem"],
+        time = config["map_fastq_single"]["time"],
+        cores = config["map_fastq_single"]["cores"]
     input:
         fastq="fastq/{sample}.fastq.gz",
     output:
@@ -147,9 +147,9 @@ rule junctions:
         fname=lambda wildcards: f"data/sample_junctions_data/sample_{wildcards.sample}",
         junctions_path = os.path.join(splicekit_folder, "core", "junctions.py")
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         python {params.junctions_path} {input} {params.fname}
@@ -162,9 +162,9 @@ rule junctions_per_sample:
     output:
         expand("data/sample_junctions_data/sample_{sample}.tab.gz", sample=SAMPLES),
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     run:
         import splicekit
         splicekit.core.annotation.make_comparisons()
@@ -176,9 +176,9 @@ rule junctions_make_master:
     output:
         "reference/junctions.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         python -c 'import splicekit; splicekit.core.junctions.make_master();'
@@ -192,9 +192,9 @@ rule anchors_gtf:
         "reference/acceptor_anchors.gtf.gz",
         "reference/donor_anchors.gtf.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         python -c 'import splicekit; splicekit.core.anchors.write_anchor_gtf();'
@@ -204,9 +204,9 @@ rule exons_gtf:
     output:
         "reference/exons.gtf.gz",
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         python -c 'import splicekit; splicekit.core.exons.write_exons_gtf()'
@@ -216,9 +216,9 @@ rule genes_gtf:
     output:
         "reference/genes.gtf.gz",
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         python -c 'import splicekit; splicekit.core.genes.write_genes_gtf()'
@@ -238,9 +238,9 @@ rule anchors:
     wildcard_constraints:
         anchor_type="acceptor|donor"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t anchor -g {wildcards.anchor_type}_anchor_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
@@ -264,9 +264,9 @@ rule exons:
     output:
         "data/sample_exons_data/sample_{sample}.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g exon_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
@@ -290,9 +290,9 @@ rule genes:
     output:
         "data/sample_genes_data/sample_{sample}.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g gene_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
@@ -313,9 +313,9 @@ rule anchors_counts:
         "data/samples_acceptor_anchors_counts.tab.gz",
         "data/samples_donor_anchors_counts.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     run:
         import splicekit
         splicekit.core.annotation.make_comparisons()
@@ -334,9 +334,9 @@ rule junctions_count:
     output:
         "data/samples_junctions_counts.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     run:
         import splicekit
         splicekit.core.annotation.make_comparisons()
@@ -352,9 +352,9 @@ rule exons_count:
     output:
         "data/samples_exons_counts.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     run:
         import splicekit
         splicekit.core.annotation.make_comparisons()
@@ -369,9 +369,9 @@ rule genes_count:
     output:
         "data/samples_genes_counts.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     run:
         import splicekit
         splicekit.core.annotation.make_comparisons()
@@ -390,9 +390,9 @@ rule edgeR:
     wildcard_constraints:
         feature_type="junctions|exons|donor_anchors|acceptor_anchors"
     resources:
-        mem=DEFAULT_MEM,
-        time="04:00:00",
-        cores=DEFAULT_CORES
+        mem = config["edgeR"]["mem"],
+        time = config["edgeR"]["time"],
+        cores = config["edgeR"]["cores"]
     run:
         splicekit.edgeR_comparison(wildcards.comparison, wildcards.feature_type)
 
@@ -406,9 +406,9 @@ rule edgeR_genes:
     wildcard_constraints:
         feature_type="genes"
     resources:
-        mem=DEFAULT_MEM,
-        time="04:00:00",
-        cores=DEFAULT_CORES
+        mem = config["edgeR"]["mem"],
+        time = config["edgeR"]["time"],
+        cores = config["edgeR"]["cores"]
     run:
         splicekit.edgeR_comparison(wildcards.comparison, wildcards.feature_type)
 
@@ -424,9 +424,9 @@ rule edgeR_assemble:
     log:
         "logs/edgeR_assemble/{feature_type}.log",
     resources:
-        mem=16,
-        time="02:00:00",
-        cores=DEFAULT_CORES
+        mem = config["edgeR_assemble"]["mem"],
+        time = config["edgeR_assemble"]["time"],
+        cores = config["edgeR_assemble"]["cores"]
     run:
         splicekit.core.features.load_genes()
         splicekit.core.report.edgeR_feature(wildcards.feature_type)
@@ -444,9 +444,9 @@ rule edgeR_assemble_genes:
     wildcard_constraints:
         feature_type="genes"
     resources:
-        mem=DEFAULT_MEM,
-        time="02:00:00",
-        cores=DEFAULT_CORES
+        mem = config["edgeR_assemble"]["mem"],
+        time = config["edgeR_assemble"]["time"],
+        cores = config["edgeR_assemble"]["cores"]
     run:
         splicekit.core.features.load_genes()
         splicekit.core.report.edgeR_feature(wildcards.feature_type)
@@ -460,9 +460,9 @@ rule juan:
         "results/edgeR/junctions_results_complete.tab.gz",
         "results/edgeR/junctions_results_fdr005.tab.gz",
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         "splicekit juan"
 
@@ -473,9 +473,9 @@ rule juDGE:
     output:
         "results/judge/scored.tab.gz"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
     shell:
         "splicekit judge"
 

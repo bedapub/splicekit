@@ -1,9 +1,24 @@
 defaults:
   cores: 1
-  mem: 4  # GB
-  time: "01:00:00"  # 1h
+  mem: 4            # GB
+  time: "01:00:00"  # hours
 
 map_fastq_single:
   cores: 8
-  mem: 40 # 40 GB
-  time: "02:00:00"  # 2h
+  mem: 40           # GB
+  time: "02:00:00"  # hours
+
+  map_fastq_paired:
+  cores: 8
+  mem: 40           # GB
+  time: "02:00:00"  # hours
+
+edgeR:
+  cores: 1
+  mem: 4            # GB
+  time: "04:00:00"  # hours
+
+edgeR_assemble:
+  cores: 1
+  mem: 16           # GB
+  time: "04:00:00"  # hours
