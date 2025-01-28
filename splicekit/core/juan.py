@@ -34,6 +34,7 @@ def append_results():
     database_acceptor_anchors = read_database("acceptor_anchors")
 
     for fname in ["results/edgeR/junctions_results_complete.tab.gz", "results/edgeR/junctions_results_fdr005.tab.gz"]:
+        print(f"{module_name} updating {fname}")
         f = gzip.open(fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         header_new = header.copy()

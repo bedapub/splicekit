@@ -3,7 +3,7 @@ import pandas as pd
 import splicekit
 
 DEFAULT_CORES = 1
-DEFAULT_MEM = 4 # MB
+DEFAULT_MEM = 4 # GB
 DEFAULT_TIME = "01:00:00" # 1h
 
 if not os.path.exists("results"):
@@ -58,6 +58,7 @@ rule all:
         # anchors
         expand("data/sample_acceptor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
         expand("data/sample_donor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
+
         # anchor counts
         "data/samples_acceptor_anchors_counts.tab.gz",
         "data/samples_donor_anchors_counts.tab.gz",
@@ -77,12 +78,14 @@ rule all:
         # edgeR
         expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
         expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
+        expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+        expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
 
         # juDGE
-        #"results/judge/scored.tab.gz",
+        "results/judge/scored.tab.gz",
 
         # juan
-        "results/edgeR/juan.done",
+        #"results/edgeR/juan.done",
 
         # scabRBP
         #"results/motifs/scanRBP.done"
@@ -240,7 +243,7 @@ rule anchors:
         cores = DEFAULT_CORES
     shell:
         """
-        featureCounts {params.library_type_insert}-s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t anchor -g {wildcards.anchor_type}_anchor_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
+        featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t anchor -g {wildcards.anchor_type}_anchor_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
         cp {params.tab_fname} {params.tab_fname}_temp
         echo "anchor_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
@@ -266,9 +269,9 @@ rule exons:
         cores = DEFAULT_CORES
     shell:
         """
-        featureCounts {params.library_type_insert}-s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g exon_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
+        featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g exon_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
         cp {params.tab_fname} {params.tab_fname}_temp
-        echo "anchor_id\tcount" >| {params.tab_fname}
+        echo "exon_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
         rm {params.tab_fname}_temp
         mv {params.tab_fname}.summary {params.logs_dir}
@@ -292,9 +295,9 @@ rule genes:
         cores = DEFAULT_CORES
     shell:
         """
-        featureCounts {params.library_type_insert}-s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g gene_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
+        featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g gene_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
         cp {params.tab_fname} {params.tab_fname}_temp
-        echo "anchor_id\tcount" >| {params.tab_fname}
+        echo "gene_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
         rm {params.tab_fname}_temp
         mv {params.tab_fname}.summary {params.logs_dir}
@@ -381,31 +384,87 @@ rule edgeR:
         "data/samples_{feature_type}_counts.tab.gz"
     output:
         "results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz",
-        "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
+        "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz"
+    log:
+        "logs/edgeR/{feature_type}/{comparison}.log"
     wildcard_constraints:
         feature_type="junctions|exons|donor_anchors|acceptor_anchors"
     resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
+        mem=DEFAULT_MEM,
+        time="04:00:00",
+        cores=DEFAULT_CORES
     run:
-        splicekit.core.features.load_genes()
-        splicekit.edgeR(wildcards.feature_type)
+        splicekit.edgeR_comparison(wildcards.comparison, wildcards.feature_type)
 
 rule edgeR_genes:
     input:
         "data/samples_{feature_type}_counts.tab.gz"
     output:
-        "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
+        "results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz"
+    log:
+        "logs/edgeR/{feature_type}/{comparison}.log"
     wildcard_constraints:
         feature_type="genes"
+    resources:
+        mem=DEFAULT_MEM,
+        time="04:00:00",
+        cores=DEFAULT_CORES
+    run:
+        splicekit.edgeR_comparison(wildcards.comparison, wildcards.feature_type)
+
+rule edgeR_assemble:
+    input:
+        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type="{feature_type}", comparison=COMPARISONS),
+        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type="{feature_type}", comparison=COMPARISONS),
+    output:
+        "results/edgeR/{feature_type}_results_complete.tab.gz",
+        "results/edgeR/{feature_type}_results_fdr005.tab.gz",
+    wildcard_constraints:
+        feature_type="junctions|exons|donor_anchors|acceptor_anchors",
+    log:
+        "logs/edgeR_assemble/{feature_type}.log",
+    resources:
+        mem=16,
+        time="02:00:00",
+        cores=DEFAULT_CORES
+    run:
+        splicekit.core.features.load_genes()
+        splicekit.core.report.edgeR_feature(wildcards.feature_type)
+        if wildcards.feature_type=="junctions": # only for junctions
+            splicekit.core.patterns.process()
+
+rule edgeR_assemble_genes:
+    input:
+        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type="{feature_type}", comparison=COMPARISONS),
+    output:
+        "results/edgeR/{feature_type}_results_complete.tab.gz",
+        "results/edgeR/{feature_type}_results_fdr005.tab.gz",
+    log:
+        "logs/edgeR_assemble/{feature_type}.log",
+    wildcard_constraints:
+        feature_type="genes"
+    resources:
+        mem=DEFAULT_MEM,
+        time="02:00:00",
+        cores=DEFAULT_CORES
+    run:
+        splicekit.core.features.load_genes()
+        splicekit.core.report.edgeR_feature(wildcards.feature_type)
+
+rule juan:
+    input:
+        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["donor_anchors", "acceptor_anchors"], comparison = COMPARISONS),
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/junctions_results_fdr005.tab.gz",
+    output:
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/junctions_results_fdr005.tab.gz",
     resources:
         mem = DEFAULT_MEM,
         time = DEFAULT_TIME,
         cores = DEFAULT_CORES
-    run:
-        splicekit.core.features.load_genes()
-        splicekit.edgeR(wildcards.feature_type)
+    shell:
+        "splicekit juan"
 
 rule juDGE:
     input:
@@ -420,17 +479,7 @@ rule juDGE:
     shell:
         "splicekit judge"
 
-rule juan:
-    input:
-        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["donor_anchors", "acceptor_anchors"], comparison = COMPARISONS)
-    output:
-        "results/edgeR/juan.done"
-    resources:
-        mem = DEFAULT_MEM,
-        time = DEFAULT_TIME,
-        cores = DEFAULT_CORES
-    shell:
-        "splicekit juan"
+"""
 
 rule scanRBP:
     input:
@@ -444,3 +493,5 @@ rule scanRBP:
         cores = DEFAULT_CORES
     shell:
         "splicekit motifs scanRBP"
+"""
+

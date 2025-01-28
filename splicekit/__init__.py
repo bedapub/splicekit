@@ -188,6 +188,11 @@ def anchors():
 def patterns():
     splicekit.core.patterns.process()
 
+# run edgeR on comparison with feature_type
+def edgeR_comparison(comparison, feature_type):
+    print(f"edgeR {comparison} {feature_type}")
+    os.system(f". jobs/edgeR/{feature_type}/{comparison}.sh")
+
 def edgeR(run=None):
 
     def donor_anchors():
