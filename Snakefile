@@ -1,10 +1,12 @@
+configfile: "config.yaml"
+
 import os
 import pandas as pd
 import splicekit
 
-DEFAULT_CORES = 1
-DEFAULT_MEM = 4 # GB
-DEFAULT_TIME = "01:00:00" # 1h
+DEFAULT_CORES = config["defaults"]["cores"]
+DEFAULT_MEM = config["defaults"]["mem"]
+DEFAULT_TIME = config["defaults"]["time"]
 
 if not os.path.exists("results"):
     splicekit.setup()

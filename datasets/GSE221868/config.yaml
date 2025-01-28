@@ -1,0 +1,4 @@
+defaults:
+  cores: 1
+  mem: 4  # GB
+  time: "01:00:00"  # 1h
