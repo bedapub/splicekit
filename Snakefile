@@ -238,9 +238,9 @@ rule anchors:
     wildcard_constraints:
         anchor_type="acceptor|donor"
     resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
+        mem = config["feature_counts"]["mem"],
+        time = config["feature_counts"]["time"],
+        cores = config["feature_counts"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t anchor -g {wildcards.anchor_type}_anchor_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
@@ -264,9 +264,9 @@ rule exons:
     output:
         "data/sample_exons_data/sample_{sample}.tab.gz"
     resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
+        mem = config["feature_counts"]["mem"],
+        time = config["feature_counts"]["time"],
+        cores = config["feature_counts"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g exon_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
@@ -290,9 +290,9 @@ rule genes:
     output:
         "data/sample_genes_data/sample_{sample}.tab.gz"
     resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
+        mem = config["feature_counts"]["mem"],
+        time = config["feature_counts"]["time"],
+        cores = config["feature_counts"]["cores"]
     shell:
         """
         featureCounts {params.library_type_insert} -s {params.library_strand_insert} -M -O -T {resources.cores} -F GTF -f -t exon -g gene_id -a {input.gtf_fname} -o {params.tab_fname} {input.bam_fname}
