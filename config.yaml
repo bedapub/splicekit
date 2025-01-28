@@ -1,0 +1,9 @@
+defaults:
+  cores: 1
+  mem: 4  # GB
+  time: "01:00:00"  # 1h
+
+map_fastq_single:
+  cores: 8
+  mem: 40 # 40 GB
+  time: "02:00:00"  # 2h
