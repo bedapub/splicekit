@@ -6,6 +6,10 @@ DEFAULT_CORES = config["defaults"]["cores"]
 DEFAULT_MEM = config["defaults"]["mem"]
 DEFAULT_TIME = config["defaults"]["time"]
 
+# parameters for featureCounts based on config
+db_library_type_insert = {"single-end":"", "paired-end":"-p "}
+db_library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}
+
 if not os.path.exists("results"):
     splicekit.setup()
 
@@ -226,8 +230,8 @@ rule genes_gtf:
 
 rule anchors:
     params:
-        library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type],
-        library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand],
+        library_type_insert = db_library_type_insert[library_type],
+        library_strand_insert = db_library_strand_insert[library_strand],
         tab_fname = lambda wildcards: f"data/sample_{wildcards.anchor_type}_anchors_data/sample_{wildcards.sample}.tab",
         logs_dir = lambda wildcards: f'logs/count_{wildcards.anchor_type}_anchors'
     input:
@@ -254,8 +258,8 @@ rule anchors:
 
 rule exons:
     params:
-        library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type],
-        library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand],
+        library_type_insert = db_library_type_insert[library_type],
+        library_strand_insert = db_library_strand_insert[library_strand],
         tab_fname = lambda wildcards: f"data/sample_exons_data/sample_{wildcards.sample}.tab",
         logs_dir = lambda wildcards: f'logs/count_exons'
     input:
@@ -280,8 +284,8 @@ rule exons:
 
 rule genes:
     params:
-        library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type],
-        library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand],
+        library_type_insert = db_library_type_insert[library_type],
+        library_strand_insert = db_library_strand_insert[library_strand],
         tab_fname = lambda wildcards: f"data/sample_genes_data/sample_{wildcards.sample}.tab",
         logs_dir = lambda wildcards: f'logs/count_genes'
     input:
