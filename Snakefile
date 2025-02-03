@@ -89,7 +89,7 @@ rule all:
         "results/judge/scored.tab.gz",
 
         # juan
-        #"results/edgeR/juan.done",
+        "results/edgeR/juan.done",
 
         # scabRBP
         #"results/motifs/scanRBP.done"
@@ -454,26 +454,12 @@ rule edgeR_assemble_genes:
     run:
         splicekit.core.features.load_genes()
         splicekit.core.report.edgeR_feature(wildcards.feature_type)
-
-rule juan:
-    input:
-        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["donor_anchors", "acceptor_anchors"], comparison = COMPARISONS),
-        "results/edgeR/junctions_results_complete.tab.gz",
-        "results/edgeR/junctions_results_fdr005.tab.gz",
-    output:
-        "results/edgeR/junctions_results_complete.tab.gz",
-        "results/edgeR/junctions_results_fdr005.tab.gz",
-    resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
-    shell:
-        "splicekit juan"
-
+        
 rule juDGE:
     input:
         "results/edgeR/genes_results_complete.tab.gz",
-        "results/edgeR/junctions_results_complete.tab.gz"
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/juan.done"
     output:
         "results/judge/scored.tab.gz"
     resources:
@@ -482,6 +468,20 @@ rule juDGE:
         cores = config["defaults"]["cores"]
     shell:
         "splicekit judge"
+
+rule juan:
+    input:
+        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["donor_anchors", "acceptor_anchors"], comparison = COMPARISONS),
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/junctions_results_fdr005.tab.gz",
+    output:
+        "results/edgeR/juan.done"
+    resources:
+        mem = config["defaults"]["mem"],
+        time = config["defaults"]["time"],
+        cores = config["defaults"]["cores"]
+    shell:
+        "splicekit juan && touch results/edgeR/juan.done"
 
 """
 
@@ -498,4 +498,3 @@ rule scanRBP:
     shell:
         "splicekit motifs scanRBP"
 """
-
