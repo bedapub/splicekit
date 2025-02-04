@@ -154,8 +154,8 @@ rule bam_index:
 
 rule junctions:
     input:
-        "bam/{sample}.bam",
-        "bam/{sample}.bam.bai"
+        input_bam="bam/{sample}.bam",
+        input_bam_bai="bam/{sample}.bam.bai"
     output:
         fname_comp="data/sample_junctions_data/sample_{sample}_raw.tab.gz",
     params:
@@ -167,7 +167,7 @@ rule junctions:
         cores = config["defaults"]["cores"]
     shell:
         """
-        python {params.junctions_path} {input} {params.fname}
+        python {params.junctions_path} {input.input_bam} {params.fname}
         """
 
 rule junctions_per_sample:
