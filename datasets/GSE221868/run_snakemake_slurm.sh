@@ -1,0 +1,1 @@
+../../run_snakemake_slurm.sh

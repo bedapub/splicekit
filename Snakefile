@@ -49,6 +49,9 @@ rule all:
         # bam files
         expand("bam/{sample}.bam", sample=SAMPLES),
 
+        # bai files
+        expand("bam/{sample}.bam.bai", sample=SAMPLES),
+
         # sample junction counts from bam files
         expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
 
@@ -84,15 +87,10 @@ rule all:
         expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
         expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
         expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-
-        # juDGE
-        "results/judge/scored.tab.gz",
-
-        # juan
-        "results/edgeR/juan.done",
-
-        # scabRBP
-        #"results/motifs/scanRBP.done"
+     
+        "results/judge/scored.tab.gz", # juDGE
+        "results/edgeR/juan.done", # juan
+        "results/motifs/scanRBP/scanRBP.done" # scabRBP
 
 rule setup:
     input:
@@ -142,9 +140,22 @@ rule map_fastq_single:
         pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
         """
 
+rule bam_index:
+    resources:
+        mem = config["bam_index"]["mem"],
+        time = config["bam_index"]["time"],
+        cores = config["bam_index"]["cores"]
+    input:
+        "bam/{sample}.bam",
+    output:
+        "bam/{sample}.bam.bai",
+    shell:
+        "samtools index bam/{wildcards.sample}.bam -@ {resources.cores}"
+
 rule junctions:
     input:
-        "bam/{sample}.bam"
+        "bam/{sample}.bam",
+        "bam/{sample}.bam.bai"
     output:
         fname_comp="data/sample_junctions_data/sample_{sample}_raw.tab.gz",
     params:
@@ -483,18 +494,15 @@ rule juan:
     shell:
         "splicekit juan && touch results/edgeR/juan.done"
 
-"""
-
 rule scanRBP:
     input:
         "results/edgeR/junctions_results_complete.tab.gz",
         "results/edgeR/exons_results_complete.tab.gz"
     output:
-        "results/motifs/scanRBP.done"
+        "results/motifs/scanRBP/scanRBP.done"
     resources:
         mem = DEFAULT_MEM,
         time = "24:00:00", # 24h
         cores = DEFAULT_CORES
     shell:
-        "splicekit motifs scanRBP"
-"""
+        "splicekit motifs scanRBP && touch results/motifs/scanRBP/scanRBP.done"
