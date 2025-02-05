@@ -90,7 +90,8 @@ rule all:
      
         "results/judge/scored.tab.gz", # juDGE
         "results/edgeR/juan.done", # juan
-        "results/motifs/scanRBP/scanRBP.done" # scabRBP
+        "results/motifs/scanRBP/scanRBP.done", # scabRBP
+        "results/edgeR/june.tab.gz", # june
 
 rule setup:
     input:
@@ -506,3 +507,15 @@ rule scanRBP:
         cores = DEFAULT_CORES
     shell:
         "splicekit motifs scanRBP && touch results/motifs/scanRBP/scanRBP.done"
+
+rule june:
+    input:
+        "results/edgeR/junctions_results_complete.tab.gz",
+    output:
+        "results/edgeR/june.tab.gz"
+    resources:
+        mem = DEFAULT_MEM,
+        time = "01:00:00", # 1h
+        cores = DEFAULT_CORES
+    shell:
+        "splicekit june"
