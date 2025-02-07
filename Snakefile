@@ -1,5 +1,5 @@
 import os
-import pandas as pd
+import fireducks.pandas as pd
 import splicekit
 
 DEFAULT_CORES = config["defaults"]["cores"]
@@ -51,6 +51,9 @@ rule all:
 
         # bai files
         expand("bam/{sample}.bam.bai", sample=SAMPLES),
+
+        # bw files
+        expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
 
         # sample junction counts from bam files
         expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
@@ -152,6 +155,23 @@ rule bam_index:
         "bam/{sample}.bam.bai",
     shell:
         "samtools index bam/{wildcards.sample}.bam -@ {resources.cores}"
+
+rule bam_bw_cram:
+    resources:
+        mem = config["bam_index"]["mem"],
+        time = config["bam_index"]["time"],
+        cores = config["bam_index"]["cores"]
+    input:
+        "bam/{sample}.bam",
+    output:
+        "results/results_jbrowse/{sample}.bw",
+        "results/results_jbrowse/{sample}.cram",
+    shell:
+        f"""
+        bamCoverage --ignoreDuplicates --binSize 3  -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
+        samtools index results/results_jbrowse/{{wildcards.sample}}.cram
+        """
 
 rule junctions:
     input:

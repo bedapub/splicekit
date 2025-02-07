@@ -2,13 +2,12 @@ import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
+import fireducks.pandas as pd
 from scipy.stats.stats import pearsonr
 import glob
 import math
 import splicekit
 import plotly.express as px
-import pandas
 import pybio
 import numpy
 import gzip

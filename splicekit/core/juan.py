@@ -2,7 +2,7 @@ import os
 import splicekit
 import glob
 import gzip
-import pandas as pd
+import fireducks.pandas as pd
 
 module_name = "splicekit | juan |"
 
