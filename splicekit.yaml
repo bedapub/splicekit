@@ -1,4 +1,4 @@
-name: splicekit_test
+name: splicekit
 channels:
   - conda-forge
   - bioconda

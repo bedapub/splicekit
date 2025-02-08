@@ -1,11 +1,11 @@
-# install splicekit
-pip install .
-
 # create conda/mamba environment named splicekit
 micromamba -y create -f splicekit.yaml
 
 #activate
 micromamba activate splicekit
+
+# install splicekit
+pip install .
 
 # install R packages
 R -e "install.packages(c('BiocManager', 'data.table', 'statmod', 'R.utils'), repos='https://cloud.r-project.org/')"
