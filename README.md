@@ -67,12 +67,12 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 **v0.7**: released in February 2025
 
-* Snakemake version
-* Conda environment for quick start
+* [Snakemake](Snakefile) version
+* Conda [splicekit.yaml](splicekit.yaml) for environment setup
 
 <details>
-<summary>Past changenotes (click to view)</summary>
-
+<summary>Past change notes (click to view)</summary>
+<br><br>
 <b>v0.6</b>: released in April 2024
 
 * updated reports
