@@ -21,13 +21,13 @@ conda create -f splicekit.yaml
 conda activate splicekit
 ./install.sh # run post install scripts to install R dependencies
 
-# install splicekit from repository using pip
+# install splicekit
 pip install .
 
 # run one of the dataset examples
 cd datasets/GSE126543
-pybio homo_sapiens # prepare homo_sapiens genome
-./1_download.sh
+pybio homo_sapiens   # prepare homo_sapiens genome
+./1_download.sh      # download FASTQ files
 
 # run snakemake (local)
 ./run_snakemake_local.sh --configfile config.yaml
@@ -53,7 +53,7 @@ All you need is `samples.tab` (note that this is a <b>TAB delimited file</b>) an
 
 You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
 
-Finally run `$ splicekit process` (inside the folder with `samples.tab` and `splicekit.config`).
+Finally run `./run_snakemake_[local/slurm].sh --configfile config.yaml` (inside the folder with `samples.tab` and `splicekit.config`).
 
 Easiest is to check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
 </details>
