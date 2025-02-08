@@ -16,7 +16,16 @@ Since version 0.7, splicekit is a **Snakemake** pipeline, and there is also a Co
 git clone git@github.com:bedapub/splicekit.git
 cd splicekit
 
-# create micromamba environment (to use conda or mamba instead, just change the install.sh file)
+# create conda/mamba environment named splicekit (we use micromamba in the example)
+micromamba -y create -f splicekit.yaml
+
+#activate
+micromamba activate splicekit
+
+# install splicekit
+pip install .
+
+# install R dependencies and jbrowse
 ./install.sh
 
 # run one of the dataset examples
