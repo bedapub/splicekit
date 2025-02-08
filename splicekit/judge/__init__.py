@@ -2,13 +2,12 @@ import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
+import fireducks.pandas as pd
 from scipy.stats.stats import pearsonr
 import glob
 import math
 import splicekit
 import plotly.express as px
-import pandas
 import pybio
 import numpy
 import gzip
@@ -145,160 +144,9 @@ def process():
         if plot(comp_name):
             present_comps.append(comp_name)
 
-    # score compounds
+    # score comparisons
     f = gzip.open("results/judge/scored.tab.gz", "wt")
-    f.write("compound_name\tjunctions\tstdev_gene\tstdev_junction\tscore\n")
-    results = []
-    for comp_name, junctions_count in compound_junction_counts.items():
-        if comp_name not in present_comps:
-            continue
-        std_gene = numpy.std(data_x[comp_name])
-        std_junction = numpy.std(data_y[comp_name])
-        try:
-            score = std_gene/std_junction
-        except:
-            score = float("Inf")
-        results.append((score, junctions_count, comp_name, std_gene, std_junction))
-    results.sort()
-    sorted_comps = []
-    for temp in results:
-        sorted_comps.append(temp[2])
-        row = [temp[2], temp[1], temp[3], temp[4], temp[0]]
-        row = [str(x) for x in row]
-        f.write("\t".join(row) + "\n")
-    f.close()
-    
-    make_html(sorted_comps)
-
-# this produces a juDGE plot from results/dge
-def process_old():
-
-    def plot(comp_name):
-        plt.figure()
-        sns.set(font_scale=0.7)
-        sns.set_style("dark")
-        sns.set_style("ticks")
-        try:
-            fig = sns.scatterplot(data={"gene_logFC":data_x[comp_name], "junction_logFC":data_y[comp_name]}, x="gene_logFC", y="junction_logFC", s=20, alpha=0.7, edgecolor='none', color='#888888')
-        except:
-            return False
-        
-        plt.plot([-8, 8], [0, 0], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
-        plt.plot([0, 0], [-8, 8], color='#999999', linestyle='--', linewidth=0.3, alpha=0.5)
-
-        std_gene = numpy.std(data_x[comp_name])
-        std_junction = numpy.std(data_y[comp_name])
-        try:
-            score = std_gene/std_junction
-        except:
-            score = float("Inf")
-
-        fig.set(title="{comp_name}, junction logFC vs gene logFC, score={score}".format(score="%.3f" % score, comp_name=comp_name))
-        fig.set(xlim=(-8,8))
-        fig.set(ylim=(-8,8))
-        fig.spines['left'].set_linewidth(0.5)
-        fig.spines['left'].set_color('#333333')
-        fig.spines['bottom'].set_linewidth(0.5)
-        fig.spines['bottom'].set_color('#333333')
-        fig.spines['top'].set_linewidth(0.5)
-        fig.spines['top'].set_color('#333333')
-        fig.spines['right'].set_linewidth(0.5)
-        fig.spines['right'].set_color('#333333')
-        fig.tick_params(axis='x', colors='#333333', width=0.5)
-        fig.tick_params(axis='y', colors='#333333', width=0.5)    
-        #sns.despine()
-
-        label_points = set()
-        temp = []
-        temp_x = data_x[comp_name]
-        temp_y = data_y[comp_name]
-        temp_hover = data_genes[comp_name]
-        for dx, dy, dh in zip(temp_x, temp_y, temp_hover):
-            temp.append((dx, dy, dh))
-        temp.sort(key = lambda x: x[0])
-        for el in temp[:3]:
-            label_points.add(el)
-        temp.sort(key = lambda x: x[0], reverse=True)
-        for el in temp[:3]:
-            label_points.add(el)
-        temp.sort(key = lambda x: x[1])
-        for el in temp[:3]:
-            label_points.add(el)
-        temp.sort(key = lambda x: x[1], reverse=True)
-        for el in temp[:3]:
-            label_points.add(el)
-        label_points = list(label_points)
-        for (dx, dy, dh) in label_points:
-            plt.text(dx+0.05, dy+0.05, dh, fontdict=dict(color="red", size=8), bbox=dict(pad=0, facecolor="yellow", alpha=0.5))
-
-        plt.savefig("results/judge/plots/{comp_name}.png".format(comp_name=comp_name), dpi=300)
-        plt.close()
-
-        df = pd.DataFrame(list(zip(data_x[comp_name], data_y[comp_name], data_genes[comp_name])), columns =['gene_logFC', 'junction_logFC', 'gene_name'])
-        fig = px.scatter(df, x="gene_logFC", y="junction_logFC", hover_data=['gene_name'], title=comp_name)
-        fig.update_layout(yaxis_range=[-8,8])
-        fig.update_layout(xaxis_range=[-8,8])
-        fig.update_layout(title_font_size=11)
-        fig.update_layout(font={"size":11})
-        fig.update_traces(marker={"size":4})
-        fig.update_traces(customdata=[df["gene_name"].to_numpy()], hovertemplate="%{z} (gene)")
-        fig.write_html("results/judge/plots/{comp_name}.html".format(comp_name=comp_name), full_html=False, include_plotlyjs="cdn")
-        return True
-
-    data_x = {}
-    data_y = {}
-    data_genes = {}
-
-    compound_junction_counts = {}
-    present_comps = []
-    for (comp_name, _, _, _, _) in splicekit.core.annotation.comparisons:
-        print(f"{module_name} processing {comp_name}")
-        gene_data = {}
-        gene_junction_data = {}
-        f = open(f"results/dge/dgeTables/topTable-{comp_name}.txt", "rt")
-        header = f.readline().replace("\r", "").replace("\n", "").split("\t")
-        r = f.readline()
-        while r:
-            r = r.replace("\r", "").replace("\n", "").split("\t")
-            data = dict(zip(header, r))
-            gene_data[data["GeneSymbol"]] = float(data["logFC"])
-            r = f.readline()
-        f.close()
-        f = open("results/results_edgeR_junctions.tab", "rt")
-        header = f.readline().replace("\r", "").replace("\n", "").split("\t")
-        r = f.readline()
-        while r:
-            r = r.replace("\r", "").replace("\n", "").split("\t")
-            data = dict(zip(header, r))
-            if data["comparison"]!=comp_name:
-                r = f.readline()
-                continue
-            if gene_data.get(data["gene_name"], None)!=None:
-                if float(data["fdr"])<splicekit.config.edgeR_FDR_thr:
-                    data_y.setdefault(comp_name, []).append(float(data["logFC"]))
-                    data_x.setdefault(comp_name, []).append(gene_data[data["gene_name"]])
-                    data_genes.setdefault(comp_name, []).append(data["gene_name"])
-                    gene_junction_data.setdefault(data["gene_name"], []).append(float(data["logFC"]))
-            r = f.readline()
-        f.close()
-
-        fdata = open(f"results/judge/data/{comp_name}_data.tab", "wt")
-        header = ["gene_name", "gene_logFC", "junctions_logFC"]
-        fdata.write("\t".join(header) + "\n")
-        for gene_name, gene_fdr in gene_data.items():
-            junction_fdr_list = gene_junction_data.get(gene_name, [])
-            compound_junction_counts[comp_name] = compound_junction_counts.setdefault(comp_name, 0) + len(junction_fdr_list)
-            row = [gene_name, gene_fdr, ",".join([str(el) for el in junction_fdr_list])]
-            if len(junction_fdr_list)>0:
-                fdata.write("\t".join([str(el) for el in row]) + "\n")
-        fdata.close()
-
-        if plot(comp_name):
-            present_comps.append(comp_name)
-
-    # score compounds
-    f = open("results/judge/scored.tab", "wt")
-    f.write("compound_name\tjunctions\tstdev_gene\tstdev_junction\tscore\n")
+    f.write("comparison_name\tjunctions\tstdev_gene\tstdev_junction\tscore\n")
     results = []
     for comp_name, junctions_count in compound_junction_counts.items():
         if comp_name not in present_comps:

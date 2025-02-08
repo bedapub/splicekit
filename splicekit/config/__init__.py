@@ -2,10 +2,12 @@
 
 import os
 import sys
+import splicekit
 import splicekit.core as core
 import socket
 
 module_desc = "splicekit | config |"
+splicekit.verbose and print(f"{module_desc} loading")
 
 if os.path.exists("splicekit.config"):
     config_lines = open("splicekit.config").readlines()
@@ -18,6 +20,8 @@ try:
 except:
     jbrowse2_url = None
 
+splicekit.verbose and print(f"{module_desc} {platform} detected")
+
 def jbrowse2_config(hostname):
     global jbrowse2_url
     if jbrowse2_url not in [None, ""]: # user defined JBrowse2 url? -> do not change it
@@ -28,7 +32,7 @@ def jbrowse2_config(hostname):
         hostname=socket.gethostname()
     ip_addr=socket.gethostbyname(hostname)
     jbrowse2_url = f"http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json"
-    print(f"{module_desc} setting JBrowse2 URL to {jbrowse2_url}")
+    splicekit.verbose and print(f"{module_desc} JBrowse2 URL = {jbrowse2_url}")
 
 # read in location of gtf and fasta files
 if genome_version!=None:

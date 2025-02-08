@@ -8,7 +8,7 @@ Reads in results_edgeR_jucntions.tab and appends three columns:
 
 import os
 import sys
-import pandas as pd
+import fireducks.pandas as pd
 
 # define paths, read in comparison and results file
 sample_annotation_dir =  'annotation' 
