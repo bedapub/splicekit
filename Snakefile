@@ -95,6 +95,8 @@ rule all:
         "results/edgeR/juan.done", # juan
         "results/motifs/scanRBP/scanRBP.done", # scabRBP
         "results/edgeR/june.tab.gz", # june
+        "jbrowse2/splicekit_data/config.json", # jbrowse
+        "report/index.html", # report
 
 rule setup:
     input:
@@ -168,7 +170,7 @@ rule bam_bw_cram:
         "results/results_jbrowse/{sample}.cram",
     shell:
         f"""
-        bamCoverage --ignoreDuplicates --binSize 3  -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        bamCoverage --ignoreDuplicates --binSize 3 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
         samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
         samtools index results/results_jbrowse/{{wildcards.sample}}.cram
         """
@@ -539,3 +541,39 @@ rule june:
         cores = DEFAULT_CORES
     shell:
         "splicekit june"
+
+rule jbrowse:
+    input:
+        expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
+        expand("results/results_jbrowse/{sample}.cram", sample=SAMPLES),
+    output:
+        "jbrowse2/splicekit_data/config.json"
+    resources:
+        mem = DEFAULT_MEM,
+        time = "01:00:00", # 1h
+        cores = DEFAULT_CORES
+    run:
+        splicekit.core.jbrowse2.setup()
+        splicekit.core.jbrowse2.check_genome()
+        splicekit.core.jbrowse2.create_jbrowse_config(True)
+
+rule report:
+    input:
+        "results/edgeR/juan.done",
+        "results/edgeR/june.tab.gz",
+        "results/judge/scored.tab.gz",
+        "results/edgeR/junctions_results_complete.tab.gz",
+        "results/edgeR/junctions_results_fdr005.tab.gz",
+        "results/edgeR/exons_results_complete.tab.gz",
+        "results/edgeR/exons_results_fdr005.tab.gz",
+        "results/edgeR/genes_results_complete.tab.gz",
+        "results/edgeR/genes_results_fdr005.tab.gz",
+    output:
+        "report/index.html"
+    resources:
+        mem = DEFAULT_MEM,
+        time = DEFAULT_TIME,
+        cores = DEFAULT_CORES
+    shell:
+        "splicekit report"
+
