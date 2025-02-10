@@ -17,3 +17,4 @@ dependencies:
   - meme>5.5.1
   - pip:
     - fireducks
+    - snakemake-executor-plugin-cluster-generic
