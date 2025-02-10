@@ -76,7 +76,7 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 <details>
 <summary>Past change notes (click to view)</summary>
-<br><br>
+<br>
 <b>v0.6</b>: released in April 2024
 
 * updated reports
