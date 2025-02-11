@@ -160,9 +160,9 @@ rule bam_index:
 
 rule bam_bw_cram:
     resources:
-        mem = config["bam_index"]["mem"],
-        time = config["bam_index"]["time"],
-        cores = config["bam_index"]["cores"]
+        mem = config["bam_bw"]["mem"],
+        time = config["bam_bw"]["time"],
+        cores = config["bam_bw"]["cores"]
     input:
         "bam/{sample}.bam",
     output:
