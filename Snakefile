@@ -160,14 +160,16 @@ rule bam_index:
 
 rule bam_bw_cram:
     resources:
-        mem = config["bam_index"]["mem"],
-        time = config["bam_index"]["time"],
-        cores = config["bam_index"]["cores"]
+        mem = config["bam_bw"]["mem"],
+        time = config["bam_bw"]["time"],
+        cores = config["bam_bw"]["cores"]
     input:
         "bam/{sample}.bam",
     output:
         "results/results_jbrowse/{sample}.bw",
         "results/results_jbrowse/{sample}.cram",
+    log:
+        "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
         bamCoverage --ignoreDuplicates --binSize 3 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
@@ -576,4 +578,3 @@ rule report:
         cores = DEFAULT_CORES
     shell:
         "splicekit report"
-
