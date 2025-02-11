@@ -168,6 +168,8 @@ rule bam_bw_cram:
     output:
         "results/results_jbrowse/{sample}.bw",
         "results/results_jbrowse/{sample}.cram",
+    log:
+        "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
         bamCoverage --ignoreDuplicates --binSize 3 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
@@ -576,4 +578,3 @@ rule report:
         cores = DEFAULT_CORES
     shell:
         "splicekit report"
-
