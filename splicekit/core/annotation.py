@@ -124,6 +124,7 @@ def make_comparisons():
                     control_group_id = f"{control_sample}{dmso_hash[tuple(temp_control)]}"
                     comparison_name = f"{test_sample}_{control_sample}{dmso_hash[tuple(temp_control)]}"
                 annotation.comparisons.append((short_names(comparison_name), temp_control, temp_test, short_names(control_group_id), short_names(test_group_id)))
+
     # sort and cast sample_ids to string
     annotation.samples = list(samples)
     try:
@@ -198,8 +199,14 @@ def write_comparisons():
         job_rmats_instance = job_rmats.format(container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, job_name="rmats_"+comparison_name, gtf_path=splicekit.config.gtf_path[:-3])
         f_rmats.write(job_rmats_instance)
         f_rmats.close()
+        
         row = [comparison_name, ",".join(str(el) for el in control_ids), ",".join(str(el) for el in test_ids), control_group_id, test_group_id]
-        comps_table.write("\t".join(row) + "\n") 
+        comps_table.write("\t".join(row) + "\n")
+        comps_single =  open(f"annotation/comparison_{comparison_name}.tab", "wt")
+        comps_single.write("\t".join(header) + "\n")
+        comps_single.write("\t".join(row) + "\n")
+        comps_single.close()
+                
     comps_table.close()
     write_edgeR_jobs()
     write_dexseq_jobs()
@@ -285,6 +292,7 @@ ml R
         fout_exons.close()        
         job_sh_exons = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="exons", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_exons.write(job_sh_exons+"\n")
+        with open(f"jobs/edgeR/exons/{comparison_name}.sh", "wt") as ftemp: ftemp.write(job_sh_exons)
 
         # edgeR junctions
         job_junctions = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", job_name="edgeR_junctions_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
@@ -292,6 +300,7 @@ ml R
         fout_junctions.close()
         job_sh_junctions = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="junctions", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_junctions.write(job_sh_junctions+"\n")
+        with open(f"jobs/edgeR/junctions/{comparison_name}.sh", "wt") as ftemp: ftemp.write(job_sh_junctions)
 
         # edgeR donor anchors
         job_donor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", job_name="edgeR_donor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
@@ -299,6 +308,7 @@ ml R
         fout_donor_anchors.close()
         job_sh_donor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="donor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_donor_anchors.write(job_sh_donor_anchors+"\n")
+        with open(f"jobs/edgeR/donor_anchors/{comparison_name}.sh", "wt") as ftemp: ftemp.write(job_sh_donor_anchors)
 
         # edgeR acceptor anchors
         job_acceptor_anchors = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", job_name="edgeR_acceptor_anchors_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
@@ -306,6 +316,7 @@ ml R
         fout_acceptor_anchors.close()
         job_sh_acceptor_anchors = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="acceptor_anchors", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_acceptor_anchors.write(job_sh_acceptor_anchors+"\n")
+        with open(f"jobs/edgeR/acceptor_anchors/{comparison_name}.sh", "wt") as ftemp: ftemp.write(job_sh_acceptor_anchors)
 
         # edgeR genes
         job_genes = job_edgeR.format(queue=config.cluster_queue, memory=config.edgeR_memory, filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", job_name="edgeR_genes_"+test_name, control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
@@ -313,6 +324,7 @@ ml R
         fout_genes.close()
         job_sh_genes = job_sh_edgeR.format(filter_low=filter_low, container=splicekit.config.container, core_path=os.path.dirname(core.__file__), comparison_name=comparison_name, input_folder=os.getcwd(), atype="genes", control_name=control_name, test_name=test_name, sample_membership=",".join(str(el) for el in sample_membership))
         fsh_genes.write(job_sh_genes+"\n")
+        with open(f"jobs/edgeR/genes/{comparison_name}.sh", "wt") as ftemp: ftemp.write(job_sh_genes)
 
     fsh_exons.close()
     fsh_junctions.close()

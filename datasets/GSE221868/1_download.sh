@@ -1,9 +1,3 @@
-# downloads fastq files for this dataset
-# requires fastq-dump
-
-# Usually, it can be loaded on a cluster node with:
-# ml .testing; ml SRA-Toolkit/2.11.0-gompi-2020a
-
 mkdir fastq
 
 runs="SRR22909639

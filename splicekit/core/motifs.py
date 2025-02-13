@@ -17,7 +17,7 @@ import itertools
 import splicekit
 import splicekit.config as config
 import sys
-import pandas as pd
+import fireducks.pandas as pd
 import seaborn as sns
 import copy
 
@@ -717,12 +717,17 @@ def cluster(cutoff=9):
         f.write(html_code.format(cluster_blocks="\n".join(cluster_blocks)))
         f.close()
 
+def process_scanRBP():
+    make_scanRBP()
+    plot_scanRBP()
+    scanRBP_dreme()
+    f = open("results/motifs/scanRBP.done", "wt").close()
+
 def process():
     if config.scanRBP:
-        make_scanRBP()
-        plot_scanRBP()
-        scanRBP_dreme()
+        process_scanRBP()
     make_logos()
     dreme()
     make_distance()
     cluster()
+

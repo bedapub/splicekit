@@ -6,6 +6,8 @@ import gzip
 import pybio
 import glob
 import splicekit.config as config
+if config.jbrowse2_url==None:
+    config.jbrowse2_config(None)
 from splicekit.core import smart_number_format
 import splicekit.core.annotation as annotation
 import splicekit.core.features as features

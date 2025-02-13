@@ -1,9 +1,3 @@
-# downloads fastq files for this dataset
-# requires fastq-dump
-
-# Usually, it can be loaded on a cluster node with:
-# ml .testing; ml SRA-Toolkit/2.11.0-gompi-2020a
-
 mkdir fastq
 
 runs="SRR8571937
@@ -28,7 +22,7 @@ cd fastq
 for rid in $runs
 do
     echo "downloading $rid"
-    fastq-dump --split-3 -A $rid
+    fasterq-dump --split-3 -A $rid
     gzip -f ${rid}_1.fastq
     gzip -f ${rid}_2.fastq
 done

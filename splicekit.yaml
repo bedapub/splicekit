@@ -1,0 +1,20 @@
+name: splicekit
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - pigz
+  - deeptools
+  - samtools
+  - snakemake
+  - R
+  - perl-app-cpanminus
+  - star
+  - rmats
+  - nodejs
+  - subread>2.0.6
+  - meme>5.5.1
+  - pip:
+    - fireducks
+    - snakemake-executor-plugin-cluster-generic

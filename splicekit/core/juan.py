@@ -2,12 +2,13 @@ import os
 import splicekit
 import glob
 import gzip
-import pandas as pd
+import fireducks.pandas as pd
 
 module_name = "splicekit | juan |"
 
 # append anchor edgeR results (donor+acceptor) to results_edgeR_junctions
 def append_results():
+    
     def read_database(anchor_type):
         temp = {}
         for comparison in splicekit.core.annotation.comparisons:
@@ -33,6 +34,7 @@ def append_results():
     database_acceptor_anchors = read_database("acceptor_anchors")
 
     for fname in ["results/edgeR/junctions_results_complete.tab.gz", "results/edgeR/junctions_results_fdr005.tab.gz"]:
+        print(f"{module_name} updating {fname}")
         f = gzip.open(fname, "rt")
         header = f.readline().replace("\r", "").replace("\n", "").split("\t")
         header_new = header.copy()
@@ -55,3 +57,5 @@ def append_results():
         f.close()
         fout.close()
         os.system(f"mv {fname}.temp {fname}")
+
+    f = open("results/edgeR/juan.done", "wt").close()

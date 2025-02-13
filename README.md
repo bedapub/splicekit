@@ -9,15 +9,38 @@ Check a short video presentation about splicekit (poster) at ECCB 2023 on Youtub
 
 ## Quick start
 
-The easiest way to install splicekit is to simply run:
+Since version 0.7, splicekit is a **Snakemake** pipeline, and there is also a Conda environment yaml file.
 
-`$ pip install splicekit`
+```
+# clone this repository
+git clone git@github.com:bedapub/splicekit.git
+cd splicekit
 
-Note that on some systems, pip is installing the executable scripts under `~/.local/bin`. However this folder is not in the PATH which will result in `command not found` if you try to run `$ splicekit` on the command line. To fix this, please execute:
+# create conda/mamba environment named splicekit (we use micromamba in the example)
+micromamba -y create -f splicekit.yaml
 
-`export PATH="$PATH:~/.local/bin"`
+#activate
+micromamba activate splicekit
 
-Another suggestion is to install inside a virtual environment (using `virtualenv`).
+# install splicekit
+pip install .
+
+# install R dependencies and jbrowse
+./install.sh
+
+# run one of the dataset examples
+cd datasets/GSE126543
+pybio homo_sapiens   # prepare homo_sapiens genome
+./1_download.sh      # download FASTQ files
+
+# run snakemake (local)
+./run_snakemake_local.sh --configfile config.yaml
+
+# OR run snakemake (SLURM cluster):
+./run_snakemake_slurm.sh --configfile config.yaml
+```
+
+After snakemake finishes, you can explore results interactively running `splicekit web` and follow instructions on how to open the html reports in your browser.
 
 <details>
 <summary>Installing splicekit directly from the GitHub repository</summary>
@@ -34,7 +57,7 @@ All you need is `samples.tab` (note that this is a <b>TAB delimited file</b>) an
 
 You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
 
-Finally run `$ splicekit process` (inside the folder with `samples.tab` and `splicekit.config`).
+Finally run `./run_snakemake_[local/slurm].sh --configfile config.yaml` (inside the folder with `samples.tab` and `splicekit.config`).
 
 Easiest is to check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
 </details>
@@ -46,13 +69,18 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Changelog<a name="changelog"></a>
 
-**v0.6**: released in April 2024
+**v0.7**: released in February 2025
+
+* [Snakemake](Snakefile) version
+* Conda [splicekit.yaml](splicekit.yaml) for environment setup
+
+<details>
+<summary>Past change notes (click to view)</summary>
+<br>
+<b>v0.6</b>: released in April 2024
 
 * updated reports
 * JUNE analysis (junction-events to classify skipped and mutually exclusive exons)
-
-<details>
-<summary>Past changenotes (click to view)</summary>
 
 <b>v0.4.9</b>: released in November 2023
 

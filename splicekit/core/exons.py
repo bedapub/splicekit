@@ -4,6 +4,7 @@
 import os
 import sys
 import splicekit.config as config
+import splicekit.core as core
 import gzip
 
 def write_exons_gtf():
@@ -11,14 +12,14 @@ def write_exons_gtf():
     def make_row(r):
         chr, strand = r[0], r[6]
         start, stop = int(r[3]), int(r[4]) # ! GTF file to GTF file, no change of coordinates here
-        attributes = r[-1].split(";")
+        attributes = core.split_ignore_quoted(r[-1]) # some attributes are quotes (gene_name) and can contain ; inside quotes
         new_attributes = []
         for att in attributes:
             att = att.lstrip(" ").split(" ")
             name, val = att[0], " ".join(att[1:])
             name = name.lstrip(" ").rstrip(" ")
             if name in ["gene_id", "gene_name", "transcript_id"]:
-                val = val.lstrip(" ").rstrip(" ")[1:-1] # remove quotes
+                val = val.lstrip(" ").rstrip(" ") # [1:-1] # do not remove quotes
                 new_attributes.append(f"{name}={val}")
         exon_id = f"{chr}{strand}_{start}_{stop}"
         new_attributes.append(f"exon_id={exon_id}")
