@@ -1,2 +1,2 @@
 #!/bin/bash
-snakemake --jobs 1 "$@"
+snakemake "$@"
