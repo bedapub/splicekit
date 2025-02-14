@@ -288,7 +288,7 @@ rule anchors:
         echo "anchor_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
         rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
@@ -314,7 +314,7 @@ rule exons:
         echo "exon_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
         rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
@@ -340,7 +340,7 @@ rule genes:
         echo "gene_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
         rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
