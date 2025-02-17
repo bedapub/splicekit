@@ -15,22 +15,18 @@ if os.path.exists("splicekit.config"):
         exec(cline.replace("\r", "").replace("\n", ""))
 
 jbrowse2_port = 8007
+jbrowse2_url = None
+
 try:
-    jbrowse2_url
-except:
-    jbrowse2_url = None
-
-splicekit.verbose and print(f"{module_desc} {platform} detected")
-
-def jbrowse2_config(hostname):
-    global jbrowse2_url
-    if jbrowse2_url not in [None, ""]: # user defined JBrowse2 url? -> do not change it
-        return
-    # JBrowse2 URL
-    port = jbrowse2_port
-    if hostname==None: # get hostname?
-        hostname=socket.gethostname()
+    hostname
     ip_addr=socket.gethostbyname(hostname)
+except:
+    hostname="localhost"
+    ip_addr=socket.gethostbyname(hostname)
+
+def jbrowse2_config():
+    global jbrowse2_url
+    port = jbrowse2_port
     jbrowse2_url = f"http://{ip_addr}:{port}/jbrowse2/?config=splicekit_data/config.json"
     splicekit.verbose and print(f"{module_desc} JBrowse2 URL = {jbrowse2_url}")
 

@@ -41,62 +41,75 @@ COMPARISONS = comparisons_df["comparison"].tolist()
 comparisons_df.set_index('comparison', inplace=True)
 comps = comparisons_df.to_dict(orient='index')
 
+input_files = [
+            # annotation
+            "annotation/comparisons.tab",
+
+            # bam files
+            *expand("bam/{sample}.bam", sample=SAMPLES),
+
+            # bai files
+            *expand("bam/{sample}.bam.bai", sample=SAMPLES),
+
+            # bw files
+            *expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
+
+            # sample junction counts from bam files
+            *expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
+
+            # GTF files
+            "reference/junctions.tab.gz",
+            "reference/acceptor_anchors.gtf.gz",
+            "reference/donor_anchors.gtf.gz",
+            "reference/exons.gtf.gz",
+            "reference/genes.gtf.gz",
+
+            # anchors
+            *expand("data/sample_acceptor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            *expand("data/sample_donor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
+
+            # anchor counts
+            "data/samples_acceptor_anchors_counts.tab.gz",
+            "data/samples_donor_anchors_counts.tab.gz",
+
+            # exons counts
+            *expand("data/sample_exons_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_exons_counts.tab.gz",
+
+            # junctions counts
+            *expand("data/sample_junctions_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_junctions_counts.tab.gz",
+
+            # genes counts
+            *expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_genes_counts.tab.gz",
+
+            # edgeR
+            *expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"],
+                    comparison=COMPARISONS),
+            *expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"],
+                    comparison=COMPARISONS),
+            *expand("results/edgeR/{feature_type}_results_complete.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+            *expand("results/edgeR/{feature_type}_results_fdr005.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+
+            "results/judge/scored.tab.gz",  # juDGE
+            "results/edgeR/juan.done",  # juan
+            "results/edgeR/june.tab.gz",  # june
+            "jbrowse2/splicekit_data/config.json",  # jbrowse
+            "report/index.html",  # report
+]
+
+# process scanRBP
+if splicekit.config.scanRBP:
+    input_files.append("results/motifs/scanRBP/scanRBP.done")
+
 rule all:
     input:
-        # annotation
-        "annotation/comparisons.tab",
-
-        # bam files
-        expand("bam/{sample}.bam", sample=SAMPLES),
-
-        # bai files
-        expand("bam/{sample}.bam.bai", sample=SAMPLES),
-
-        # bw files
-        expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
-
-        # sample junction counts from bam files
-        expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
-
-        # GTF files
-        "reference/junctions.tab.gz",
-        "reference/acceptor_anchors.gtf.gz",
-        "reference/donor_anchors.gtf.gz",
-        "reference/exons.gtf.gz",
-        "reference/genes.gtf.gz",
-
-        # anchors
-        expand("data/sample_acceptor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        expand("data/sample_donor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
-
-        # anchor counts
-        "data/samples_acceptor_anchors_counts.tab.gz",
-        "data/samples_donor_anchors_counts.tab.gz",
-
-        # exons counts
-        expand("data/sample_exons_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_exons_counts.tab.gz",
-
-        # junctions counts
-        expand("data/sample_junctions_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_junctions_counts.tab.gz",
-
-        # genes counts
-        expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_genes_counts.tab.gz",
-
-        # edgeR
-        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
-        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
-        expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-        expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-     
-        "results/judge/scored.tab.gz", # juDGE
-        "results/edgeR/juan.done", # juan
-        "results/motifs/scanRBP/scanRBP.done", # scabRBP
-        "results/edgeR/june.tab.gz", # june
-        "jbrowse2/splicekit_data/config.json", # jbrowse
-        "report/index.html", # report
+        input_files
 
 rule setup:
     input:
@@ -513,9 +526,9 @@ rule juan:
     output:
         "results/edgeR/juan.done"
     resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
+        mem = config["juan"]["mem"],
+        time = config["juan"]["time"],
+        cores = config["juan"]["cores"]
     shell:
         "splicekit juan && touch results/edgeR/juan.done"
 

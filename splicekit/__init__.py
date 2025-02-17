@@ -17,7 +17,6 @@ parser.add_argument('command', help="command(s) to run", nargs='*')
 parser.add_argument("-help", "-h", "--help", action="store_true")
 parser.add_argument("-version", "--version", help="Print version", action="store_true")
 parser.add_argument("-force", "--force", help="Force recreation / overwrite of results", action="store_true", default=False)
-parser.add_argument("-hostname", "--hostname", help="If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.", default=None)
 parser.add_argument("-verbose", "--verbose", help="Verbose mode", action="store_true", default=False)
 args, unknown_args = parser.parse_known_args()
 
@@ -399,9 +398,6 @@ def main():
 
     Options
 
-    -- hostname
-        If you are submitting 'splicekit process' to the cluster, you can provide a custom hostname. This will be used to create JBrowse2 URLs.
-
     """
 
     help_edgeR = """
@@ -462,10 +458,7 @@ def main():
     # loading splicekit modules takes time, only load if the user is not asking to display help
     if not args.help:
         import splicekit
-        if args.hostname!=None:
-            splicekit.config.jbrowse2_config(args.hostname)
-        else:
-            splicekit.config.jbrowse2_config(None)
+        splicekit.config.jbrowse2_config()
 
     if args.command[0]=="basic":
         splicekit.setup()
