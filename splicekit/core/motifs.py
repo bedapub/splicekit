@@ -761,8 +761,3 @@ def process():
     dreme()
     make_distance()
     cluster()
-
-"""
-
-
-dreme -png -p results/motifs/scanRBP/fasta/control_kdC_skndz_junctions_up_acceptor_scanRBP.fasta -n results/motifs/scanRBP/fasta/control_kdC_skndz_junctions_up_acceptor_controls_scanRBP.fasta
