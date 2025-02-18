@@ -1,3 +1,6 @@
+mapping:
+  alignIntronMax: None
+
 defaults:
   cores: 1
   mem: 4            # GB

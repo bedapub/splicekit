@@ -132,13 +132,15 @@ rule map_fastq_paired:
         fastq2="fastq/{sample}_2.fastq.gz"
     output:
         "bam/{sample}.bam",
+    params:
+        alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
         f"""
         echo mapping {{input.fastq1}} {{input.fastq2}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
-        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
+        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
         """
 
 rule map_fastq_single:
@@ -150,13 +152,15 @@ rule map_fastq_single:
         fastq="fastq/{sample}.fastq.gz",
     output:
         "bam/{sample}.bam",
+    params:
+        alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
         f"""
         echo mapping {{input.fastq}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
-        pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
+        echo pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
         """
 
 rule bam_index:
