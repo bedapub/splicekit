@@ -34,7 +34,7 @@ splice_sites_area = (-2, 6) # take -2 ... 6 around splice site (donor or accepto
 # data types
 dtypes = ["PWM"] # also CLIP
 
-# criteria is split by feature type, data read-in from "results/results_edgeR_{feature_type}_all.tab"
+# criteria is split by feature type, data from "results/edgeR/results_edgeR_{feature_type}_all.tab"
 motif_criteria = {}
 
 # (criteria_name, donor/acceptor, actual criteria)
@@ -245,10 +245,10 @@ def scanRBP_dreme():
                 upcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_up}_scanRBP.fasta"
                 downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
 
-                command = f"{splicekit.config.container} dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
+                command = f"{splicekit.config.container} dreme -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up} -png -norc"
                 os.system(command)
 
-                command = f"{splicekit.config.container} dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
+                command = f"{splicekit.config.container} dreme -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down} -png -norc"
                 os.system(command)
     return True
 
@@ -762,3 +762,7 @@ def process():
     make_distance()
     cluster()
 
+"""
+
+
+dreme -png -p results/motifs/scanRBP/fasta/control_kdC_skndz_junctions_up_acceptor_scanRBP.fasta -n results/motifs/scanRBP/fasta/control_kdC_skndz_junctions_up_acceptor_controls_scanRBP.fasta
