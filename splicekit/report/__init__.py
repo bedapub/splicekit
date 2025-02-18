@@ -12,7 +12,7 @@ edgeR_columns_exons = ["result_id", "comparison", "feature_id", "gene_id", "gene
 edgeR_columns_genes = ["result_id", "comparison", "feature_id", "gene_id", "gene_name", "jbrowse_url", "logFC", "fdr"]
 JUNE_columns = ["comparison", "june_type", "exon_id", "delta_logFC", "gene_id", "j1", "exon_annotation", "jbrowse_url"]
 
-edgeR_results_max = 3000
+edgeR_results_max = 10000
 
 html_report = """
 <html>
