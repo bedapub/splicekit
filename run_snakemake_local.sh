@@ -1,2 +1,2 @@
 #!/bin/bash
-snakemake "$@"
+snakemake --configfile config.yaml "$@"
