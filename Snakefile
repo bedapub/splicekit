@@ -131,7 +131,8 @@ rule map_fastq_paired:
         fastq1="fastq/{sample}_1.fastq.gz",
         fastq2="fastq/{sample}_2.fastq.gz"
     output:
-        "bam/{sample}.bam",
+        bam_output="bam/{sample}.bam",
+        bam_bai_output="bam/{sample}.bam.bai",
     params:
         alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
@@ -139,8 +140,8 @@ rule map_fastq_paired:
         echo mapping {{input.fastq1}} {{input.fastq2}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
-        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
         """
 
 rule map_fastq_single:
@@ -151,7 +152,8 @@ rule map_fastq_single:
     input:
         fastq="fastq/{sample}.fastq.gz",
     output:
-        "bam/{sample}.bam",
+        bam_output="bam/{sample}.bam",
+        bam_bai_output="bam/{sample}.bam.bai",
     params:
         alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
@@ -159,21 +161,9 @@ rule map_fastq_single:
         echo mapping {{input.fastq}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
-        pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        echo pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
         """
-
-rule bam_index:
-    resources:
-        mem = config["bam_index"]["mem"],
-        time = config["bam_index"]["time"],
-        cores = config["bam_index"]["cores"]
-    input:
-        "bam/{sample}.bam",
-    output:
-        "bam/{sample}.bam.bai",
-    shell:
-        "samtools index bam/{wildcards.sample}.bam -@ {resources.cores}"
 
 rule bam_bw_cram:
     resources:
@@ -182,6 +172,7 @@ rule bam_bw_cram:
         cores = config["bam_bw"]["cores"]
     input:
         "bam/{sample}.bam",
+        "bam/{sample}.bam.bai",
     output:
         "results/results_jbrowse/{sample}.bw",
         "results/results_jbrowse/{sample}.cram",
@@ -289,7 +280,8 @@ rule anchors:
         logs_dir = lambda wildcards: f'logs/count_{wildcards.anchor_type}_anchors'
     input:
         gtf_fname = "reference/{anchor_type}_anchors.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_{anchor_type}_anchors_data/sample_{sample}.tab.gz"
     wildcard_constraints:
@@ -317,7 +309,8 @@ rule exons:
         logs_dir = lambda wildcards: f'logs/count_exons'
     input:
         gtf_fname = "reference/exons.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_exons_data/sample_{sample}.tab.gz"
     resources:
@@ -343,7 +336,8 @@ rule genes:
         logs_dir = lambda wildcards: f'logs/count_genes'
     input:
         gtf_fname = "reference/genes.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_genes_data/sample_{sample}.tab.gz"
     resources:

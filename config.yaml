@@ -1,5 +1,5 @@
 mapping:
-  alignIntronMax: None
+  alignIntronMax: None # leave at None or set a number [nt], e.g.: 5000
 
 defaults:
   cores: 1
