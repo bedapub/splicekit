@@ -6,6 +6,8 @@ DEFAULT_CORES = config["defaults"]["cores"]
 DEFAULT_MEM = config["defaults"]["mem"]
 DEFAULT_TIME = config["defaults"]["time"]
 
+alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
+
 # parameters for featureCounts based on config
 db_library_type_insert = {"single-end":"", "paired-end":"-p "}
 db_library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}
@@ -133,15 +135,13 @@ rule map_fastq_paired:
     output:
         bam_output="bam/{sample}.bam",
         bam_bai_output="bam/{sample}.bam.bai",
-    params:
-        alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
         f"""
         echo mapping {{input.fastq1}} {{input.fastq2}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
-        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
+        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
         """
 
 rule map_fastq_single:
@@ -154,15 +154,13 @@ rule map_fastq_single:
     output:
         bam_output="bam/{sample}.bam",
         bam_bai_output="bam/{sample}.bam.bai",
-    params:
-        alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else "",
     shell:
         f"""
         echo mapping {{input.fastq}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
-        pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {params.alignIntronMax_text}
+        echo pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
+        pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
         """
 
 rule bam_bw_cram:
@@ -180,7 +178,7 @@ rule bam_bw_cram:
         "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
-        bamCoverage --ignoreDuplicates --binSize 3 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        bamCoverage --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
         samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
         samtools index results/results_jbrowse/{{wildcards.sample}}.cram
         """
