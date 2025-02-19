@@ -12,32 +12,20 @@ Check a short video presentation about splicekit (poster) at ECCB 2023 on Youtub
 Since version 0.7, splicekit is a **Snakemake** pipeline, and there is also a Conda environment yaml file.
 
 ```
-# clone this repository
-git clone git@github.com:bedapub/splicekit.git
-cd splicekit
+git clone git@github.com:bedapub/splicekit.git    # clone rep
+cd splicekit                                      # change working directory
 
-# create conda/mamba environment named splicekit (we use micromamba in the example)
-micromamba -y create -f splicekit.yaml
+micromamba -y create -f splicekit.yaml            # create conda env
+micromamba activate splicekit                     # activate env
+./install.sh                                      # install dependencies
+pip install .                                     # install splicekit
 
-#activate
-micromamba activate splicekit
+cd datasets/GSE126543                             # move to sample folder
+./1_download.sh                                   # download sample FASTQs
+pybio homo_sapiens                                # human genome
 
-# install splicekit
-pip install .
-
-# install R dependencies and jbrowse
-./install.sh
-
-# run one of the dataset examples
-cd datasets/GSE126543
-pybio homo_sapiens   # prepare homo_sapiens genome
-./1_download.sh      # download FASTQ files
-
-# run snakemake (local)
-./run_snakemake_local.sh --configfile config.yaml
-
-# OR run snakemake (SLURM cluster):
-./run_snakemake_slurm.sh --configfile config.yaml
+./run_snakemake_local.sh --configfile config.yaml # run snakemake (local)
+./run_snakemake_slurm.sh --configfile config.yaml # OR run snakemake SLURM
 ```
 
 After snakemake finishes, you can explore results interactively running `splicekit web` and follow instructions on how to open the html reports in your browser.

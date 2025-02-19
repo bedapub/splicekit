@@ -13,6 +13,7 @@ dependencies:
   - star
   - rmats
   - nodejs
+  - ghostscript
   - subread>2.0.6
   - meme>5.5.1
   - pip:

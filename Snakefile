@@ -6,6 +6,8 @@ DEFAULT_CORES = config["defaults"]["cores"]
 DEFAULT_MEM = config["defaults"]["mem"]
 DEFAULT_TIME = config["defaults"]["time"]
 
+alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
+
 # parameters for featureCounts based on config
 db_library_type_insert = {"single-end":"", "paired-end":"-p "}
 db_library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}
@@ -41,62 +43,75 @@ COMPARISONS = comparisons_df["comparison"].tolist()
 comparisons_df.set_index('comparison', inplace=True)
 comps = comparisons_df.to_dict(orient='index')
 
+input_files = [
+            # annotation
+            "annotation/comparisons.tab",
+
+            # bam files
+            *expand("bam/{sample}.bam", sample=SAMPLES),
+
+            # bai files
+            *expand("bam/{sample}.bam.bai", sample=SAMPLES),
+
+            # bw files
+            *expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
+
+            # sample junction counts from bam files
+            *expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
+
+            # GTF files
+            "reference/junctions.tab.gz",
+            "reference/acceptor_anchors.gtf.gz",
+            "reference/donor_anchors.gtf.gz",
+            "reference/exons.gtf.gz",
+            "reference/genes.gtf.gz",
+
+            # anchors
+            *expand("data/sample_acceptor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            *expand("data/sample_donor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
+
+            # anchor counts
+            "data/samples_acceptor_anchors_counts.tab.gz",
+            "data/samples_donor_anchors_counts.tab.gz",
+
+            # exons counts
+            *expand("data/sample_exons_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_exons_counts.tab.gz",
+
+            # junctions counts
+            *expand("data/sample_junctions_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_junctions_counts.tab.gz",
+
+            # genes counts
+            *expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
+            "data/samples_genes_counts.tab.gz",
+
+            # edgeR
+            *expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"],
+                    comparison=COMPARISONS),
+            *expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"],
+                    comparison=COMPARISONS),
+            *expand("results/edgeR/{feature_type}_results_complete.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+            *expand("results/edgeR/{feature_type}_results_fdr005.tab.gz",
+                    feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
+
+            "results/judge/scored.tab.gz",  # juDGE
+            "results/edgeR/juan.done",  # juan
+            "results/edgeR/june.tab.gz",  # june
+            "jbrowse2/splicekit_data/config.json",  # jbrowse
+            "report/index.html",  # report
+]
+
+# process scanRBP
+if splicekit.config.scanRBP:
+    input_files.append("results/motifs/scanRBP/scanRBP.done")
+
 rule all:
     input:
-        # annotation
-        "annotation/comparisons.tab",
-
-        # bam files
-        expand("bam/{sample}.bam", sample=SAMPLES),
-
-        # bai files
-        expand("bam/{sample}.bam.bai", sample=SAMPLES),
-
-        # bw files
-        expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
-
-        # sample junction counts from bam files
-        expand("data/sample_junctions_data/sample_{sample}_raw.tab.gz", sample=SAMPLES),
-
-        # GTF files
-        "reference/junctions.tab.gz",
-        "reference/acceptor_anchors.gtf.gz",
-        "reference/donor_anchors.gtf.gz",
-        "reference/exons.gtf.gz",
-        "reference/genes.gtf.gz",
-
-        # anchors
-        expand("data/sample_acceptor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        expand("data/sample_donor_anchors_data/sample_{sample}.tab.gz", sample=SAMPLES),
-
-        # anchor counts
-        "data/samples_acceptor_anchors_counts.tab.gz",
-        "data/samples_donor_anchors_counts.tab.gz",
-
-        # exons counts
-        expand("data/sample_exons_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_exons_counts.tab.gz",
-
-        # junctions counts
-        expand("data/sample_junctions_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_junctions_counts.tab.gz",
-
-        # genes counts
-        expand("data/sample_genes_data/sample_{sample}.tab.gz", sample=SAMPLES),
-        "data/samples_genes_counts.tab.gz",
-
-        # edgeR
-        expand("results/edgeR/{feature_type}/{comparison}_altsplice.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors"], comparison=COMPARISONS),
-        expand("results/edgeR/{feature_type}/{comparison}_difffeature.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"], comparison=COMPARISONS),
-        expand("results/edgeR/{feature_type}_results_complete.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-        expand("results/edgeR/{feature_type}_results_fdr005.tab.gz", feature_type=["junctions", "exons", "donor_anchors", "acceptor_anchors", "genes"]),
-     
-        "results/judge/scored.tab.gz", # juDGE
-        "results/edgeR/juan.done", # juan
-        "results/motifs/scanRBP/scanRBP.done", # scabRBP
-        "results/edgeR/june.tab.gz", # june
-        "jbrowse2/splicekit_data/config.json", # jbrowse
-        "report/index.html", # report
+        input_files
 
 rule setup:
     input:
@@ -118,14 +133,15 @@ rule map_fastq_paired:
         fastq1="fastq/{sample}_1.fastq.gz",
         fastq2="fastq/{sample}_2.fastq.gz"
     output:
-        "bam/{sample}.bam",
+        bam_output="bam/{sample}.bam",
+        bam_bai_output="bam/{sample}.bam.bai",
     shell:
         f"""
         echo mapping {{input.fastq1}} {{input.fastq2}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
-        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output}} -t {{resources.cores}} {genome_version}
+        echo pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
+        pybio star {species} {{input.fastq1}} {{input.fastq2}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
         """
 
 rule map_fastq_single:
@@ -136,27 +152,16 @@ rule map_fastq_single:
     input:
         fastq="fastq/{sample}.fastq.gz",
     output:
-        "bam/{sample}.bam",
+        bam_output="bam/{sample}.bam",
+        bam_bai_output="bam/{sample}.bam.bai",
     shell:
         f"""
         echo mapping {{input.fastq}} {{output}}
         echo species = {species}
         echo genome_version = {genome_version}
-        echo pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
-        pybio star {species} {{input.fastq}} {{output}} -t {{resources.cores}} {genome_version}
+        echo pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
+        pybio star {species} {{input.fastq}} {{output.bam_output}} -t {{resources.cores}} {genome_version} {alignIntronMax_text}
         """
-
-rule bam_index:
-    resources:
-        mem = config["bam_index"]["mem"],
-        time = config["bam_index"]["time"],
-        cores = config["bam_index"]["cores"]
-    input:
-        "bam/{sample}.bam",
-    output:
-        "bam/{sample}.bam.bai",
-    shell:
-        "samtools index bam/{wildcards.sample}.bam -@ {resources.cores}"
 
 rule bam_bw_cram:
     resources:
@@ -165,6 +170,7 @@ rule bam_bw_cram:
         cores = config["bam_bw"]["cores"]
     input:
         "bam/{sample}.bam",
+        "bam/{sample}.bam.bai",
     output:
         "results/results_jbrowse/{sample}.bw",
         "results/results_jbrowse/{sample}.cram",
@@ -172,7 +178,7 @@ rule bam_bw_cram:
         "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
-        bamCoverage --ignoreDuplicates --binSize 3 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        bamCoverage --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
         samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
         samtools index results/results_jbrowse/{{wildcards.sample}}.cram
         """
@@ -272,7 +278,8 @@ rule anchors:
         logs_dir = lambda wildcards: f'logs/count_{wildcards.anchor_type}_anchors'
     input:
         gtf_fname = "reference/{anchor_type}_anchors.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_{anchor_type}_anchors_data/sample_{sample}.tab.gz"
     wildcard_constraints:
@@ -287,8 +294,8 @@ rule anchors:
         cp {params.tab_fname} {params.tab_fname}_temp
         echo "anchor_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
-        rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        rm -f {params.tab_fname}_temp
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
@@ -300,7 +307,8 @@ rule exons:
         logs_dir = lambda wildcards: f'logs/count_exons'
     input:
         gtf_fname = "reference/exons.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_exons_data/sample_{sample}.tab.gz"
     resources:
@@ -313,8 +321,8 @@ rule exons:
         cp {params.tab_fname} {params.tab_fname}_temp
         echo "exon_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
-        rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        rm -f {params.tab_fname}_temp
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
@@ -326,7 +334,8 @@ rule genes:
         logs_dir = lambda wildcards: f'logs/count_genes'
     input:
         gtf_fname = "reference/genes.gtf.gz",
-        bam_fname = "bam/{sample}.bam"
+        bam_fname = "bam/{sample}.bam",
+        bam_bai_fname = "bam/{sample}.bam.bai",
     output:
         "data/sample_genes_data/sample_{sample}.tab.gz"
     resources:
@@ -339,8 +348,8 @@ rule genes:
         cp {params.tab_fname} {params.tab_fname}_temp
         echo "gene_id\tcount" >| {params.tab_fname}
         tail -n +3 {params.tab_fname}_temp| cut -f1,7 >> {params.tab_fname}
-        rm {params.tab_fname}_temp
-        mv {params.tab_fname}.summary {params.logs_dir}
+        rm -f {params.tab_fname}_temp
+        mv -f {params.tab_fname}.summary {params.logs_dir}
         gzip -f {params.tab_fname}
         """
 
@@ -513,9 +522,9 @@ rule juan:
     output:
         "results/edgeR/juan.done"
     resources:
-        mem = config["defaults"]["mem"],
-        time = config["defaults"]["time"],
-        cores = config["defaults"]["cores"]
+        mem = config["juan"]["mem"],
+        time = config["juan"]["time"],
+        cores = config["juan"]["cores"]
     shell:
         "splicekit juan && touch results/edgeR/juan.done"
 

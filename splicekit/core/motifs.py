@@ -34,7 +34,7 @@ splice_sites_area = (-2, 6) # take -2 ... 6 around splice site (donor or accepto
 # data types
 dtypes = ["PWM"] # also CLIP
 
-# criteria is split by feature type, data read-in from "results/results_edgeR_{feature_type}_all.tab"
+# criteria is split by feature type, data from "results/edgeR/results_edgeR_{feature_type}_all.tab"
 motif_criteria = {}
 
 # (criteria_name, donor/acceptor, actual criteria)
@@ -245,10 +245,10 @@ def scanRBP_dreme():
                 upcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_up}_scanRBP.fasta"
                 downcontrol_fasta = f"results/motifs/scanRBP/fasta/{comparison}_{control_down}_scanRBP.fasta"
 
-                command = f"{splicekit.config.container} dreme -png -norc -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up}"
+                command = f"{splicekit.config.container} dreme -p {up_fasta} -n {upcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_up} -png -norc"
                 os.system(command)
 
-                command = f"{splicekit.config.container} dreme -png -norc -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down}"
+                command = f"{splicekit.config.container} dreme -p {down_fasta} -n {downcontrol_fasta} -oc results/motifs/scanRBP/{comparison}_{signal_down} -png -norc"
                 os.system(command)
     return True
 
@@ -288,6 +288,37 @@ def bootstrap_logfc(matrix_signal, matrix_control, smoothing=6, iterations=1000)
         random.shuffle(indices)
         boot()  
     return boot_values
+
+def bootstrap_logfc_fast(matrix_signal, matrix_control, smoothing=6, iterations=1000):
+    def matrix_vector(matrix):
+        matrix = np.array(matrix)
+        vector = np.mean(matrix, axis=0)
+        vector = smooth(vector, smoothing)[25:-25]
+        return vector
+
+    def boot(indices):
+        matrix_signal = master_matrix[indices == 1]
+        matrix_control = master_matrix[indices == 0]
+
+        vector_signal = matrix_vector(matrix_signal)
+        vector_control = matrix_vector(matrix_control)
+
+        sum_signal = np.sum(vector_signal)
+        sum_control = np.sum(vector_control)
+
+        if sum_control == 0 or sum_signal == 0:
+            return 0.0
+        return math.log2(sum_signal / sum_control)
+
+    master_matrix = np.array(matrix_signal + matrix_control)
+    indices = np.array([1] * len(matrix_signal) + [0] * len(matrix_control))
+
+    boot_values = [boot(indices)]
+    for _ in range(iterations):
+        np.random.shuffle(indices)
+        boot_values.append(boot(indices))
+
+    return boot_values    
 
 def plot_scanRBP():
     print(f"{module_name} plot_scanRBP | start")
@@ -334,7 +365,7 @@ def plot_scanRBP():
                 matrix_upcontrol, vector_upcontrol, rows_upcontrol = read_matrix_vector(upcontrol_fasta, dtype=dtype)
                 matrix_downcontrol, vector_downcontrol, rows_downcontrol = read_matrix_vector(downcontrol_fasta, dtype=dtype)
 
-                bootup = bootstrap_logfc(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=biterations)
+                bootup = bootstrap_logfc_fast(matrix_up, matrix_upcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_up = bootup[0]
                 if logfc_value_up!=0:
                     bootup.sort(reverse=True)
@@ -348,7 +379,7 @@ def plot_scanRBP():
                 up_file.close()
                 p_value_up = index_up/float(len(bootup))
 
-                bootdown = bootstrap_logfc(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=biterations)
+                bootdown = bootstrap_logfc_fast(matrix_down, matrix_downcontrol, smoothing=smoothing, iterations=biterations)
                 logfc_value_down = bootdown[0]
                 if logfc_value_down!=0:
                     bootdown.sort(reverse=True)
@@ -730,4 +761,3 @@ def process():
     dreme()
     make_distance()
     cluster()
-
