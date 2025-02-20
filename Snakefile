@@ -6,11 +6,10 @@ DEFAULT_CORES = config["defaults"]["cores"]
 DEFAULT_MEM = config["defaults"]["mem"]
 DEFAULT_TIME = config["defaults"]["time"]
 
-alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
-
 # parameters for featureCounts based on config
 db_library_type_insert = {"single-end":"", "paired-end":"-p "}
 db_library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}
+alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
 
 if not os.path.exists("results"):
     splicekit.setup()
@@ -19,8 +18,6 @@ if not os.path.exists("annotation/comparisons.tab"):
     splicekit.annotation()
 
 splicekit_folder = os.path.dirname(splicekit.__file__)
-
-container: "docker://ghcr.io/bedapub/splicekit:main"
 
 samples_df = pd.read_csv("samples.tab", sep="\t", comment="#")
 SAMPLES = samples_df["sample_id"].tolist()
