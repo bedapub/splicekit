@@ -175,7 +175,7 @@ rule bam_bw_cram:
         "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
-        bamCoverage --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        bamCoverage --numberOfProcessors max --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
         samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
         samtools index results/results_jbrowse/{{wildcards.sample}}.cram
         """
