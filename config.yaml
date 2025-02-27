@@ -8,27 +8,27 @@ defaults:
 
 map_fastq_single:
   cores: 8
-  mem: 40           # GB
+  mem: 8            # GB
   time: "02:00:00"  # hours
 
 map_fastq_paired:
   cores: 8
-  mem: 40           # GB
+  mem: 8            # GB
   time: "02:00:00"  # hours
 
 bam_index:
   cores: 8
-  mem: 8            # GB
+  mem: 2            # GB
   time: "02:00:00"  # hours
 
 bam_bw:
   cores: 8
-  mem: 16           # GB
+  mem: 2            # GB
   time: "02:00:00"  # hours
 
 feature_counts:
   cores: 8
-  mem: 4            # GB
+  mem: 2            # GB
   time: "01:00:00"  # hours
 
 edgeR:
