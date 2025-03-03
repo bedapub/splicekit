@@ -44,12 +44,6 @@ input_files = [
             # annotation
             "annotation/comparisons.tab",
 
-            # bam files
-            *expand("bam/{sample}.bam", sample=SAMPLES),
-
-            # bai files
-            *expand("bam/{sample}.bam.bai", sample=SAMPLES),
-
             # bw files
             *expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
 
@@ -102,9 +96,16 @@ input_files = [
             "report/index.html",  # report
 ]
 
+# mapping FASTQ -> bam?
+if config["mapping"]["perform_mapping"]:
+    for sample_id in SAMPLES:
+        input_files.append(f"bam/{sample_id}.bam")
+        input_files.append(f"bam/{sample_id}.bam.bai")
+
 # process scanRBP
 if splicekit.config.scanRBP:
     input_files.append("results/motifs/scanRBP/scanRBP.done")
+
 
 rule all:
     input:
