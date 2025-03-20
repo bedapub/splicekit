@@ -15,11 +15,12 @@ def start():
     server()
 
 def server():
-    hostname=socket.gethostname()
-    ip_addr=socket.gethostbyname(hostname)
+    hostname=config.hostname
+    ip_addr=config.ip_addr
     Handler = RangeHTTPServer.RangeRequestHandler
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", config.jbrowse2_port), Handler) as httpd:
+        print(f"{module_desc} html report at http://{ip_addr}:{config.jbrowse2_port}/report")
         print(f"{module_desc} http://{ip_addr}:{config.jbrowse2_port}/jbrowse2/?config=splicekit_data/config.json")
         httpd.serve_forever()
 

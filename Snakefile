@@ -6,11 +6,10 @@ DEFAULT_CORES = config["defaults"]["cores"]
 DEFAULT_MEM = config["defaults"]["mem"]
 DEFAULT_TIME = config["defaults"]["time"]
 
-alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
-
 # parameters for featureCounts based on config
 db_library_type_insert = {"single-end":"", "paired-end":"-p "}
 db_library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}
+alignIntronMax_text = f"--alignIntronMax {config['mapping']['alignIntronMax']}" if config["mapping"]["alignIntronMax"] is not None else ""
 
 if not os.path.exists("results"):
     splicekit.setup()
@@ -19,8 +18,6 @@ if not os.path.exists("annotation/comparisons.tab"):
     splicekit.annotation()
 
 splicekit_folder = os.path.dirname(splicekit.__file__)
-
-container: "docker://ghcr.io/bedapub/splicekit:main"
 
 samples_df = pd.read_csv("samples.tab", sep="\t", comment="#")
 SAMPLES = samples_df["sample_id"].tolist()
@@ -46,12 +43,6 @@ comps = comparisons_df.to_dict(orient='index')
 input_files = [
             # annotation
             "annotation/comparisons.tab",
-
-            # bam files
-            *expand("bam/{sample}.bam", sample=SAMPLES),
-
-            # bai files
-            *expand("bam/{sample}.bam.bai", sample=SAMPLES),
 
             # bw files
             *expand("results/results_jbrowse/{sample}.bw", sample=SAMPLES),
@@ -105,9 +96,16 @@ input_files = [
             "report/index.html",  # report
 ]
 
+# mapping FASTQ -> bam?
+if config["mapping"]["perform_mapping"]:
+    for sample_id in SAMPLES:
+        input_files.append(f"bam/{sample_id}.bam")
+        input_files.append(f"bam/{sample_id}.bam.bai")
+
 # process scanRBP
 if splicekit.config.scanRBP:
     input_files.append("results/motifs/scanRBP/scanRBP.done")
+
 
 rule all:
     input:
@@ -178,9 +176,9 @@ rule bam_bw_cram:
         "logs/bam_bw_cram/{sample}.log",
     shell:
         f"""
-        bamCoverage --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
-        samtools view -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
-        samtools index results/results_jbrowse/{{wildcards.sample}}.cram
+        bamCoverage --numberOfProcessors max --binSize 5 -b bam/{{wildcards.sample}}.bam -o results/results_jbrowse/{{wildcards.sample}}.bw -of bigwig
+        samtools view -@ {{resources.cores}} -C -T {splicekit.config.fasta_path} bam/{{wildcards.sample}}.bam -O CRAM -o results/results_jbrowse/{{wildcards.sample}}.cram
+        samtools index -@ {{resources.cores}} results/results_jbrowse/{{wildcards.sample}}.cram
         """
 
 rule junctions:
