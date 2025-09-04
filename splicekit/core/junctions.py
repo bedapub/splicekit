@@ -168,8 +168,19 @@ def detect_junctions(database, positions, cigar, read, pair=None, stats=False):
             num_junctions += 1
             cigar_left = cigar[index-1]
             cigar_right = cigar[index+1]
-            assert(cigar_left[0]==0)
-            assert(cigar_right[0]==0)
+
+            # @ very very very rare cases, it happens that there is a short insertion or deletion on the acceptor side, and there is always a match after (index+2 with type 0)
+            # examples:
+            # [(4, 12), (0, 114), *(3, 821), (1, 2), (0, 22)]
+            # [(0, 61), (3, 97), (0, 65), *(3, 7174), (2, 3), (0, 24)]
+            if cigar_right[0] in [1,2]:
+                cigar_right = cigar[index+2]
+
+            try:
+                assert(cigar_left[0]==0)
+                assert(cigar_right[0]==0)
+            except:
+                print("problems parsing cigar string part:", cigar)
             coverage_left = cigar_left[1]
             coverage_right = cigar_right[1]
             junction_size = v
