@@ -2,7 +2,7 @@ import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
-import fireducks.pandas as pd
+import pandas as pd
 from scipy.stats.stats import pearsonr
 import glob
 import math

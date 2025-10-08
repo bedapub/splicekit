@@ -1,5 +1,5 @@
 import os
-import fireducks.pandas as pd
+import pandas as pd
 import splicekit
 
 DEFAULT_CORES = config["defaults"]["cores"]
