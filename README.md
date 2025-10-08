@@ -57,6 +57,11 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Changelog<a name="changelog"></a>
 
+**v0.8**: released in October 2025
+
+* removed platform config option (now snakemake submits jobs to the cluster)
+* pandas and other minor improvements
+
 **v0.7**: released in February 2025
 
 * [Snakemake](Snakefile) version
