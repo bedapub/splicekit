@@ -134,23 +134,7 @@ def make_comparisons():
     annotation.samples = [str(el) for el in annotation.samples]
 
 def write_comparisons():
-    if splicekit.config.platform == 'SLURM':
-        job_rmats="""
-#!/bin/bash
-#SBATCH --job-name={job_name}                        # Job name
-#SBATCH --ntasks=1                                   # Number of tasks
-#SBATCH --mem=8G                                     # Allocate memory
-#SBATCH --nodes=1                                    # All tasks on one node
-#SBATCH --partition=short                            # Select queue
-#SBATCH --output=logs/rmats/{comparison_name}.out    # Output file
-#SBATCH --error=logs/rmats/{comparison_name}.err     # Error file
-
-{container} run_rmats --b1 results/rmats/{comparison_name}_test.tab --b2 results/rmats/{comparison_name}_control.tab --gtf {gtf_path} -t paired --readLength 150 --variable-read-length --allow-clipping --nthread 4 --od results/rmats/{comparison_name}_results --tmp results/rmats/{comparison_name}_temp
-        """
-
-    else:
-
-        job_rmats="""
+    job_rmats="""
 #!/bin/bash
 #BSUB -J {job_name}                        # job name
 #BSUB -n 1                                 # number of tasks
@@ -213,23 +197,7 @@ def write_comparisons():
     write_mds_job()
 
 def write_edgeR_jobs():
-    if splicekit.config.platform == 'SLURM':
-            job_edgeR="""
-#!/bin/bash
-#SBATCH --job-name={job_name}                                     # Job name
-#SBATCH --ntasks=1                                                # Number of tasks
-#SBATCH --nodes=1                                                 # All tasks on one node
-#SBATCH --mem=8G                                                  # Allocate memory
-#SBATCH --partition=short                                         # Select queue
-#SBATCH --output=logs/edgeR/{atype}/{comparison_name}.out         # Output file
-#SBATCH --error=logs/edgeR/{atype}/{comparison_name}.err          # Error file
-
-module load R
-{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {filter_low} < {core_path}/comps_edgeR.R
-    """
-
-    else:
-        job_edgeR="""
+    job_edgeR="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
 #BSUB -n 1                                              # number of tasks
@@ -332,23 +300,7 @@ ml R
     fsh_acceptor_anchors.close()
 
 def write_dexseq_jobs():
-    if splicekit.config.platform == 'SLURM':
-            job_dexseq="""
-#!/bin/bash
-#SBATCH --job-name={job_name}                                     # Job name
-#SBATCH --ntasks=1                                                # Number of tasks
-#SBATCH --nodes=1                                                 # All tasks on one node
-#SBATCH --mem=8G                                                  # Allocate memory
-#SBATCH --partition=short                                         # Select queue
-#SBATCH --output=logs/dexseq/{atype}/{comparison_name}.out         # Output file
-#SBATCH --error=logs/dexseq/{atype}/{comparison_name}.err          # Error file
-
-module load R
-{container} R --no-save --args {input_folder} {atype} {control_name} {test_name} {comparison_name} {sample_membership} {samples} < {core_path}/comps_dexseq.R
-    """
-
-    else:
-        job_dexseq="""
+    job_dexseq="""
 #!/bin/bash
 #BSUB -J {job_name}                                     # job name
 #BSUB -n 1                                              # number of tasks
@@ -392,24 +344,7 @@ ml R
     fsh_exons.close()
 
 def write_mds_job():
-    if splicekit.config.platform == 'SLURM':
-            job_mds="""
-#!/bin/bash
-#SBATCH --job-name=edgeR_mds                                      # Job name
-#SBATCH --ntasks=1                                                # Number of tasks
-#SBATCH --nodes=1                                                 # All tasks on one node
-#SBATCH --mem=8G                                                  # Allocate memory
-#SBATCH --partition=short                                         # Select queue
-#SBATCH --output=logs/edgeR/mds/mds.out         # Output file
-#SBATCH --error=logs/edgeR/mds/mds.err          # Error file
-
-module load R
-{container} R --no-save --args {input_folder} {sample_membership} {filter_low} < {core_path}/comps_edgeR_mds.R
-    """
-        
-    else:
-
-        job_mds="""
+    job_mds="""
 #!/bin/bash
 #BSUB -J mds                    # job name
 #BSUB -n 1                      # number of tasks

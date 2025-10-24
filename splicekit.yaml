@@ -8,7 +8,8 @@ dependencies:
   - deeptools
   - samtools
   - snakemake
-  - R
+  - r-base
+  - r-locfit
   - perl-app-cpanminus
   - star
   - rmats
@@ -17,5 +18,4 @@ dependencies:
   - subread>2.0.6
   - meme>5.5.1
   - pip:
-    - fireducks
     - snakemake-executor-plugin-cluster-generic
