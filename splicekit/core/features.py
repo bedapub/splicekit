@@ -194,6 +194,7 @@ def read_exons():
     count_all = len(annotation.samples)
     for sample_id in annotation.samples:
         f = gzip.open(f"data/sample_exons_data/sample_{sample_id}.tab.gz", "rt")
+        print(f"reading data/sample_exons_data/sample_{sample_id}.tab.gz")
         r = f.readline() # header
         r = f.readline()
         while r:
