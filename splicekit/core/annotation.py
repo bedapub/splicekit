@@ -56,12 +56,25 @@ class Cmd():
         self.returncode = self.process.returncode
         return output.decode("utf-8"), error.decode("utf-8")
 
+def get_bam_path(sample_id):
+    """Return the BAM file path for a sample.
+
+    If samples.tab contained a bam_file column (config.bam_column), returns
+    that per-sample path, allowing BAM files in arbitrary sub-folders.
+    Otherwise falls back to the flat {bam_path}/{sample_id}.bam convention.
+    """
+    if sample_id in annotation.bam_path_map:
+        return annotation.bam_path_map[sample_id]
+    return os.path.join(config.bam_path, f"{sample_id}.bam")
+
 def make_comparisons():
     if not os.path.exists("samples.tab"):
         return
     annotation.comparisons = []
     annotation.treatments = {}
+    annotation.bam_path_map = {}
     samples = set()
+    bam_column = getattr(config, "bam_column", "bam_file")
     f = open("samples.tab")
     r = f.readline()
     while r.startswith("#"):
@@ -80,6 +93,8 @@ def make_comparisons():
         treatment_id = data[config.treatment_column]
         separates.add(data.get(config.separate_column, ""))
         annotation.treatments.setdefault(treatment_id, []).append((sample_id, treatment_id, data.get(config.separate_column, ""), data.get(config.group_column, "")))
+        if bam_column in header and data.get(bam_column, "").strip():
+            annotation.bam_path_map[sample_id] = data[bam_column].strip()
         r = f.readline()
     f.close()
     for treatment, data in annotation.treatments.items(): # sort by sample ID
@@ -173,7 +188,7 @@ def write_comparisons():
         for rtype, rfile in [("control", control_ids), ("test", test_ids)]:
             bams = []
             for sample_id in rfile:
-                bam_fname = os.path.abspath(os.path.join(f"{splicekit.config.bam_path}", f"{sample_id}.bam"))
+                bam_fname = os.path.abspath(get_bam_path(sample_id))
                 bams.append(bam_fname)
             f_rmats = open(f"results/rmats/{comparison_name}_{rtype}.tab", "wt")
             f_rmats.write(",".join(bams))
@@ -454,7 +469,7 @@ def bam_count():
     while r:
         r = r.replace("\r", "").replace("\n", "").split("\t")
         data = dict(zip(header, r))
-        bam_fname = os.path.join(config.bam_path, data[config.sample_column]+".bam")
+        bam_fname = get_bam_path(data[config.sample_column])
         output = subprocess.check_output(f"samtools view -@ 4 -c {bam_fname}", shell=True)
         count = int(output.decode().split("\n")[0])
         print(f"splicekit | bam read counts: {data[splicekit.config.sample_column]}, bam file {bam_fname}, counts = {count}")

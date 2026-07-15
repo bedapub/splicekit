@@ -1,6 +1,7 @@
 import os
 import splicekit.config as config
 import splicekit.core as core
+import splicekit.core.annotation as annotation
 import http.server
 import socket
 import socketserver
@@ -40,6 +41,7 @@ container = config.container
 try:
     bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
 except:
+    bam_files = []
     print(f"{module_desc} no bam files found in provided bam folder")
 genome_fa = config.fasta_path
 gff_fname =  config.gff3_path
@@ -100,10 +102,14 @@ def write_sample_jobs(force_samples):
             os.mkdir(dir)
     
     # create jobs
+    # If samples.tab provides per-sample bam paths, use those; otherwise scan bam_dir.
+    if annotation.bam_path_map:
+        sample_bam_pairs = [(sid + ".bam", annotation.get_bam_path(sid)) for sid in annotation.samples]
+    else:
+        sample_bam_pairs = [(fi, bam_dir + '/' + fi) for fi in bam_files]
     bamCoverage_binSize= 3
     fsh = open(f"jobs/jobs_jbrowse/process.sh", "wt")
-    for sample in bam_files:
-        bam_fname = bam_dir +'/'+ sample
+    for sample, bam_fname in sample_bam_pairs:
         cram_fname = dirs_to_check[2] + '/'+sample.replace('.bam', '.cram')
         bigwig_fname = dirs_to_check[2] +'/'+ sample.replace('.bam', '.bw')
         if (not (os.path.exists(cram_fname) and os.path.exists(bigwig_fname))) or (force_samples == True):
