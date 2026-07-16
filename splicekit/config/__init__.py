@@ -75,3 +75,8 @@ try:
     clip
 except:
     clip = None
+
+try:
+    bam_column
+except:
+    bam_column = "bam_file"

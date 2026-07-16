@@ -57,6 +57,14 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Changelog<a name="changelog"></a>
 
+**v0.8.1**: released in July 2026
+
+* added `bam_file` column support in `samples.tab` for per-sample BAM paths (subfolder layouts)
+* new `get_bam_path(sample_id)` helper in `splicekit/core/annotation.py` — falls back to `{bam_path}/{sample_id}.bam` when no per-sample path is given
+* `exons.py`, `genes.py`, `anchors.py`: replaced `os.listdir()` BAM discovery with `annotation.samples` list + `get_bam_path()` (enables subfolder BAMs, no dir scan needed)
+* `junctions.py`, `jbrowse2.py`: same `get_bam_path()` adoption
+* default `bam_column = "bam_file"` added to config
+
 **v0.8**: released in October 2025
 
 * removed platform config option (now snakemake submits jobs to the cluster)

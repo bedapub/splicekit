@@ -7,6 +7,7 @@
 import os
 import sys
 import splicekit.config as config
+import splicekit.core.annotation as annotation
 import gzip
 
 def write_anchor_gtf():
@@ -69,7 +70,6 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     
     for anchor_type in ["donor", "acceptor"]:
         gtf_fname = f"reference/{anchor_type}_anchors.gtf.gz"
-        bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
         out_dir = f'data/sample_{anchor_type}_anchors_data'
         jobs_dir = f'jobs/count_{anchor_type}_anchors'
         logs_dir = f'logs/count_{anchor_type}_anchors'
@@ -131,14 +131,13 @@ mv {out_fname}.summary {logs_dir}/
 gzip -f {out_fname}
         """
 
-        bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
-        sample_ids = [fi.replace('.bam', '') for fi in bam_files]
+        sample_ids = annotation.samples
         header_line = '\t'.join(['anchor_id', 'count'])
         fsh = open(f"{jobs_dir}/process.sh", "wt")
         for sample in sample_ids:
             out_fname = f"{out_dir}/sample_{sample}.tab"
             job_fname = f'{jobs_dir}/{anchor_type}_anchors_{sample}.job'
-            sam_fname = f"{bam_dir}/{sample}.bam"
+            sam_fname = annotation.get_bam_path(sample)
             # cluster job
             job_out = job_anchors.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, anchor_type=anchor_type, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
             job_file = open(job_fname, "w")

@@ -6,6 +6,7 @@ import os
 import sys
 import splicekit.core as core
 import splicekit.config as config
+import splicekit.core.annotation as annotation
 import gzip
 import re
 
@@ -75,7 +76,6 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     
     gtf_fname = f"reference/genes.gtf.gz"
-    bam_dir = f"{config.bam_path}" # files inside end with <sample_id>.bam
     out_dir = f"data/sample_genes_data"
     jobs_dir = f"jobs/count_genes"
     logs_dir = f"logs/count_genes"
@@ -139,14 +139,13 @@ gzip -f {out_fname}
     gzip -f {out_fname}
     """
 
-    bam_files = [fi for fi in os.listdir(bam_dir) if fi.endswith('.bam')]
-    sample_ids = [fi.replace('.bam', '') for fi in bam_files]
+    sample_ids = annotation.samples
     header_line = '\t'.join(['gene_id', 'count'])
     fsh = open(f"{jobs_dir}/process.sh", "wt")
     for sample in sample_ids:
         out_fname = f"{out_dir}/sample_{sample}.tab"
         job_fname = f'{jobs_dir}/genes_{sample}.job'
-        sam_fname = f"{bam_dir}/{sample}.bam"
+        sam_fname = annotation.get_bam_path(sample)
         # cluster job
         job_out = job_genes.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
         job_file = open(job_fname, "w")

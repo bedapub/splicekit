@@ -62,6 +62,7 @@ splicekit.core.annotation.compounds = {}
 splicekit.core.annotation.samples = set()
 splicekit.core.annotation.comparisons = []
 splicekit.core.annotation.genes = {}
+splicekit.core.annotation.bam_path_map = {}
 splicekit.core.annotation.make_comparisons() # load existing comparisons
 
 def setup():
