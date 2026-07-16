@@ -17,7 +17,7 @@ import itertools
 import splicekit
 import splicekit.config as config
 import sys
-import fireducks.pandas as pd
+import pandas as pd
 import seaborn as sns
 import copy
 
