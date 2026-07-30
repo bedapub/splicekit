@@ -77,6 +77,27 @@ except:
     clip = None
 
 try:
+    bam_path
+    bam_path_defined = True
+except NameError:
+    bam_path_defined = False
+
+try:
+    bam_column
+    bam_column_defined = True
+except NameError:
+    bam_column_defined = False
+
+if not bam_path_defined and not bam_column_defined:
+    print(f"{module_desc} ERROR: neither bam_path nor bam_column is set in splicekit.config")
+    print(f"{module_desc} Set at least one of the following in splicekit.config:")
+    print(f"{module_desc}   bam_path = \"/path/to/bam/files\"")
+    print(f"{module_desc}     BAMs are then expected at {{bam_path}}/{{sample_id}}.bam")
+    print(f"{module_desc}   bam_column = \"bam_file\"")
+    print(f"{module_desc}     samples.tab must then have a column with this name containing the full BAM path for each sample")
+    sys.exit(1)
+
+try:
     bam_column
 except:
     bam_column = "bam_file"
