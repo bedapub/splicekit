@@ -1,0 +1,9 @@
+/* Custom brand blue, applied via theme.palette.primary: custom in mkdocs.yml --
+   mkdocs-material's built-in "blue" swatch is a fixed named color and can't be
+   pointed at an arbitrary hex value directly, so this overrides the CSS custom
+   properties it reads the header/accent color from instead. */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #3c78d7;
+  --md-primary-fg-color--light: #3c78d7;
+  --md-primary-fg-color--dark: #3c78d7;
+}
