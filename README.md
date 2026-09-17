@@ -1,21 +1,26 @@
-<picture><img src="media/splicekit_logo.png" height="30"/></picture>
+<picture><img src="media/splicekit_logo.png" height="30" alt="splicekit"/></picture>
+
 ## splicekit: an integrative toolkit for splicing analysis from short-read RNA-seq
 
-<b>splicekit</b> is a modular platform for splicing analysis from short-read RNA-seq datasets. The platform also integrates an JBrowse2 instance, [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained (one single folder) and the platform is written in Python, in a modular way.
+**splicekit** is a modular platform for splicing analysis from short-read RNA-seq datasets. It integrates a JBrowse2 instance, [pybio](https://github.com/grexor/pybio) for genomic operations and [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding studies. The whole analysis is self-contained in a single project folder, and the platform itself is written in Python, in a modular way.
 
-Check a short video presentation about splicekit (poster) at ECCB 2023 on Youtube:
+Check a short video presentation about splicekit (poster) at ECCB 2023 on YouTube:
 
-[<img src="media/splicekit_youtube.jpg" width=300>](https://youtu.be/P1m73usZ3lc?si=HBJxWOkUajObFpu1)
+[<img src="media/splicekit_youtube.jpg" width="300" alt="splicekit ECCB 2023 poster video"/>](https://youtu.be/P1m73usZ3lc?si=HBJxWOkUajObFpu1)
+
+## Try it online: expressRNA
+
+No installation needed: splicekit is integrated into [expressRNA.org](https://www.expressrna.org) and runs automatically as part of every **Differential Gene Expression** analysis on bulk RNA-seq data. Once a DGE analysis finishes, expressRNA triggers splicekit in the background and adds an **Alternative Splicing** panel with browsable, searchable junction/exon/gene-level results (FDR < 0.05), downloadable `splicekit.config`/`samples.tab`, and a linked JBrowse2 view — all in the browser, no local setup required.
 
 ## Quick start
 
-Since version 0.7, splicekit is a **Snakemake** pipeline, and there is also a Conda environment yaml file.
+Since version 0.7, splicekit is a **Snakemake** pipeline, with a Conda/micromamba environment file.
 
-```
-git clone git@github.com:bedapub/splicekit.git    # clone rep
+```bash
+git clone git@github.com:bedapub/splicekit.git    # clone repo
 cd splicekit                                      # change working directory
 
-micromamba -y create -f splicekit.yaml            # create conda env
+micromamba create -y -f splicekit.yaml            # create conda env
 micromamba activate splicekit                     # activate env
 ./install.sh                                      # install dependencies
 pip install .                                     # install splicekit
@@ -28,7 +33,7 @@ pybio homo_sapiens                                # human genome
 ./run_snakemake_slurm.sh --configfile config.yaml # OR run snakemake SLURM
 ```
 
-After snakemake finishes, you can explore results interactively running `splicekit web` and follow instructions on how to open the html reports in your browser.
+After Snakemake finishes, explore the results interactively by running `splicekit web` and following the printed instructions to open the HTML report in your browser.
 
 <details>
 <summary>Installing splicekit directly from the GitHub repository</summary>
@@ -41,13 +46,13 @@ pip install git+https://github.com/bedapub/splicekit.git@main
 <details>
 <summary>If you already have aligned reads in BAM files</summary>
 
-All you need is `samples.tab` (note that this is a <b>TAB delimited file</b>) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
+All you need is `samples.tab` (note that this is a **TAB delimited** file) and `splicekit.config` in one folder (check [datasets](datasets) for examples).
 
-You can easily download and prepare the reference genome (e.g. `$ pybio genome homo_sapiens`).
+You can easily download and prepare the reference genome (e.g. `pybio genome homo_sapiens`).
 
-Finally run `./run_snakemake_[local/slurm].sh --configfile config.yaml` (inside the folder with `samples.tab` and `splicekit.config`).
+Finally, run `./run_snakemake_[local/slurm].sh --configfile config.yaml` inside the folder with `samples.tab` and `splicekit.config`.
 
-Easiest is to check [datasets](datasets) examples to see how the above files look like and also to check scripts if you need to map reads from FASTQ files with `pybio`.
+The easiest way to see what these files should look like is to check the [datasets](datasets) examples — they also include scripts for mapping FASTQ files to BAM with `pybio` if you need that step too.
 </details>
 
 ## Documentation
