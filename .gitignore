@@ -25,3 +25,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# mkdocs build output (regenerate with: docs/build_docs.sh)
+site/

@@ -1,0 +1,62 @@
+site_name: splicekit
+site_description: splicekit - splicing analysis from short-read RNA-seq
+site_url: https://bedapub.github.io/splicekit/
+repo_url: https://github.com/bedapub/splicekit
+repo_name: bedapub/splicekit
+docs_dir: docs/pages
+site_dir: docs/site
+
+theme:
+  name: material
+  logo: assets/splicekit_logo.png
+  favicon: assets/splicekit_logo.png
+  palette:
+    # "custom" + extra_css below, rather than a built-in named color, so the
+    # header/accent can be the exact brand blue (#3c78d7) instead of whichever
+    # named material swatch happens to be closest.
+    - scheme: default
+      primary: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - Guides:
+      - Configuration: configuration.md
+      - Sample annotation: samples.md
+      - Features & count tables: features.md
+      - Differential splicing (edgeR): edgeR.md
+      - Motif & RNA-binding analysis: motifs.md
+      - juDGE plots: judge.md
+      - Additional analyses: additional-analyses.md
+      - Exploring results: jbrowse2.md
+  - Reference:
+      - Command-line reference: cli.md
+      - File formats: fileformats.md
+      - Genomic coordinates: coordinates.md
+      - Dependencies: dependencies.md
+  - About: about.md
