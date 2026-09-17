@@ -52,10 +52,15 @@ Easiest is to check [datasets](datasets) examples to see how the above files loo
 
 ## Documentation
 
-* [PDF reference manual](https://github.com/bedapub/splicekit/raw/main/docs/splicekit_docs.pdf)
-* [Google docs](https://docs.google.com/document/d/15ZRCeK8xyg3klLktZSHZ9k__Xw_BZRn_Q-J4W35JNnQ/edit?usp=sharing) of the above PDF (comment if you like)
+Full documentation, including installation, a quick start guide, and reference pages for configuration, sample annotation, features, edgeR, motif/scanRBP analysis, juDGE plots, additional analyses, JBrowse2 and the command line, is available at:
+
+* [bedapub.github.io/splicekit](https://bedapub.github.io/splicekit/)
 
 ## Changelog<a name="changelog"></a>
+
+**Docs**: released in September 2026
+
+* migrated documentation to a mkdocs-material site ([bedapub.github.io/splicekit](https://bedapub.github.io/splicekit/)), retiring the PDF/Google Docs manual
 
 **v0.8.1**: released in July 2026
 
