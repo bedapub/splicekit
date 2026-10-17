@@ -1,6 +1,6 @@
 # splicekit: splicing analysis from short-read RNA-seq
 
-![splicekit](assets/splicekit_logo.png)
+<img src="assets/splicekit_logo.png" alt="splicekit" style="width:260px; max-width:70%; display:block; margin:0.5em 0 1.5em;">
 
 **splicekit** is a modular, integrative platform for splicing analysis of short-read RNA-seq data. Starting from aligned reads (BAM files) and a sample annotation table, it defines test-vs-control comparisons, builds per-feature count tables (junctions, anchors, exons, genes), and runs a battery of splicing analyses — differential feature usage with edgeR, motif and RNA-protein binding enrichment, junction-vs-gene expression comparisons and more — all self-contained in a single project folder. It integrates [pybio](https://github.com/grexor/pybio) for genome operations, [scanRBP](https://github.com/grexor/scanRBP) for RNA-protein binding, and ships its own [JBrowse2](https://jbrowse.org/jb2/) instance for browsing results.
 
