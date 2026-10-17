@@ -119,7 +119,7 @@ def exons():
     os.system(f"rm -f jobs/count_exons/*.job > /dev/null 2>&1")
     os.system(f"rm -f logs/count_exons/* > /dev/null 2>&1")
     splicekit.core.exons.write_exons_gtf()
-    splicekit.core.exons.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand, long_reads=config.long_reads)
+    splicekit.core.exons.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand)
     if splicekit.config.platform=="cluster":
         os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_exons/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "splicekit | features | exons | submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | exons | processing next 10"; done; echo "[exons] processing complete"')
     if splicekit.config.platform=="desktop":
@@ -140,7 +140,7 @@ def genes():
     os.system(f"rm -f jobs/count_genes/*.job > /dev/null 2>&1")
     os.system(f"rm -f logs/count_genes/* > /dev/null 2>&1")
     splicekit.core.genes.write_genes_gtf()
-    splicekit.core.genes.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand, long_reads=config.long_reads)
+    splicekit.core.genes.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand)
     if splicekit.config.platform=="cluster":
         os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_genes/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[genes] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | genes | processing next 10"; done; echo "splicekit | features | genes | processing complete"')
     if splicekit.config.platform=="desktop":
@@ -166,7 +166,7 @@ def anchors():
         os.system(f"rm -f jobs/count_{anchor_type}_anchors/*.job > /dev/null 2>&1")
         os.system(f"rm -f logs/count_{anchor_type}_anchors/* > /dev/null 2>&1")
     splicekit.core.anchors.write_anchor_gtf()
-    splicekit.core.anchors.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand, long_reads=config.long_reads) # takes ~ 10 minutes
+    splicekit.core.anchors.write_jobs_featureCounts(library_type=config.library_type, library_strand=config.library_strand) # takes ~ 10 minutes
     if splicekit.config.platform=="cluster":
         os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_donor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | donor_anchors | processing next 10"; done; echo "splicekit | features | donor_anchors | processing complete"')
         os.system('export BSUB_QUIET=Y; jobs=( $(ls jobs/count_acceptor_anchors/*.job) ); g=10; for((i=0; i < ${#jobs[@]}; i+=g)); do part=( "${jobs[@]:i:g}" ); for job_fname in ${part[*]}; do echo "[features] submitted $job_fname"; bsub -M 8GB -K < ${job_fname} & done; wait; echo "splicekit | features | acceptor_anchors | processing next 10"; done; echo "splicekit | features | acceptor_anchors | processing complete"')

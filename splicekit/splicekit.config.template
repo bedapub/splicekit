@@ -1,7 +1,6 @@
 study_name = "descriptive short study name"
 library_type = "paired-end" # ["paired-end", "single-end"]
 library_strand = "NONE" # ["SECOND_READ_TRANSCRIPTION_STRAND", "FIRST_READ_TRANSCRIPTION_STRAND", "SINGLE_STRAND", "SINGLE_REVERSE", "NONE"] "{{ cookiecutter.rna_library_strand }}" 
-long_reads = False # True for long-read BAMs (Nanopore direct RNA / cDNA, PacBio Iso-Seq; e.g. minimap2 -ax splice): featureCounts runs in long-read mode (-L)
 
 # edgeR results filtering
 edgeR_FDR_thr = 0.05
