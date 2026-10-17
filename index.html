@@ -1076,7 +1076,7 @@
 
 
 <h1 id="splicekit-splicing-analysis-from-short-read-rna-seq">splicekit: splicing analysis from short-read RNA-seq<a class="headerlink" href="#splicekit-splicing-analysis-from-short-read-rna-seq" title="Permanent link">&para;</a></h1>
-<p><img alt="splicekit" src="assets/splicekit_logo.png" /></p>
+<p><img src="assets/splicekit_logo.png" alt="splicekit" style="width:260px; max-width:70%; display:block; margin:0.5em 0 1.5em;"></p>
 <p><strong>splicekit</strong> is a modular, integrative platform for splicing analysis of short-read RNA-seq data. Starting from aligned reads (BAM files) and a sample annotation table, it defines test-vs-control comparisons, builds per-feature count tables (junctions, anchors, exons, genes), and runs a battery of splicing analyses — differential feature usage with edgeR, motif and RNA-protein binding enrichment, junction-vs-gene expression comparisons and more — all self-contained in a single project folder. It integrates <a href="https://github.com/grexor/pybio">pybio</a> for genome operations, <a href="https://github.com/grexor/scanRBP">scanRBP</a> for RNA-protein binding, and ships its own <a href="https://jbrowse.org/jb2/">JBrowse2</a> instance for browsing results.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># create and activate the conda/micromamba environment, install splicekit</span>
 micromamba<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>-f<span class="w"> </span>splicekit.yaml
