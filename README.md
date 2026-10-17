@@ -69,7 +69,7 @@ Full documentation, including installation, a quick start guide, and reference p
 * `exons.py`: the desktop job no longer hard-codes `-p`, paired-end mode follows `library_type`
 * first long-read dataset analysed through [expressRNA](https://expressrna.org): A549 hypoxia vs normoxia, Nanopore direct RNA, 3 vs 3
 
-**Docs**: released in September 2026
+**v0.8.2**: released in September 2026
 
 * migrated documentation to a mkdocs-material site ([bedapub.github.io/splicekit](https://bedapub.github.io/splicekit/)), retiring the PDF/Google Docs manual
 
