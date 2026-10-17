@@ -26,6 +26,9 @@ Possible values:
 
 For unstranded data, use `"NONE"`. For paired-end stranded data, the most common value is `"SECOND_READ_TRANSCRIPTION_STRAND"`, meaning the second read of the pair maps in the transcript direction and the first read maps in the reverse direction. For stranded single-end sequencing, `"SINGLE_STRAND"` means the reads map in the transcript direction, and `"SINGLE_REVERSE"` means the reads map on the opposite strand of the transcripts.
 
+**`long_reads`**, default = `False`
+Set to `True` for long-read BAMs (Oxford Nanopore direct RNA or cDNA, PacBio Iso-Seq), typically aligned with `minimap2 -ax splice`. featureCounts then runs in long-read mode (`-L`: no read-length or CIGAR limits, reads rather than fragments are counted) for exon, gene and anchor counts. Junction detection reads the CIGAR of every primary alignment and works for any read length. Use `library_type = "single-end"`; for Nanopore direct RNA the reads are the transcript strand, so `library_strand = "SINGLE_STRAND"`. Expect fewer significant events than from a short-read run of typical depth: a direct-RNA run yields a few million reads, and splicing statistics are driven by junction and exon counts.
+
 **`edgeR_FDR_thr`**, default = `0.05`
 FDR threshold used to filter `results/results_edgeR_{feature_type}.tab`. See [Differential splicing (edgeR)](edgeR.md).
 
