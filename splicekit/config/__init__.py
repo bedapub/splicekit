@@ -9,10 +9,6 @@ import socket
 module_desc = "splicekit | config |"
 splicekit.verbose and print(f"{module_desc} loading")
 
-# defaults for optional parameters (a splicekit.config written for an older
-# version does not have them); the config file below overrides
-long_reads = False # Nanopore / PacBio BAMs: featureCounts -L, see docs/configuration
-
 if os.path.exists("splicekit.config"):
     config_lines = open("splicekit.config").readlines()
     for cline in config_lines:

@@ -51,7 +51,7 @@ def write_exons_gtf():
     gtf_file.close()
     exons_file.close()
 
-def write_jobs_featureCounts(library_type='single-end', library_strand='NONE', long_reads=False):
+def write_jobs_featureCounts(library_type='single-end', library_strand='NONE'):
     """
     * write a featureCounts job per comparison for every bam file
     * input parameters: library_type:str and library_strand:str
@@ -59,12 +59,6 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE', l
     """
 
     library_type_insert = {"single-end":"", "paired-end":"-p "}[library_type]
-    if long_reads:
-        # Nanopore / PacBio BAMs: featureCounts -L switches to long-read counting
-        # (no read-length / CIGAR-operation limits, reads instead of fragments,
-        # single-threaded by design); -p does not apply to long reads.
-        library_type_insert = "-L "
-    threads = 1 if long_reads else 12
     library_strand_insert = {"FIRST_READ_TRANSCRIPTION_STRAND":1, "SINGLE_STRAND":1, "SINGLE_REVERSE":1, "SECOND_READ_TRANSCRIPTION_STRAND":2, "NONE":0}[library_strand]
     
     gtf_fname = f"reference/exons.gtf.gz"
@@ -82,7 +76,7 @@ def write_jobs_featureCounts(library_type='single-end', library_strand='NONE', l
 #SBATCH --output={logs_dir}/exons_{sample_id}.out     # Output file
 #SBATCH --error={logs_dir}/exons_{sample_id}.err      # Error file
     
-{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T {threads} -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
 # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
 # next, we are only interested in the 1st and 7th column (exon_id and count)
 cp {out_fname} {out_fname}_temp
@@ -106,7 +100,7 @@ gzip -f {out_fname}
 #BSUB -o {logs_dir}/exons_{sample_id}.out # Output file
 #BSUB -e {logs_dir}/exons_{sample_id}.err # Error file    
     
-{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T {threads} -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
 # featureCount outputs command as first line of file, get rid of this first line and replace header for further parsing
 # next, we are only interested in the 1st and 7th column (exon_id and count)
 cp {out_fname} {out_fname}_temp
@@ -121,7 +115,7 @@ gzip -f {out_fname}
     """
 
     job_sh_exons="""
-{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T {threads} -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
+{container} featureCounts {library_type_insert}-s {library_strand_insert} -M -O -T 12 -F GTF -f -t exon -g exon_id -a {gtf_fname} -o {out_fname} {sam_fname} 
 cp {out_fname} {out_fname}_temp
 echo "{header_line}" >| {out_fname}
 tail -n +3 {out_fname}_temp| cut -f1,7 >> {out_fname} 
@@ -138,11 +132,11 @@ gzip -f {out_fname}
         job_fname = f'{jobs_dir}/exons_{sample}.job'
         sam_fname = annotation.get_bam_path(sample)
         # cluster job
-        job_out = job_exons.format(container=config.container, threads=threads, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
+        job_out = job_exons.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sample_id=sample, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
         job_file = open(job_fname, "w")
         job_file.write(job_out)
         job_file.close()
         # shell job
-        job_out = job_sh_exons.format(container=config.container, threads=threads, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
+        job_out = job_sh_exons.format(container=config.container, library_type_insert=library_type_insert, library_strand_insert=library_strand_insert, gtf_fname=gtf_fname, sam_fname=sam_fname, out_fname=out_fname, logs_dir=logs_dir, header_line=header_line)
         fsh.write(job_out)
     fsh.close()
