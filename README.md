@@ -63,6 +63,14 @@ Full documentation, including installation, a quick start guide, and reference p
 
 ## Changelog<a name="changelog"></a>
 
+**v0.8.3**: released in October 2026
+
+* long-read support: splicekit now runs on Nanopore (direct RNA, cDNA) and PacBio Iso-Seq BAMs, e.g. from `minimap2 -ax splice`
+* `junctions.py`: junction detection walks the CIGAR by reference coordinate instead of looking up per-base query positions — exact next to insertions/deletions and on hard-clipped alignments (both routine in long reads, where the old parser shifted junctions or raised `IndexError`); results on short reads are unchanged. Secondary alignments are skipped so a read's junctions are counted once
+* new config option `long_reads = True` (default `False`): exon, gene and anchor featureCounts jobs run in long-read mode (`-L`, single-threaded as required by featureCounts)
+* `exons.py`: the desktop (shell) job no longer hard-codes `-p`; paired-end mode now follows `library_type` like in the cluster job
+* first long-read dataset analysed through [expressRNA](https://expressrna.org): A549 hypoxia vs normoxia, Nanopore direct RNA (RNA004), 3 vs 3
+
 **Docs**: released in September 2026
 
 * migrated documentation to a mkdocs-material site ([bedapub.github.io/splicekit](https://bedapub.github.io/splicekit/)), retiring the PDF/Google Docs manual

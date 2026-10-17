@@ -161,37 +161,33 @@ def detect_junctions(database, positions, cigar, read, pair=None, stats=False):
         strand = {"+":"-", "-":"+"}[strand]
     if pair==None and splicekit.config.library_strand=="SINGLE_REVERSE": # single-end reverse direction, reverse read strand
         strand = {"+":"-", "-":"+"}[strand]
-    cpos = 0
+    # Walk the CIGAR and track the reference coordinate directly: M/=/X, D and N
+    # consume reference bases, I/S/H/P do not. At an N operation ref_pos is the
+    # first intronic base, so the junction is (ref_pos-1, ref_pos+v): last
+    # exonic base (5'ss) and first exonic base after the intron (3'ss), 0-based,
+    # identical to the previous query-position lookup for short reads. Unlike
+    # the lookup this is exact when an insertion or deletion sits right next to
+    # the junction and when the alignment is hard-clipped -- both routine in
+    # long-read (Nanopore / PacBio, minimap2) BAMs, where the old code either
+    # shifted the junction by the deletion length or raised IndexError.
+    # `positions` (read.get_reference_positions) is no longer needed; it is kept
+    # in the signature for compatibility and may be None.
+    ref_pos = read.reference_start
     num_junctions = 0
+    aligned_ops = (0, 7, 8)   # M, =, X
     for index, (t, v) in enumerate(cigar):
         if t==3:
             num_junctions += 1
-            cigar_left = cigar[index-1]
-            cigar_right = cigar[index+1]
-
-            # @ very very very rare cases, it happens that there is a short insertion or deletion on the acceptor side, and there is always a match after (index+2 with type 0)
-            # examples:
-            # [(4, 12), (0, 114), *(3, 821), (1, 2), (0, 22)]
-            # [(0, 61), (3, 97), (0, 65), *(3, 7174), (2, 3), (0, 24)]
-            if cigar_right[0] in [1,2]:
-                cigar_right = cigar[index+2]
-
-            try:
-                assert(cigar_left[0]==0)
-                assert(cigar_right[0]==0)
-            except:
-                print("problems parsing cigar string part:", cigar)
-            coverage_left = cigar_left[1]
-            coverage_right = cigar_right[1]
-            junction_size = v
-            if stats: # memory
-                junctions_stats.append((junction_size, coverage_left, coverage_right))
-            junction_start = positions[cpos-1] # last nucleotide of exon, 5'ss
-            junction_stop = junction_start + v + 1  # first nucleotide of exon, 3'ss
+            if stats: # memory: intron size and the nearest aligned block on each side
+                coverage_left = next((cv for ct, cv in reversed(cigar[:index]) if ct in aligned_ops), 0)
+                coverage_right = next((cv for ct, cv in cigar[index+1:] if ct in aligned_ops), 0)
+                junctions_stats.append((v, coverage_left, coverage_right))
+            junction_start = ref_pos - 1 # last nucleotide of exon, 5'ss
+            junction_stop = ref_pos + v  # first nucleotide of exon, 3'ss
             junction_key = (chr, strand, junction_start, junction_stop)
             database[junction_key] = database.get(junction_key, 0) + 1
-        if t in [0, 1, 4, 5, 6, 7, 8, 9]:
-            cpos += v
+        if t in (0, 2, 3, 7, 8):
+            ref_pos += v
     return num_junctions
 
 def plot_hist(data, label):
@@ -225,7 +221,13 @@ def parse_sam(sam_fname, out_fname, output_bed=False):
         count += 1
         if count%1e5==0:
             print(f"{module_name} processed %.1f M alignments from {sam_fname}" % (count/1e6))
-        cigar = read.cigar
+        # secondary alignments would count the same read's junctions twice (long-read
+        # aligners emit them by default); unmapped records have no CIGAR at all
+        if read.is_unmapped or read.is_secondary:
+            continue
+        cigar = read.cigartuples
+        if not cigar:
+            continue
         pair = None
         if read.is_paired:
             if read.is_read1:
@@ -237,7 +239,7 @@ def parse_sam(sam_fname, out_fname, output_bed=False):
         if 3 not in cigar_types_present:
             continue
         cigar_dist[len(cigar)] = cigar_dist.get(len(cigar), 0) + 1
-        read_junctions = detect_junctions(database, read.get_reference_positions(full_length=True), cigar, read, pair=pair)
+        read_junctions = detect_junctions(database, None, cigar, read, pair=pair)
         read_junctions_dist[read_junctions] = read_junctions_dist.get(read_junctions, 0) + 1
 
     junction_results = []
